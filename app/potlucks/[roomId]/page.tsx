@@ -15,6 +15,8 @@ import {
   Editable,
   EditablePreview,
   EditableInput,
+  Spinner,
+  Text,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
@@ -164,7 +166,10 @@ export default function Room() {
           </Editable>
         )}
         {loadingRoom ? (
-          "loading..."
+          <>
+          <Spinner mb={2} />
+          <Text>loading...</Text>
+          </>
         ) : (
           <>
             people:
@@ -197,12 +202,6 @@ export default function Room() {
                 </Button>
               </InputRightElement>
             </InputGroup>
-          </>
-        )}
-        {loadingRoom ? (
-          "loading..."
-        ) : (
-          <>
             foods:
             <List>
               {Boolean(data?.foods?.length) &&
@@ -216,27 +215,27 @@ export default function Room() {
                   </ListItem>
                 ))}
             </List>
+            <InputGroup size="sm" maxWidth={"xs"}>
+              <Input
+                placeholder="add food"
+                pr="4.5rem"
+                value={foodInput}
+                onChange={(e) => setFoodInput(e.target.value)}
+                onKeyDown={handleEnterKeyPress(addFood)}
+              />
+              <InputRightElement width="4.5rem">
+                <Button
+                  onClick={addFood}
+                  h="1.75rem"
+                  size="xs"
+                  disabled={!foodInput}
+                >
+                  add food
+                </Button>
+              </InputRightElement>
+            </InputGroup>
           </>
         )}
-        <InputGroup size="sm" maxWidth={"xs"}>
-          <Input
-            placeholder="add food"
-            pr="4.5rem"
-            value={foodInput}
-            onChange={(e) => setFoodInput(e.target.value)}
-            onKeyDown={handleEnterKeyPress(addFood)}
-          />
-          <InputRightElement width="4.5rem">
-            <Button
-              onClick={addFood}
-              h="1.75rem"
-              size="xs"
-              disabled={!foodInput}
-            >
-              add food
-            </Button>
-          </InputRightElement>
-        </InputGroup>
       </Container>
     </main>
   );
