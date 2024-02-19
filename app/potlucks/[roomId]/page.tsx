@@ -1,5 +1,5 @@
 "use client";
-import { useAddData } from "@/firebase/firestore/addData";
+// import { useAddData } from "@/firebase/firestore/addData";
 import { useSnapshot } from "@/firebase/firestore/onSnapshot";
 import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
@@ -17,6 +17,7 @@ import {
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
+import { useRealtimeData } from "@/firebase/firestore/brains";
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
   () =>
   import("@/components/SetPreviousRooms").then(
@@ -77,11 +78,16 @@ function handleKeyPress<T = Element>(f: () => void, key: string){
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
-  const { addData, loading: loadingNewFood } = useAddData();
-  const { data, loading: loadingRoom } = useSnapshot<IRoomObj>(
-    "rooms",
-    roomId as string
-  );
+  // const { addData, loading: loadingNewFood } = useAddData();
+  // const { data, loading: loadingRoom } = useSnapshot<IRoomObj>(
+  //   "rooms",
+  //   roomId as string
+  // );
+  const {
+    data,
+    loading: loadingRoom,
+    updateData: addData,
+  } = useRealtimeData<IRoomObj>("rooms", roomId);
 
   const [userInput, setUserInput] = useState("");
   const [foodInput, setFoodInput] = useState("");
@@ -97,26 +103,25 @@ export default function Room() {
   };
 
   const addFood = async () => {
-    await addData("rooms", roomId as string, {
+    setFoodInput("");
+    await addData({
       ...data,
       foods: [
         ...(data?.foods || []),
         { id: nanoid(5), title: foodInput } as Food,
       ],
     });
-
-    setFoodInput("");
   };
+
   const addUser = async () => {
-    await addData("rooms", roomId as string, {
+    setUserInput("");
+    await addData({
       ...data,
       users: [
         ...(data?.users || []),
         { id: nanoid(5), name: userInput } as User,
       ],
     });
-
-    setUserInput("");
   };
 
   const claimFood = (id: string) => {
@@ -132,7 +137,7 @@ export default function Room() {
       };
     });
 
-    addData("rooms", roomId as string, {
+    addData({
       ...data,
       foods: newFoods,
     });
