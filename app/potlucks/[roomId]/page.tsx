@@ -167,7 +167,7 @@ export default function Room() {
           "loading..."
         ) : (
           <>
-            users:
+            people:
             <List>
               {Boolean(data?.users?.length) &&
                 data?.users.map((user) => (
