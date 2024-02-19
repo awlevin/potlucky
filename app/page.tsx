@@ -44,7 +44,6 @@ export default function Home() {
     <main>
       <Container
         maxW="md"
-        marginTop={16}
         alignItems={"center"}
         display="flex"
         flexDirection={"column"}

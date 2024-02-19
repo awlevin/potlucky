@@ -13,10 +13,21 @@ const useSetPrevRooms = ({ roomId, roomName, ready }: ISetPrevRoomProps) => {
   useEffect(() => {
     if (ready) {
       setPrevRooms((prevRooms) => {
-        if (prevRooms.some((room) => room.id === roomId)) {
-          return prevRooms;
+        // see if the room is already in local storage...
+        const room = prevRooms.find((room) => room.id === roomId);
+
+        if (!room) {
+          // if not, add it
+          return [...prevRooms, { id: roomId, name: roomName || roomId }];
+        } else {
+          // if it is, update it to make sure it has the right room name
+          return prevRooms.map((prevRoom) => {
+            if (prevRoom.id === roomId) {
+              return { ...prevRoom, name: roomName };
+            }
+            return prevRoom;
+          });
         }
-        return [...prevRooms, { id: roomId, name: roomName || roomId }];
       });
     }
   }, [roomId, roomName, ready]);

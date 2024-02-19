@@ -2,7 +2,7 @@
 import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import {
   Container,
   Button,
@@ -12,11 +12,15 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Editable,
+  EditablePreview,
+  EditableInput,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { useRealtimeData } from "@/firebase/firestore/brains";
 import { handleEnterKeyPress } from "@/utils/misc";
+import { EditableControls } from "@/utils/EditableControls";
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
   () =>
   import("@/components/SetPreviousRooms").then(
@@ -120,6 +124,12 @@ export default function Room() {
     });
   };
 
+  const changeRoomName = (newName: string) => {
+    addData({
+      name: newName
+    })
+  }
+
   return (
     <main>
       <SetPrevRooms
@@ -133,7 +143,26 @@ export default function Room() {
         alignItems="center"
         maxWidth="lg"
       >
-        <Heading>{data?.name || data?.id}</Heading>
+        {data && (
+          <Editable
+            defaultValue={data?.name || data?.id}
+            textAlign={"center"}
+            as="h1"
+            fontWeight="bold"
+            fontSize="x-large"
+            onSubmit={changeRoomName}
+          >
+            {(props) => (
+              <>
+                <EditablePreview
+                  _hover={{ color: "gray.500", cursor: "pointer" }}
+                />
+                <EditableInput />
+                <EditableControls {...props} />
+              </>
+            )}
+          </Editable>
+        )}
         {loadingRoom ? (
           "loading..."
         ) : (
