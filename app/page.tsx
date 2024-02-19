@@ -68,7 +68,7 @@ export default function Home() {
         </Button>
 
         <Heading as="h3" size="md" mb={4}>
-          Previous Rooms
+          Previous Potlucks
         </Heading>
         <PreviousRoomsList />
       </Container>

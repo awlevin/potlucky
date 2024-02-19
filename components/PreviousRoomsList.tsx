@@ -10,7 +10,7 @@ export const PreviousRoomsList = () => {
   return prevRooms.length > 0 ? (
     <>
       <List>
-        {prevRooms.map((room) => (
+        {prevRooms.reverse().map((room) => (
           <ListItem key={room.id}>
             <Button
               onClick={() => router.push(`/potlucks/${room.id}`)}
