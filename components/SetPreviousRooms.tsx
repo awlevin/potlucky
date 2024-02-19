@@ -19,7 +19,7 @@ const useSetPrevRooms = ({ roomId, roomName, ready }: ISetPrevRoomProps) => {
         return [...prevRooms, { id: roomId, name: roomName || roomId }];
       });
     }
-  }, [roomName]);
+  }, [roomId, roomName, ready]);
 };
 
 // this is jank b/c we can't use the localstorage hook in the server so we dynamically import this component
