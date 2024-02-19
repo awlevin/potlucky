@@ -4,19 +4,29 @@ import { useSnapshot } from "@/firebase/firestore/onSnapshot";
 import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
-import { KeyboardEvent, useEffect, useState } from "react";
+import { KeyboardEvent, useState } from "react";
 import {
   Container,
   Button,
   Heading,
   List,
   ListItem,
-  Box,
   Input,
   InputGroup,
   InputRightElement,
 } from "@chakra-ui/react";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import dynamic from "next/dynamic";
+import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
+const SetPrevRooms = dynamic<ISetPrevRoomProps>(
+  () =>
+  import("@/components/SetPreviousRooms").then(
+      // this feels jank but it made typescript stop complaining
+      (mod) => mod.default as React.ComponentType<ISetPrevRoomProps>
+    ),
+  {
+    ssr: false,
+  }
+);
 
 type User = {
   id: string;
@@ -53,43 +63,6 @@ export interface IPrevRoom {
   id: string;
 }
 
-const TEST_FOODS: Food[] = [
-  { id: "", title: "Salad", type: "appetizer" },
-  { id: "", title: "Chicken wings", type: "entree" },
-  { id: "", title: "Chocolate cake", type: "dessert" },
-];
-const getRandFood = () => ({
-  ...TEST_FOODS[Math.floor(Math.random() * TEST_FOODS.length)],
-  id: nanoid(5),
-});
-
-const TEST_USERS: User[] = [
-  {
-    id: nanoid(5),
-    name: "Aaron",
-    color: "lightgray",
-    lastActive: new Date(),
-    isActive: false,
-    dateJoined: new Date(),
-  },
-  {
-    id: nanoid(5),
-    name: "Matt",
-    color: "lightgray",
-    lastActive: new Date(),
-    isActive: false,
-    dateJoined: new Date(),
-  },
-  {
-    id: nanoid(5),
-    name: "James",
-    color: "lightgray",
-    lastActive: new Date(),
-    isActive: false,
-    dateJoined: new Date(),
-  },
-];
-
 export function handleEnterKeyPress<T = Element>(f: () => void){
   return handleKeyPress<T>(f, "Enter")
 }
@@ -109,18 +82,6 @@ export default function Room() {
     "rooms",
     roomId as string
   );
-
-  const [_, setPrevRooms] = useLocalStorage<IPrevRoom[]>("prevRooms", []);
-  useEffect(() => {
-    if (!!data) {
-      setPrevRooms((prevRooms) => {
-        if (prevRooms.some((room) => room.id === roomId)) {
-          return prevRooms;
-        }
-        return [...prevRooms, { id: roomId, name: data.name || data.id }];
-      });
-    }
-  }, [data]);
 
   const [userInput, setUserInput] = useState("");
   const [foodInput, setFoodInput] = useState("");
@@ -177,10 +138,13 @@ export default function Room() {
     });
   };
 
-  console.log({ userInput, foodInput })
-
   return (
     <main>
+      <SetPrevRooms
+        ready={!!data}
+        roomId={roomId}
+        roomName={data?.name || ""}
+      />
       <Container
         display="flex"
         flexDirection="column"

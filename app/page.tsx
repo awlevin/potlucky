@@ -2,9 +2,9 @@
 import { useAddData } from "@/firebase/firestore/addData";
 import { nanoid } from 'nanoid'
 import { useRouter } from "next/navigation";
-import { Container, Button, Heading, List, ListItem } from '@chakra-ui/react'
-import { useLocalStorage } from "@uidotdev/usehooks";
-import { IPrevRoom } from "./potlucks/[roomId]/page";
+import { Container, Button, Heading } from '@chakra-ui/react'
+import dynamic from "next/dynamic";
+const PreviousRoomsList = dynamic(() => import("@/components/PreviousRoomsList"), { ssr: false });
 
 const FUN_SLUGS = [
   "pumpkin",
@@ -30,8 +30,7 @@ export default function Home() {
       foods: [],
     }
     const roomId = `${getFunSlug()}-${getFunSlug()}-${nanoid(5)}`;
-    const { result, error } = await addData('rooms', roomId, data)
-    console.log({ result, error })
+    const { error } = await addData('rooms', roomId, data)
 
     if (error) {
       return console.error(error)
@@ -40,7 +39,6 @@ export default function Home() {
     }
   }
 
-  const [prevRooms] = useLocalStorage<IPrevRoom[]>("prevRooms", []);
 
   return (
     <main>
@@ -60,24 +58,7 @@ export default function Home() {
         <Button onClick={onNewRoomClick} disabled={loading} mb={16}>
           {loading ? "loading" : "new potluck"}
         </Button>
-        {prevRooms.length > 0 && (
-          <>
-            <Heading as="h3" size="md" mb={4}>
-              Previous Rooms
-            </Heading>
-            <List>
-              <ListItem>
-                {prevRooms.map((room) => (
-                  <ListItem key={room.id}>
-                    <Button onClick={() => router.push(`/potlucks/${room.id}`)} size={"xs"}>
-                      {room.name}
-                    </Button>
-                  </ListItem>
-                ))}
-              </ListItem>
-            </List>
-          </>
-        )}
+        <PreviousRoomsList />
       </Container>
     </main>
   );
