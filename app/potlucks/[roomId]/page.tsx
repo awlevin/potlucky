@@ -1,10 +1,8 @@
 "use client";
-// import { useAddData } from "@/firebase/firestore/addData";
-import { useSnapshot } from "@/firebase/firestore/onSnapshot";
 import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
-import { KeyboardEvent, useState } from "react";
+import { useState } from "react";
 import {
   Container,
   Button,
@@ -18,6 +16,7 @@ import {
 import dynamic from "next/dynamic";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { useRealtimeData } from "@/firebase/firestore/brains";
+import { handleEnterKeyPress } from "@/utils/misc";
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
   () =>
   import("@/components/SetPreviousRooms").then(
@@ -59,30 +58,8 @@ interface IRoomObj {
   foods: Food[];
 }
 
-export interface IPrevRoom {
-  name: string;
-  id: string;
-}
-
-export function handleEnterKeyPress<T = Element>(f: () => void){
-  return handleKeyPress<T>(f, "Enter")
-}
-
-function handleKeyPress<T = Element>(f: () => void, key: string){
-  return (e: KeyboardEvent<T>) => {
-      if(e.key === key){
-          f()
-      }
-  }
-}
-
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
-  // const { addData, loading: loadingNewFood } = useAddData();
-  // const { data, loading: loadingRoom } = useSnapshot<IRoomObj>(
-  //   "rooms",
-  //   roomId as string
-  // );
   const {
     data,
     loading: loadingRoom,
