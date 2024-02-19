@@ -4,7 +4,7 @@ import { useSnapshot } from "@/firebase/firestore/onSnapshot";
 import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { KeyboardEvent, useEffect, useState } from "react";
 import {
   Container,
   Button,
@@ -89,6 +89,18 @@ const TEST_USERS: User[] = [
     dateJoined: new Date(),
   },
 ];
+
+export function handleEnterKeyPress<T = Element>(f: () => void){
+  return handleKeyPress<T>(f, "Enter")
+}
+
+function handleKeyPress<T = Element>(f: () => void, key: string){
+  return (e: KeyboardEvent<T>) => {
+      if(e.key === key){
+          f()
+      }
+  }
+}
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -202,14 +214,10 @@ export default function Room() {
                 pr="4.5rem"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
+                onKeyDown={handleEnterKeyPress(addUser)}
               />
               <InputRightElement width="4.5rem">
-                <Button
-                  onClick={addUser}
-                  h="1.75rem"
-                  size="xs"
-                  disabled={true}
-                >
+                <Button onClick={addUser} h="1.75rem" size="xs" disabled={true}>
                   add user
                 </Button>
               </InputRightElement>
@@ -241,6 +249,7 @@ export default function Room() {
             pr="4.5rem"
             value={foodInput}
             onChange={(e) => setFoodInput(e.target.value)}
+            onKeyDown={handleEnterKeyPress(addFood)}
           />
           <InputRightElement width="4.5rem">
             <Button
