@@ -5,7 +5,17 @@ import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Container, Button, Heading, List, ListItem } from '@chakra-ui/react'
+import {
+  Container,
+  Button,
+  Heading,
+  List,
+  ListItem,
+  Box,
+  Input,
+  InputGroup,
+  InputRightElement,
+} from "@chakra-ui/react";
 import { useLocalStorage } from "@uidotdev/usehooks";
 
 type User = {
@@ -53,36 +63,32 @@ const getRandFood = () => ({
   id: nanoid(5),
 });
 
-  const TEST_USERS: User[] = [
-    {
-      id: nanoid(5),
-      name: "Aaron",
-      color: "lightgray",
-      lastActive: new Date(),
-      isActive: false,
-      dateJoined: new Date(),
-    },
-    {
-      id: nanoid(5),
-      name: "Matt",
-      color: "lightgray",
-      lastActive: new Date(),
-      isActive: false,
-      dateJoined: new Date(),
-    },
-    {
-      id: nanoid(5),
-      name: "James",
-      color: "lightgray",
-      lastActive: new Date(),
-      isActive: false,
-      dateJoined: new Date(),
-    },
-  ];
-const getRandUser = () => ({
-  ...TEST_USERS[Math.floor(Math.random() * TEST_USERS.length)],
-  id: nanoid(5), // do this dynamically
-});
+const TEST_USERS: User[] = [
+  {
+    id: nanoid(5),
+    name: "Aaron",
+    color: "lightgray",
+    lastActive: new Date(),
+    isActive: false,
+    dateJoined: new Date(),
+  },
+  {
+    id: nanoid(5),
+    name: "Matt",
+    color: "lightgray",
+    lastActive: new Date(),
+    isActive: false,
+    dateJoined: new Date(),
+  },
+  {
+    id: nanoid(5),
+    name: "James",
+    color: "lightgray",
+    lastActive: new Date(),
+    isActive: false,
+    dateJoined: new Date(),
+  },
+];
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -92,43 +98,53 @@ export default function Room() {
     roomId as string
   );
 
-  const [_, setPrevRooms] = useLocalStorage<IPrevRoom[]>(
-    "prevRooms",
-    []
-  );
+  const [_, setPrevRooms] = useLocalStorage<IPrevRoom[]>("prevRooms", []);
   useEffect(() => {
     if (!!data) {
       setPrevRooms((prevRooms) => {
-        if (prevRooms.some(room => room.id === roomId)) {
+        if (prevRooms.some((room) => room.id === roomId)) {
           return prevRooms;
         }
-        return [...prevRooms, {id: roomId, name: data.name || data.id}];
+        return [...prevRooms, { id: roomId, name: data.name || data.id }];
       });
     }
-  }, [data])
+  }, [data]);
+
+  const [userInput, setUserInput] = useState("");
+  const [foodInput, setFoodInput] = useState("");
 
   const [currUser, setCurrUser] = useState<IRoomObj["users"][0]>();
   const claimUser = (id: string) => {
     if (currUser?.id === id) {
       setCurrUser(undefined);
     } else {
-      const foundUser = data?.users?.find(u => u.id === id);
+      const foundUser = data?.users?.find((u) => u.id === id);
       setCurrUser(foundUser);
     }
   };
 
-  const addFood = () => {
-    addData("rooms", roomId as string, {
+  const addFood = async () => {
+    await addData("rooms", roomId as string, {
       ...data,
-      foods: [...(data?.foods || []), getRandFood()],
+      foods: [
+        ...(data?.foods || []),
+        { id: nanoid(5), title: foodInput } as Food,
+      ],
     });
-  }
-  const addUser = () => {
-    addData("rooms", roomId as string, {
+
+    setFoodInput("");
+  };
+  const addUser = async () => {
+    await addData("rooms", roomId as string, {
       ...data,
-      users: [...(data?.users || []), getRandUser()],
+      users: [
+        ...(data?.users || []),
+        { id: nanoid(5), name: userInput } as User,
+      ],
     });
-  }
+
+    setUserInput("");
+  };
 
   const claimFood = (id: string) => {
     if (!currUser) {
@@ -147,11 +163,18 @@ export default function Room() {
       ...data,
       foods: newFoods,
     });
-  }
+  };
+
+  console.log({ userInput, foodInput })
 
   return (
     <main>
-      <Container display="flex" flexDirection="column" alignItems="center">
+      <Container
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        maxWidth="lg"
+      >
         <Heading>{data?.name || data?.id}</Heading>
         {loadingRoom ? (
           "loading..."
@@ -173,9 +196,24 @@ export default function Room() {
                   </ListItem>
                 ))}
             </List>
-            <Button onClick={addUser} size="xs">
-              add user
-            </Button>
+            <InputGroup size="sm" maxWidth={"xs"}>
+              <Input
+                placeholder="add user"
+                pr="4.5rem"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+              />
+              <InputRightElement width="4.5rem">
+                <Button
+                  onClick={addUser}
+                  h="1.75rem"
+                  size="xs"
+                  disabled={true}
+                >
+                  add user
+                </Button>
+              </InputRightElement>
+            </InputGroup>
           </>
         )}
         {loadingRoom ? (
@@ -197,9 +235,24 @@ export default function Room() {
             </List>
           </>
         )}
-        <Button onClick={addFood} size="xs">
-          add food
-        </Button>
+        <InputGroup size="sm" maxWidth={"xs"}>
+          <Input
+            placeholder="add food"
+            pr="4.5rem"
+            value={foodInput}
+            onChange={(e) => setFoodInput(e.target.value)}
+          />
+          <InputRightElement width="4.5rem">
+            <Button
+              onClick={addFood}
+              h="1.75rem"
+              size="xs"
+              disabled={!foodInput}
+            >
+              add food
+            </Button>
+          </InputRightElement>
+        </InputGroup>
       </Container>
     </main>
   );
