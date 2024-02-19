@@ -1,4 +1,4 @@
-import { IPrevRoom } from "@/app/potlucks/[roomId]/page";
+import { IPrevRoom } from "@/utils/misc";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useEffect } from "react";
 

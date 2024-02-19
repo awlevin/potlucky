@@ -1,7 +1,7 @@
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { IPrevRoom } from "../app/potlucks/[roomId]/page";
 import { useRouter } from "next/navigation";
 import { Button, Heading, List, ListItem } from '@chakra-ui/react'
+import { IPrevRoom } from "@/utils/misc";
 
 export const PreviousRoomsList = () => {
   const [prevRooms] = useLocalStorage<IPrevRoom[]>("prevRooms", []);
