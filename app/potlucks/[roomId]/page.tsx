@@ -1,11 +1,12 @@
 "use client";
 import { useAddData } from "@/firebase/firestore/addData";
-import { useGetDocument } from "@/firebase/firestore/getData";
 import { useSnapshot } from "@/firebase/firestore/onSnapshot";
 import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Container, Button, Heading, List, ListItem } from '@chakra-ui/react'
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 type User = {
   id: string;
@@ -31,8 +32,15 @@ type Food = {
 };
 
 interface IRoomObj {
+  id: string;
+  name: string;
   users: User[];
   foods: Food[];
+}
+
+export interface IPrevRoom {
+  name: string;
+  id: string;
 }
 
 const TEST_FOODS: Food[] = [
@@ -77,17 +85,27 @@ const getRandUser = () => ({
 });
 
 export default function Room() {
-  // const router = useRouter();
-  const { roomId } = useParams();
-  // const { getDocument, data, loading: loadingRoom } = useGetDocument<IRoomObj>();
+  const { roomId } = useParams<{ roomId: string }>();
   const { addData, loading: loadingNewFood } = useAddData();
-  // useEffect(() => {
-  //   getDocument("rooms", roomId as string);
-  // }, []);
   const { data, loading: loadingRoom } = useSnapshot<IRoomObj>(
     "rooms",
     roomId as string
   );
+
+  const [_, setPrevRooms] = useLocalStorage<IPrevRoom[]>(
+    "prevRooms",
+    []
+  );
+  useEffect(() => {
+    if (!!data) {
+      setPrevRooms((prevRooms) => {
+        if (prevRooms.some(room => room.id === roomId)) {
+          return prevRooms;
+        }
+        return [...prevRooms, {id: roomId, name: data.name || data.id}];
+      });
+    }
+  }, [data])
 
   const [currUser, setCurrUser] = useState<IRoomObj["users"][0]>();
   const claimUser = (id: string) => {
@@ -133,50 +151,56 @@ export default function Room() {
 
   return (
     <main>
-      hi! you made it to {roomId}
-      {loadingRoom ? (
-        "loading..."
-      ) : (
-        <div>
-          users:
-          <ul>
-            {Boolean(data?.users?.length) &&
-              data?.users.map((user) => (
-                <li
-                  key={user.id}
-                  onClick={() => claimUser(user.id)}
-                  style={{
-                    backgroundColor:
-                      currUser?.id === user.id ? "green" : "inherit",
-                  }}
-                >
-                  {user.name}
-                </li>
-              ))}
-          </ul>
-        </div>
-      )}
-      {loadingRoom ? (
-        "loading..."
-      ) : (
-        <div>
-          foods:
-          <ul>
-            {Boolean(data?.foods?.length) &&
-              data?.foods.map((food) => (
-                <li key={food.id} onClick={() => claimFood(food.id)}>
-                  {Boolean(food.claimedBy) ? "✅" : "❌"} {food.title}{" "}
-                  {food.claimedBy &&
-                    ` - ${
-                      data?.users?.find((u) => u.id === food.claimedBy)?.name // TODO this is hacky and ugly
-                    }`}
-                </li>
-              ))}
-          </ul>
-        </div>
-      )}
-      <button onClick={addFood}>add food</button>
-      <button onClick={addUser}>add user</button>
+      <Container display="flex" flexDirection="column" alignItems="center">
+        <Heading>{data?.name || data?.id}</Heading>
+        {loadingRoom ? (
+          "loading..."
+        ) : (
+          <>
+            users:
+            <List>
+              {Boolean(data?.users?.length) &&
+                data?.users.map((user) => (
+                  <ListItem
+                    key={user.id}
+                    onClick={() => claimUser(user.id)}
+                    style={{
+                      backgroundColor:
+                        currUser?.id === user.id ? "green" : "inherit",
+                    }}
+                  >
+                    {user.name}
+                  </ListItem>
+                ))}
+            </List>
+            <Button onClick={addUser} size="xs">
+              add user
+            </Button>
+          </>
+        )}
+        {loadingRoom ? (
+          "loading..."
+        ) : (
+          <>
+            foods:
+            <List>
+              {Boolean(data?.foods?.length) &&
+                data?.foods.map((food) => (
+                  <ListItem key={food.id} onClick={() => claimFood(food.id)}>
+                    {Boolean(food.claimedBy) ? "✅" : "❌"} {food.title}{" "}
+                    {food.claimedBy &&
+                      ` - ${
+                        data?.users?.find((u) => u.id === food.claimedBy)?.name // TODO this is hacky and ugly
+                      }`}
+                  </ListItem>
+                ))}
+            </List>
+          </>
+        )}
+        <Button onClick={addFood} size="xs">
+          add food
+        </Button>
+      </Container>
     </main>
   );
 }

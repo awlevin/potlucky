@@ -1,8 +1,10 @@
 'use client'
-import styles from "./page.module.css";
 import { useAddData } from "@/firebase/firestore/addData";
 import { nanoid } from 'nanoid'
 import { useRouter } from "next/navigation";
+import { Container, Button, Heading, List, ListItem } from '@chakra-ui/react'
+import { useLocalStorage } from "@uidotdev/usehooks";
+import { IPrevRoom } from "./potlucks/[roomId]/page";
 
 const FUN_SLUGS = [
   "pumpkin",
@@ -38,12 +40,45 @@ export default function Home() {
     }
   }
 
+  const [prevRooms] = useLocalStorage<IPrevRoom[]>("prevRooms", []);
+
   return (
-    <main className={styles.main}>
-      <button onClick={onNewRoomClick} disabled={loading}>
-        {loading ? "loading" : "new room"}
-      </button>
-      <button>join room</button>
+    <main>
+      <Container
+        maxW="md"
+        marginTop={16}
+        alignItems={"center"}
+        display="flex"
+        flexDirection={"column"}
+      >
+        <Heading as="h1" size="xl" mb={4}>
+          Welcome to EZPotluck
+        </Heading>
+        <Heading as="h2" size="md" mb={6}>
+          The easiest way to organize a potluck!
+        </Heading>
+        <Button onClick={onNewRoomClick} disabled={loading} mb={16}>
+          {loading ? "loading" : "new potluck"}
+        </Button>
+        {prevRooms.length > 0 && (
+          <>
+            <Heading as="h3" size="md" mb={4}>
+              Previous Rooms
+            </Heading>
+            <List>
+              <ListItem>
+                {prevRooms.map((room) => (
+                  <ListItem key={room.id}>
+                    <Button onClick={() => router.push(`/potlucks/${room.id}`)} size={"xs"}>
+                      {room.name}
+                    </Button>
+                  </ListItem>
+                ))}
+              </ListItem>
+            </List>
+          </>
+        )}
+      </Container>
     </main>
   );
 }
