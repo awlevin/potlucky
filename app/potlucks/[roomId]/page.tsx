@@ -18,6 +18,7 @@ import {
   Text,
   useToast,
   IconButton,
+  Collapse,
 } from "@chakra-ui/react";
 import { DeleteIcon, CheckIcon } from "@chakra-ui/icons"
 import dynamic from "next/dynamic";
@@ -76,10 +77,12 @@ export default function Room() {
 
   const [userInput, setUserInput] = useState("");
   const [foodInput, setFoodInput] = useState("");
+  const [hasClaimedUserBefore, setHasClaimedUserBefore] = useState(false);
   const toast = useToast();
 
   const [currUser, setCurrUser] = useState<IRoomObj["users"][0]>();
   const claimUser = (id: string) => {
+    setHasClaimedUserBefore(true);
     if (currUser?.id === id) {
       setCurrUser(undefined);
     } else {
@@ -195,9 +198,13 @@ export default function Room() {
           </>
         ) : (
           <>
-            <Text fontWeight="medium" fontSize="medium" mb={1}>
-              people:
-            </Text>
+            {
+              <Collapse in={!hasClaimedUserBefore}>
+                <Text fontWeight="light" fontSize="xs" mb={1}>
+                  click a user to get started
+                </Text>
+              </Collapse>
+            }
             <UserList
               data={data}
               claimUser={claimUser}
