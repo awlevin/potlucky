@@ -2,11 +2,10 @@
 import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Container,
   Button,
-  Heading,
   List,
   ListItem,
   Input,
@@ -17,10 +16,13 @@ import {
   EditableInput,
   Spinner,
   Text,
+  useToast,
+  IconButton,
 } from "@chakra-ui/react";
+import { DeleteIcon, CheckIcon } from "@chakra-ui/icons"
 import dynamic from "next/dynamic";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
-import { useRealtimeData } from "@/firebase/firestore/brains";
+import { WithId, useRealtimeData } from "@/firebase/firestore/brains";
 import { handleEnterKeyPress } from "@/utils/misc";
 import { EditableControls } from "@/utils/EditableControls";
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
@@ -74,6 +76,7 @@ export default function Room() {
 
   const [userInput, setUserInput] = useState("");
   const [foodInput, setFoodInput] = useState("");
+  const toast = useToast();
 
   const [currUser, setCurrUser] = useState<IRoomObj["users"][0]>();
   const claimUser = (id: string) => {
@@ -84,6 +87,22 @@ export default function Room() {
       setCurrUser(foundUser);
     }
   };
+
+  const removeUser = (id: string) => {
+    if (currUser?.id === id) {
+      setCurrUser(undefined);
+    }
+    addData({
+      ...data,
+      users: data?.users?.filter((u) => u.id !== id),
+      foods: data?.foods?.map((food) => {
+        if (food.claimedBy === id) {
+          return { ...food, claimedBy: null };
+        }
+        return food;
+      }),
+    });
+  }
 
   const addFood = async () => {
     setFoodInput("");
@@ -109,7 +128,11 @@ export default function Room() {
 
   const claimFood = (id: string) => {
     if (!currUser) {
-      console.error("Must claim a user to claim a food");
+      toast({
+        description: "Pick a user first you silly little goofball",
+        status: "error",
+        isClosable: true,
+      })
       return;
     }
 
@@ -167,28 +190,21 @@ export default function Room() {
         )}
         {loadingRoom ? (
           <>
-          <Spinner mb={2} />
-          <Text>loading...</Text>
+            <Spinner mb={2} />
+            <Text>loading...</Text>
           </>
         ) : (
           <>
-            people:
-            <List>
-              {Boolean(data?.users?.length) &&
-                data?.users.map((user) => (
-                  <ListItem
-                    key={user.id}
-                    onClick={() => claimUser(user.id)}
-                    style={{
-                      backgroundColor:
-                        currUser?.id === user.id ? "green" : "inherit",
-                    }}
-                  >
-                    {user.name}
-                  </ListItem>
-                ))}
-            </List>
-            <InputGroup size="sm" maxWidth={"xs"}>
+            <Text fontWeight="medium" fontSize="medium" mb={1}>
+              people:
+            </Text>
+            <UserList
+              data={data}
+              claimUser={claimUser}
+              currUser={currUser}
+              removeUser={removeUser}
+            />
+            <InputGroup size="sm" maxWidth={"xs"} mb={6}>
               <Input
                 placeholder="add user"
                 pr="4.5rem"
@@ -240,3 +256,95 @@ export default function Room() {
     </main>
   );
 }
+
+const UserList = ({
+  data,
+  claimUser,
+  currUser,
+  removeUser,
+}: {
+  data: WithId<IRoomObj> | null;
+  claimUser: (id: string) => void;
+  currUser: User | undefined;
+  removeUser: (id: string) => void;
+}) => {
+  return (
+    <List display="flex" flexDirection="row" alignItems="center" mb={2} maxWidth={"md"} flexWrap={"wrap"} justifyContent={"space-around"}>
+      {Boolean(data?.users?.length) &&
+        data?.users.map((user) => (
+          <UserItem
+            key={user.id}
+            user={user}
+            claimUser={claimUser}
+            isSelectedUser={currUser?.id === user.id}
+            removeUser={removeUser}
+          />
+        ))}
+    </List>
+  );
+};
+
+const UserItem = ({
+  user,
+  claimUser,
+  removeUser,
+  isSelectedUser
+}: {
+  user: User;
+  claimUser: (id: string) => void;
+  removeUser: (id: string) => void;
+  isSelectedUser: boolean,
+}) => {
+
+  const [isClicked, setIsClicked] = useState(false);
+  useEffect(() => {
+    if (isClicked) {
+      setTimeout(() => {
+        setIsClicked(false);
+      }, 2000)
+    }
+  }, [isClicked])
+
+  const handleDelete = () => {
+    if (!isClicked) {
+      setIsClicked(true);
+      toast({
+        title: `click again to remove ${user.name}`,
+        description: `they'll prob take it personally`,
+        status: "warning",
+        position: "top-right"
+      })
+    } else {
+      removeUser(user.id);
+    }
+  }
+  const toast = useToast();
+
+  return (
+    <ListItem
+      key={user.id}
+      onClick={() => claimUser(user.id)}
+      backgroundColor={isSelectedUser ? "green.100" : "gray.100"}
+      display="flex"
+      mr={5}
+      rounded={20}
+      px={2}
+      py={1}
+      alignItems="center"
+      _hover={{ backgroundColor: isSelectedUser ? "green.200" : "gray.200" }}
+      role={"button"}
+      mt={2}
+    >
+      <Text fontSize="small">{user.name}</Text>
+      <IconButton
+        aria-label={`remove ${user.name}`}
+        size="xs"
+        variant="text"
+        onClick={handleDelete}
+        _hover={{ backgroundColor: "red.100" }}
+      >
+        {isClicked ? <CheckIcon /> : <DeleteIcon />}
+      </IconButton>
+    </ListItem>
+  );
+};

@@ -13,7 +13,7 @@ import {
 } from "firebase/firestore";
 import firebaseApp from '../config'; // Adjust this path as necessary
 
-type WithId<T> = T & { id: string };
+export type WithId<T> = T & { id: string };
 export const useRealtimeData = <T extends DocumentData>(coltn: string, docId: string) => {
   const db = getFirestore(firebaseApp);
   const [data, setData] = useState<WithId<T> | null>(null);
