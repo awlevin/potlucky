@@ -2,7 +2,7 @@
 import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { MouseEventHandler, useEffect, useState } from "react";
 import {
   Container,
   Button,
@@ -19,6 +19,7 @@ import {
   useToast,
   IconButton,
   Collapse,
+  ScaleFade,
 } from "@chakra-ui/react";
 import { DeleteIcon, CheckIcon } from "@chakra-ui/icons"
 import dynamic from "next/dynamic";
@@ -78,6 +79,7 @@ export default function Room() {
   const [userInput, setUserInput] = useState("");
   const [foodInput, setFoodInput] = useState("");
   const [hasClaimedUserBefore, setHasClaimedUserBefore] = useState(false);
+  const [hasClaimedFoodBefore, setHasClaimedFoodBefore] = useState(false);
   const toast = useToast();
 
   const [currUser, setCurrUser] = useState<IRoomObj["users"][0]>();
@@ -146,6 +148,9 @@ export default function Room() {
       };
     });
 
+    if (!hasClaimedFoodBefore) {
+      setHasClaimedFoodBefore(true);
+    }
     addData({
       ...data,
       foods: newFoods,
@@ -201,7 +206,9 @@ export default function Room() {
             {
               <Collapse in={!hasClaimedUserBefore}>
                 <Text fontWeight="light" fontSize="xs" mb={1}>
-                  click a user to get started
+                  {!data?.users.length
+                    ? "add a friend to get started"
+                    : "tap a friend to continue"}
                 </Text>
               </Collapse>
             }
@@ -213,22 +220,32 @@ export default function Room() {
             />
             <InputGroup size="sm" maxWidth={"xs"} mb={6}>
               <Input
-                placeholder="add user"
+                placeholder="add friends here 🫂"
                 pr="4.5rem"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={handleEnterKeyPress(addUser)}
               />
-              <InputRightElement width="4.5rem">
+              <InputRightElement width="6.5rem">
                 <Button onClick={addUser} h="1.75rem" size="xs" disabled={true}>
-                  add user
+                  add friend
                 </Button>
               </InputRightElement>
             </InputGroup>
             foods:
-            <List>
-              {Boolean(data?.foods?.length) &&
-                data?.foods.map((food) => (
+            <Collapse
+              in={hasClaimedUserBefore && !hasClaimedFoodBefore}
+              transition={{ enter: { delay: 0.5 } }}
+            >
+              <Text fontWeight="light" fontSize="xs" mb={1}>
+                {!data?.foods.length
+                  ? "now add a food"
+                  : "now click a food to claim it"}
+              </Text>
+            </Collapse>
+            <Collapse in={Boolean(data?.foods?.length)}>
+              <List>
+                {data?.foods.map((food) => (
                   <ListItem key={food.id} onClick={() => claimFood(food.id)}>
                     {Boolean(food.claimedBy) ? "✅" : "❌"} {food.title}{" "}
                     {food.claimedBy &&
@@ -237,16 +254,17 @@ export default function Room() {
                       }`}
                   </ListItem>
                 ))}
-            </List>
+              </List>
+            </Collapse>
             <InputGroup size="sm" maxWidth={"xs"}>
               <Input
-                placeholder="add food"
+                placeholder="add food here 😋"
                 pr="4.5rem"
                 value={foodInput}
                 onChange={(e) => setFoodInput(e.target.value)}
                 onKeyDown={handleEnterKeyPress(addFood)}
               />
-              <InputRightElement width="4.5rem">
+              <InputRightElement width="6.5rem">
                 <Button
                   onClick={addFood}
                   h="1.75rem"
@@ -276,18 +294,28 @@ const UserList = ({
   removeUser: (id: string) => void;
 }) => {
   return (
-    <List display="flex" flexDirection="row" alignItems="center" mb={2} maxWidth={"md"} flexWrap={"wrap"} justifyContent={"space-around"}>
-      {Boolean(data?.users?.length) &&
-        data?.users.map((user) => (
-          <UserItem
-            key={user.id}
-            user={user}
-            claimUser={claimUser}
-            isSelectedUser={currUser?.id === user.id}
-            removeUser={removeUser}
-          />
+    <Collapse in={Boolean(data?.users?.length)}>
+      <List
+        display="flex"
+        flexDirection="row"
+        alignItems="center"
+        mb={2}
+        maxWidth={"md"}
+        flexWrap={"wrap"}
+        justifyContent={"space-around"}
+      >
+        {data?.users.map((user) => (
+          <ScaleFade key={user.id} in={!!user} unmountOnExit>
+            <UserItem
+              user={user}
+              claimUser={claimUser}
+              isSelectedUser={currUser?.id === user.id}
+              removeUser={removeUser}
+            />
+          </ScaleFade>
         ))}
-    </List>
+      </List>
+    </Collapse>
   );
 };
 
@@ -312,7 +340,10 @@ const UserItem = ({
     }
   }, [isClicked])
 
-  const handleDelete = () => {
+  // @ts-ignore
+  const handleDelete = (e) => {
+    // @ts-ignore
+    e.stopPropagation();
     if (!isClicked) {
       setIsClicked(true);
       toast({
@@ -348,7 +379,7 @@ const UserItem = ({
         size="xs"
         variant="text"
         onClick={handleDelete}
-        _hover={{ backgroundColor: "red.100" }}
+        _hover={{ backgroundColor: isSelectedUser ? "green.300" : "red.100" }}
       >
         {isClicked ? <CheckIcon /> : <DeleteIcon />}
       </IconButton>
