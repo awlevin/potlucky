@@ -15,15 +15,15 @@ const useSetPrevRooms = ({ roomId, roomName, ready }: ISetPrevRoomProps) => {
       setPrevRooms((prevRooms) => {
         // see if the room is already in local storage...
         const room = prevRooms.find((room) => room.id === roomId);
-
+        const updatedRoomName = roomName || roomId;
         if (!room) {
           // if not, add it
-          return [...prevRooms, { id: roomId, name: roomName || roomId }];
+          return [...prevRooms, { id: roomId, name: updatedRoomName }];
         } else {
           // if it is, update it to make sure it has the right room name
           return prevRooms.map((prevRoom) => {
             if (prevRoom.id === roomId) {
-              return { ...prevRoom, name: roomName };
+              return { ...prevRoom, name: updatedRoomName };
             }
             return prevRoom;
           });
