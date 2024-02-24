@@ -20,6 +20,7 @@ import {
   IconButton,
   Collapse,
   ScaleFade,
+  Tooltip,
 } from "@chakra-ui/react";
 import { DeleteIcon, CheckIcon } from "@chakra-ui/icons"
 import dynamic from "next/dynamic";
@@ -203,15 +204,24 @@ export default function Room() {
           </>
         ) : (
           <>
-            {
-              <Collapse in={!hasClaimedUserBefore}>
+            <>
+              <Collapse
+                in={!hasClaimedUserBefore && !data?.users.length}
+                transition={{ exit: { delay: 0.5 } }}
+              >
                 <Text fontWeight="light" fontSize="xs" mb={1}>
-                  {!data?.users.length
-                    ? "add a friend to get started"
-                    : "tap a friend to continue"}
+                  add a friend to get started
                 </Text>
               </Collapse>
-            }
+              <Collapse
+                in={!hasClaimedUserBefore && Boolean(data?.users.length)}
+                transition={{ enter: { delay: 0.5 } }}
+              >
+                <Text fontWeight="light" fontSize="xs" mb={1}>
+                  now tap them to continue
+                </Text>
+              </Collapse>
+            </>
             <UserList
               data={data}
               claimUser={claimUser}
@@ -346,17 +356,10 @@ const UserItem = ({
     e.stopPropagation();
     if (!isClicked) {
       setIsClicked(true);
-      toast({
-        title: `click again to remove ${user.name}`,
-        description: `they'll prob take it personally`,
-        status: "warning",
-        position: "top-right"
-      })
     } else {
       removeUser(user.id);
     }
   }
-  const toast = useToast();
 
   return (
     <ListItem
@@ -374,15 +377,22 @@ const UserItem = ({
       mt={2}
     >
       <Text fontSize="small">{user.name}</Text>
-      <IconButton
-        aria-label={`remove ${user.name}`}
-        size="xs"
-        variant="text"
-        onClick={handleDelete}
-        _hover={{ backgroundColor: isSelectedUser ? "green.300" : "red.100" }}
+      <Tooltip
+        label={"confirm delete"}
+        isDisabled={!isClicked}
+        hasArrow
+        placement="top"
       >
-        {isClicked ? <CheckIcon /> : <DeleteIcon />}
-      </IconButton>
+        <IconButton
+          aria-label={`remove ${user.name}`}
+          size="xs"
+          variant="text"
+          onClick={handleDelete}
+          _hover={{ backgroundColor: isSelectedUser ? "green.300" : "red.100" }}
+        >
+          {isClicked ? <CheckIcon /> : <DeleteIcon />}
+        </IconButton>
+      </Tooltip>
     </ListItem>
   );
 };
