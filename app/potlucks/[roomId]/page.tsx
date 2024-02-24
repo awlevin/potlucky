@@ -28,6 +28,7 @@ import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { WithId, useRealtimeData } from "@/firebase/firestore/brains";
 import { handleEnterKeyPress } from "@/utils/misc";
 import { EditableControls } from "@/utils/EditableControls";
+import { useLocalStorage } from "@uidotdev/usehooks";
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
   () =>
   import("@/components/SetPreviousRooms").then(
@@ -164,6 +165,22 @@ export default function Room() {
     })
   }
 
+  const [hasCompletedOnboardingBefore, setHasCompletedOnboardingBefore] =
+    useLocalStorage("hasCompletedOnboardingBefore", false);
+  const isOnboardingComplete = hasClaimedUserBefore && hasClaimedFoodBefore;
+  useEffect(() => {
+    if (isOnboardingComplete && !hasCompletedOnboardingBefore) {
+      toast({
+        title: "yay!! you did it! 🎉🎉🎉",
+        description: "you're a potlucking pro! have fun out there 🥳🥳🥳",
+        status: "success",
+        isClosable: true,
+        position: "top",
+      })
+      setHasCompletedOnboardingBefore(true);
+    }
+  }, [isOnboardingComplete, hasCompletedOnboardingBefore])
+
   return (
     <main>
       <SetPrevRooms
@@ -204,24 +221,26 @@ export default function Room() {
           </>
         ) : (
           <>
-            <>
-              <Collapse
-                in={!hasClaimedUserBefore && !data?.users.length}
-                transition={{ exit: { delay: 0.5 } }}
-              >
-                <Text fontWeight="light" fontSize="xs" mb={1}>
-                  add a friend to get started
-                </Text>
-              </Collapse>
-              <Collapse
-                in={!hasClaimedUserBefore && Boolean(data?.users.length)}
-                transition={{ enter: { delay: 0.5 } }}
-              >
-                <Text fontWeight="light" fontSize="xs" mb={1}>
-                  now tap them to continue
-                </Text>
-              </Collapse>
-            </>
+            {!hasCompletedOnboardingBefore && (
+              <>
+                <Collapse
+                  in={!hasClaimedUserBefore && !data?.users.length}
+                  transition={{ exit: { delay: 0.5 } }}
+                >
+                  <Text fontWeight="light" fontSize="xs" mb={1}>
+                    add a friend to get started. you have friends right?
+                  </Text>
+                </Collapse>
+                <Collapse
+                  in={!hasClaimedUserBefore && Boolean(data?.users.length)}
+                  transition={{ enter: { delay: 0.5 } }}
+                >
+                  <Text fontWeight="light" fontSize="xs" mb={1}>
+                    now tap them to continue
+                  </Text>
+                </Collapse>
+              </>
+            )}
             <UserList
               data={data}
               claimUser={claimUser}
@@ -244,13 +263,29 @@ export default function Room() {
             </InputGroup>
             foods:
             <Collapse
-              in={hasClaimedUserBefore && !hasClaimedFoodBefore}
+              in={
+                hasClaimedUserBefore &&
+                !hasClaimedFoodBefore &&
+                Boolean(!data?.foods.length) && 
+                !hasCompletedOnboardingBefore
+              }
+              transition={{ enter: { delay: 0.5 }, exit: { delay: 0.5 } }}
+            >
+              <Text fontWeight="light" fontSize="xs" mb={1}>
+                now add a food plz
+              </Text>
+            </Collapse>
+            <Collapse
+              in={
+                hasClaimedUserBefore &&
+                !hasClaimedFoodBefore &&
+                Boolean(data?.foods.length) &&
+                !hasCompletedOnboardingBefore
+              }
               transition={{ enter: { delay: 0.5 } }}
             >
               <Text fontWeight="light" fontSize="xs" mb={1}>
-                {!data?.foods.length
-                  ? "now add a food"
-                  : "now click a food to claim it"}
+                now tap the food to claim it!
               </Text>
             </Collapse>
             <Collapse in={Boolean(data?.foods?.length)}>
