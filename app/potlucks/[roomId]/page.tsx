@@ -111,6 +111,13 @@ export default function Room() {
     });
   }
 
+  const removeFood= (id: string) => {
+    addData({
+      ...data,
+      foods: data?.foods?.filter((food) => food.id !== id),
+    });
+  }
+
   const addFood = async () => {
     setFoodInput("");
     await addData({
@@ -136,7 +143,7 @@ export default function Room() {
   const claimFood = (id: string) => {
     if (!currUser) {
       toast({
-        description: "Pick a user first you silly little goofball",
+        description: "pick a user first you silly little goofball",
         status: "error",
         isClosable: true,
       })
@@ -266,7 +273,7 @@ export default function Room() {
               in={
                 hasClaimedUserBefore &&
                 !hasClaimedFoodBefore &&
-                Boolean(!data?.foods.length) && 
+                Boolean(!data?.foods.length) &&
                 !hasCompletedOnboardingBefore
               }
               transition={{ enter: { delay: 0.5 }, exit: { delay: 0.5 } }}
@@ -289,15 +296,30 @@ export default function Room() {
               </Text>
             </Collapse>
             <Collapse in={Boolean(data?.foods?.length)}>
-              <List>
+              <List
+                display="flex"
+                flexDirection="row"
+                alignItems="center"
+                mb={2}
+                maxWidth={"md"}
+                flexWrap={"wrap"}
+                justifyContent={"space-around"}
+              >
                 {data?.foods.map((food) => (
-                  <ListItem key={food.id} onClick={() => claimFood(food.id)}>
-                    {Boolean(food.claimedBy) ? "✅" : "❌"} {food.title}{" "}
-                    {food.claimedBy &&
-                      ` - ${
-                        data?.users?.find((u) => u.id === food.claimedBy)?.name // TODO this is hacky and ugly
-                      }`}
-                  </ListItem>
+                  <ScaleFade key={food.id} in={!!food} unmountOnExit>
+                    <FoodItem
+                      claimFood={claimFood}
+                      food={food}
+                      removeFood={removeFood}
+                      key={food.id}
+                      userClaimedBy={data?.users?.find(
+                        (u) => u.id === food.claimedBy
+                      )}
+                      isForSelectedUser={Boolean(
+                        food.claimedBy && food.claimedBy === currUser?.id
+                      )}
+                    />
+                  </ScaleFade>
                 ))}
               </List>
             </Collapse>
@@ -424,6 +446,76 @@ const UserItem = ({
           variant="text"
           onClick={handleDelete}
           _hover={{ backgroundColor: isSelectedUser ? "green.300" : "red.100" }}
+        >
+          {isClicked ? <CheckIcon /> : <DeleteIcon />}
+        </IconButton>
+      </Tooltip>
+    </ListItem>
+  );
+};
+
+const FoodItem = ({
+  food,
+  claimFood,
+  removeFood,
+  userClaimedBy,
+  isForSelectedUser,
+}: {
+  food: Food;
+  claimFood: (id: string) => void;
+  removeFood: (id: string) => void;
+  userClaimedBy: User | undefined,
+  isForSelectedUser: boolean,
+}) => {
+
+  const [isClicked, setIsClicked] = useState(false);
+  useEffect(() => {
+    if (isClicked) {
+      setTimeout(() => {
+        setIsClicked(false);
+      }, 2000)
+    }
+  }, [isClicked])
+
+  // @ts-ignore
+  const handleDelete = (e) => {
+    // @ts-ignore
+    e.stopPropagation();
+    if (!isClicked) {
+      setIsClicked(true);
+    } else {
+      removeFood(food.id);
+    }
+  }
+  
+  return (
+    <ListItem
+      key={food.id}
+      onClick={() => claimFood(food.id)}
+      backgroundColor={isForSelectedUser ? "green.100" : "gray.100"}
+      display="flex"
+      mr={5}
+      rounded={20}
+      px={2}
+      py={1}
+      alignItems="center"
+      _hover={{ backgroundColor: isForSelectedUser ? "green.200" : "gray.200" }}
+      role={"button"}
+      mt={2}
+    >
+      <Text fontSize="small">food.title{userClaimedBy ? ` - ${userClaimedBy.name}` : ""}</Text>
+      <Tooltip
+        label={"confirm delete"}
+        isDisabled={!isClicked}
+        hasArrow
+        placement="top"
+      >
+        <IconButton
+          aria-label={`remove ${food.title}`}
+          size="xs"
+          variant="text"
+          onClick={handleDelete}
+          _hover={{ backgroundColor: isForSelectedUser ? "green.300" : "red.100" }}
         >
           {isClicked ? <CheckIcon /> : <DeleteIcon />}
         </IconButton>
