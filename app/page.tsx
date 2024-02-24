@@ -1,85 +1,9 @@
-'use client'
-import { useAddData } from "@/firebase/firestore/addData";
-import { nanoid } from 'nanoid'
-import { useRouter } from "next/navigation";
-import { Container, Button, Heading, Spinner } from '@chakra-ui/react'
-import dynamic from "next/dynamic";
-import { useState } from "react";
-const PreviousRoomsList = dynamic(
-  () => import("@/components/PreviousRoomsList"),
-  { ssr: false, loading: () => <Spinner /> }
-);
+import { Metadata } from "next";
+import HomePage from "./HomePage";
 
-const FUN_SLUGS = [
-  "pumpkin",
-  "pleasant",
-  "cheesy",
-  "baked",
-  "milky",
-  "oily",
-  "smooth",
-  "plump",
-];
+export default HomePage;
 
-const getFunSlug = () => FUN_SLUGS[Math.floor(Math.random() * FUN_SLUGS.length)];
-
-export default function Home() {
-
-  const [loading, setLoading] = useState(false);
-  const { addData } = useAddData();
-  const router = useRouter();
-
-  const onNewRoomClick = async () => {
-    const data = {
-      users: [],
-      foods: [],
-    }
-    const roomId = `${getFunSlug()}-${getFunSlug()}-${nanoid(5)}`;
-    setLoading(true);
-    const { error } = await addData('rooms', roomId, data)
-
-    if (error) {
-      return console.error(error)
-    } else {
-      router.push(`/potlucks/${roomId}`)
-    }
-    setTimeout(() => {
-      // this is pretty jank and i'm pretty sure will cause errors if this stuff has unmounted when it gets called after the page re-routes
-      // ... but it fixes the flickery loading state
-      setLoading(false);
-    }, 3000)
-  }
-
-
-  return (
-    <main>
-      <Container
-        maxW="md"
-        alignItems={"center"}
-        display="flex"
-        flexDirection={"column"}
-      >
-        <Heading as="h1" size="xl" mb={4}>
-          Welcome to Potlucky
-        </Heading>
-        <Heading
-          as="h2"
-          size="md"
-          fontWeight={"normal"}
-          fontSize={"1.125rem"}
-          mb={6}
-        >
-          The easiest way to organize a potluck!
-        </Heading>
-        <Button onClick={onNewRoomClick} disabled={loading} mb={16}>
-          {loading ? "loading" : "new potluck"}
-        </Button>
-
-        <Heading as="h3" size="md" mb={4}>
-          Previous Potlucks
-        </Heading>
-        <PreviousRoomsList />
-      </Container>
-    </main>
-  );
-}
+export const metadata: Metadata = {
+  title: "Potlucky - Organize Potlucks With Friends",
+  description: "Invite friends, add foods, assign to guests, and see dietary needs! Everyone is happy yayyy 🎉",
+};

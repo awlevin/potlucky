@@ -2,7 +2,7 @@
 import { modifyItemById } from "@/utils/modifyItemById";
 import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
-import { MouseEventHandler, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Container,
   Button,
