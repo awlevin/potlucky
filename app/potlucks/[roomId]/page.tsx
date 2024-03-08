@@ -503,7 +503,7 @@ const FoodItem = ({
       role={"button"}
       mt={2}
     >
-      <Text fontSize="small">food{userClaimedBy ? ` - ${userClaimedBy.name}` : ""}</Text>
+      <Text fontSize="small">{food.title}{userClaimedBy ? ` - ${userClaimedBy.name}` : ""}</Text>
       <Tooltip
         label={"confirm delete"}
         isDisabled={!isClicked}
