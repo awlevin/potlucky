@@ -1,13 +1,13 @@
 "use client";
-import { useAddData } from "@/firebase/firestore/addData";
+import { useAddData } from "@/lib/firebase/firestore/addData";
 import { nanoid } from 'nanoid'
 import { useRouter } from "next/navigation";
-import { Container, Button, Heading, Spinner } from '@chakra-ui/react'
+import { Container, Button, Heading } from '@chakra-ui/react'
 import dynamic from "next/dynamic";
 import { useState } from "react";
 const PreviousRoomsList = dynamic(
   () => import("@/components/PreviousRoomsList"),
-  { ssr: false, loading: () => <Spinner /> }
+  { ssr: false, loading: () => <div /> }
 );
 
 const FUN_SLUGS = [

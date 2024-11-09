@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-  ListItem,
+  List,
   Text,
   IconButton,
-  Tooltip,
 } from "@chakra-ui/react";
-import { DeleteIcon, CheckIcon } from "@chakra-ui/icons";
+import { LuDelete, LuCheck } from "react-icons/lu";
 import { User } from "@/types";
+import { Tooltip } from "@/components/ui/tooltip";
 
 interface UserItemProps {
   user: User;
@@ -42,7 +42,7 @@ const UserItem = ({
   };
 
   return (
-    <ListItem
+    <List.Item
       key={user.id}
       onClick={() => claimUser(user.id)}
       backgroundColor={isSelectedUser ? "green.100" : "gray.100"}
@@ -58,23 +58,24 @@ const UserItem = ({
     >
       <Text fontSize="small">{user.name}</Text>
       <Tooltip
-        label={"Confirm delete"}
-        isDisabled={!isClicked}
-        hasArrow
-        placement="top"
+        content={"Confirm delete"}
+        disabled={!isClicked}
+        showArrow
+        positioning={{ placement: "top" }}
       >
         <IconButton
           aria-label={`Remove ${user.name}`}
           size="xs"
-          variant="text"
+          variant="ghost"
           onClick={handleDelete}
           _hover={{
             backgroundColor: isSelectedUser ? "green.300" : "red.100",
           }}
-          icon={isClicked ? <CheckIcon /> : <DeleteIcon />}
-        />
+        >
+          {isClicked ? <LuCheck /> : <LuDelete />}
+        </IconButton>
       </Tooltip>
-    </ListItem>
+    </List.Item>
   );
 };
 

@@ -5,22 +5,18 @@ import {
   Container,
   Button,
   Input,
-  InputGroup,
-  InputRightElement,
-  Spinner,
+  // Spinner,
   Text,
-  Collapse,
+  Collapsible,
   Editable,
-  EditablePreview,
-  EditableInput,
+  EditableValueChangeDetails,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import { useUsers } from "@/hooks/useUsers";
 import { useFoods } from "@/hooks/useFoods";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import { useRealtimeData } from "@/firebase/firestore/brains";
+import { useRealtimeData } from "@/lib/firebase/firestore/brains";
 import { handleEnterKeyPress } from "@/utils/misc";
-import { EditableControls } from "@/utils/EditableControls";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { FoodList } from "@/components/FoodList";
 import { UserList } from "@/components/UserList";
@@ -77,9 +73,9 @@ export default function Room() {
     isOnboardingComplete,
   } = useOnboarding({ hasClaimedUserBefore, hasClaimedFoodBefore });
 
-  const changeRoomName = (newName: string) => {
+  const changeRoomName = (data: EditableValueChangeDetails) => {
     addData({
-      name: newName,
+      name: data.value,
     });
   };
 
@@ -97,50 +93,46 @@ export default function Room() {
         maxWidth="lg"
       >
         {data && (
-          <Editable
+          <Editable.Root
             defaultValue={data?.name || data?.id}
             textAlign={"center"}
             as="h1"
             fontWeight="bold"
             fontSize="x-large"
-            onSubmit={changeRoomName}
+            onValueCommit={changeRoomName}
           >
-            {(props) => (
-              <>
-                <EditablePreview
-                  _hover={{ color: "gray.500", cursor: "pointer" }}
-                />
-                <EditableInput />
-                <EditableControls {...props} />
-              </>
-            )}
-          </Editable>
+            <Editable.Preview
+              _hover={{ color: "gray.500", cursor: "pointer" }}
+            />
+            <Editable.Input />
+            <Editable.Control />
+          </Editable.Root>
         )}
         {loadingRoom ? (
           <>
-            <Spinner mb={2} />
+            {/* <Spinner mb={2} /> */}
             <Text>Loading...</Text>
           </>
         ) : (
           <>
             {!hasCompletedOnboardingBefore && (
               <>
-                <Collapse
-                  in={!hasClaimedUserBefore && !data?.users.length}
-                  transition={{ exit: { delay: 0.5 } }}
+                <Collapsible.Root
+                  open={!hasClaimedUserBefore && !data?.users.length}
+                  // transition={{ exit: { delay: 0.5 } }}
                 >
                   <Text fontWeight="light" fontSize="xs" mb={1}>
                     Add a friend to get started!
                   </Text>
-                </Collapse>
-                <Collapse
-                  in={!hasClaimedUserBefore && Boolean(data?.users.length)}
-                  transition={{ enter: { delay: 0.5 } }}
+                </Collapsible.Root>
+                <Collapsible.Root
+                  open={!hasClaimedUserBefore && Boolean(data?.users.length)}
+                  // transition={{ enter: { delay: 0.5 } }}
                 >
                   <Text fontWeight="light" fontSize="xs" mb={1}>
                     Now tap them to continue.
                   </Text>
-                </Collapse>
+                </Collapsible.Root>
               </>
             )}
             <UserList
@@ -149,7 +141,7 @@ export default function Room() {
               currUser={currUser}
               removeUser={removeUser}
             />
-            <InputGroup size="sm" maxWidth={"xs"} mb={6}>
+            {/* <InputGroup size="sm" maxWidth={"xs"} mb={6}> */}
               <Input
                 placeholder="Add friends here 🫂"
                 pr="4.5rem"
@@ -157,7 +149,7 @@ export default function Room() {
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={handleEnterKeyPress(addUser)}
               />
-              <InputRightElement width="6.5rem">
+              {/* <InputRightElement width="6.5rem"> */}
                 <Button
                   onClick={addUser}
                   h="1.75rem"
@@ -166,36 +158,39 @@ export default function Room() {
                 >
                   Add Friend
                 </Button>
-              </InputRightElement>
-            </InputGroup>
+              {/* </InputRightElement> */}
+            {/* </InputGroup> */}
             Foods:
-            <Collapse
-              in={
+            <Collapsible.Root
+              open={
                 hasClaimedUserBefore &&
                 !hasClaimedFoodBefore &&
                 Boolean(!data?.foods.length) &&
                 !hasCompletedOnboardingBefore
               }
-              transition={{ enter: { delay: 0.5 }, exit: { delay: 0.5 } }}
+              // transition={{ enter: { delay: 0.5 }, exit: { delay: 0.5 } }}
             >
               <Text fontWeight="light" fontSize="xs" mb={1}>
                 Now add a food item, please.
               </Text>
-            </Collapse>
-            <Collapse
-              in={
+            </Collapsible.Root>
+            <Collapsible.Root
+              open={
                 hasClaimedUserBefore &&
                 !hasClaimedFoodBefore &&
                 Boolean(data?.foods.length) &&
                 !hasCompletedOnboardingBefore
               }
-              transition={{ enter: { delay: 0.5 } }}
+              // transition={{ enter: { delay: 0.5 } }}
             >
               <Text fontWeight="light" fontSize="xs" mb={1}>
                 Now tap the food to claim it!
               </Text>
-            </Collapse>
-            <Collapse in={Boolean(data?.foods?.length)}>
+            </Collapsible.Root>
+            <Collapsible.Root
+              open={Boolean(data?.foods?.length)}
+              // transition={{ enter: { delay: 0.5 } }}
+            >
               <FoodList
                 foods={data?.foods || []}
                 claimFood={claimFood}
@@ -203,8 +198,8 @@ export default function Room() {
                 users={data?.users}
                 currUser={currUser}
               />
-            </Collapse>
-            <InputGroup size="sm" maxWidth={"xs"}>
+            </Collapsible.Root>
+            {/* <InputGroup size="sm" maxWidth={"xs"}> */}
               <Input
                 placeholder="Add food here 😋"
                 pr="4.5rem"
@@ -212,7 +207,7 @@ export default function Room() {
                 onChange={(e) => setFoodInput(e.target.value)}
                 onKeyDown={handleEnterKeyPress(addFood)}
               />
-              <InputRightElement width="6.5rem">
+              {/* <InputRightElement width="6.5rem"> */}
                 <Button
                   onClick={addFood}
                   h="1.75rem"
@@ -221,8 +216,8 @@ export default function Room() {
                 >
                   Add Food
                 </Button>
-              </InputRightElement>
-            </InputGroup>
+              {/* </InputRightElement> */}
+            {/* </InputGroup> */}
           </>
         )}
       </Container>

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { useToast } from "@chakra-ui/react";
+import { toaster } from "@/components/ui/toaster";
 
 interface UseOnboardingProps {
   hasClaimedUserBefore: boolean;
@@ -14,16 +14,15 @@ export function useOnboarding({
   const [hasCompletedOnboardingBefore, setHasCompletedOnboardingBefore] =
     useLocalStorage("hasCompletedOnboardingBefore", false);
   const isOnboardingComplete = hasClaimedUserBefore && hasClaimedFoodBefore;
-  const toast = useToast();
 
   useEffect(() => {
     if (isOnboardingComplete && !hasCompletedOnboardingBefore) {
-      toast({
+      toaster.create({
         title: "Yay! You did it! 🎉",
         description: "You're a potlucking pro! Have fun! 🥳",
-        status: "success",
-        isClosable: true,
-        position: "top",
+        type: "success",
+        // isClosable: true,
+        // position: "top",
       });
       setHasCompletedOnboardingBefore(true);
     }

@@ -1,5 +1,5 @@
 import { IconButton } from "@chakra-ui/react";
-import { EditIcon } from "@chakra-ui/icons"
+import { LuPencil } from "react-icons/lu"
 
 export function EditableControls({
   isEditing,
@@ -17,7 +17,7 @@ export function EditableControls({
       <IconButton
         ml={2}
         size="sm"
-        icon={<EditIcon />}
+        icon={<LuPencil />}
         onClick={onEdit}
         aria-label="edit room title"
       />

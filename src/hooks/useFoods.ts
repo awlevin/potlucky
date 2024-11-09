@@ -2,7 +2,7 @@ import { useState } from "react";
 import { nanoid } from "nanoid";
 import { Food, IRoomObj } from "@/types";
 import { modifyItemById } from "@/utils/modifyItemById";
-import { useToast } from "@chakra-ui/react";
+import { toaster } from "@/components/ui/toaster";
 
 interface UseFoodsProps {
   data: IRoomObj | null;
@@ -20,7 +20,6 @@ export function useFoods({
   setHasClaimedFoodBefore,
 }: UseFoodsProps) {
   const [foodInput, setFoodInput] = useState("");
-  const toast = useToast();
 
   const addFood = async () => {
     setFoodInput("");
@@ -42,10 +41,10 @@ export function useFoods({
 
   const claimFood = (id: string) => {
     if (!currUser) {
-      toast({
+      toaster.create({
         description: "Pick a user first!",
-        status: "error",
-        isClosable: true,
+        type: "error",
+        // isClosable: true,
       });
       return;
     }

@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
-import {
-  List,
-  ListItem,
-  Text,
-  IconButton,
-  Tooltip,
-} from "@chakra-ui/react";
-import { DeleteIcon, CheckIcon } from "@chakra-ui/icons";
-import { ScaleFade } from "@chakra-ui/react";
+import { List, Text, IconButton } from "@chakra-ui/react";
+import { LuDelete, LuCheck } from "react-icons/lu";
 import { Food, User } from "@/types";
+import { Tooltip } from "@/components/ui/tooltip";
 
 interface FoodListProps {
   foods: Food[];
@@ -26,7 +20,7 @@ export const FoodList = ({
   currUser
 }: FoodListProps) => {
   return (
-    <List
+    <List.Root
       display="flex"
       flexDirection="row"
       alignItems="center"
@@ -41,18 +35,17 @@ export const FoodList = ({
           Boolean(food.claimedBy && food.claimedBy === currUser?.id);
 
         return (
-          <ScaleFade key={food.id} in={!!food} unmountOnExit>
-            <FoodItemRow
-              food={food}
-              claimFood={claimFood}
-              removeFood={removeFood}
-              userClaimedBy={userClaimedBy}
-              isForSelectedUser={isForSelectedUser}
-            />
-          </ScaleFade>
+          <FoodItemRow
+            key={food.id}
+            food={food}
+            claimFood={claimFood}
+            removeFood={removeFood}
+            userClaimedBy={userClaimedBy}
+            isForSelectedUser={isForSelectedUser}
+          />
         );
       })}
-    </List>
+    </List.Root>
   );
 };
 
@@ -92,7 +85,7 @@ const FoodItemRow = ({
   };
 
   return (
-    <ListItem
+    <List.Item
       key={food.id}
       onClick={() => claimFood(food.id)}
       backgroundColor={isForSelectedUser ? "green.100" : "gray.100"}
@@ -113,22 +106,23 @@ const FoodItemRow = ({
         {userClaimedBy ? ` - ${userClaimedBy.name}` : ""}
       </Text>
       <Tooltip
-        label={"Confirm delete"}
-        isDisabled={!isClicked}
-        hasArrow
-        placement="top"
+        content={"Confirm delete"}
+        disabled={!isClicked}
+        showArrow
+        positioning={{ placement: "top" }}
       >
         <IconButton
           aria-label={`Remove ${food.title}`}
           size="xs"
-          variant="text"
+          variant="ghost"
           onClick={handleDelete}
           _hover={{
             backgroundColor: isForSelectedUser ? "green.300" : "red.100",
           }}
-          icon={isClicked ? <CheckIcon /> : <DeleteIcon />}
-        />
+        >
+          {isClicked ? <LuCheck /> : <LuDelete />}
+        </IconButton>
       </Tooltip>
-    </ListItem>
+    </List.Item>
   );
 };

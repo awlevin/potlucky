@@ -1,6 +1,6 @@
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useRouter } from "next/navigation";
-import { Button, Collapse, List, ListItem, Text } from '@chakra-ui/react'
+import { Button, Collapsible, List, Text } from '@chakra-ui/react'
 import { IPrevRoom } from "@/utils/misc";
 import { useEffect, useState } from "react";
 
@@ -13,23 +13,23 @@ export const PreviousRoomsList = () => {
     return () => {
       setMounted(false);
     }
-  });
+  }, []);
 
   return prevRooms.length > 0 ? (
-    <Collapse in={mounted}>
-      <List>
+    <Collapsible.Root open={mounted}>
+      <List.Root>
         {prevRooms.reverse().map((room) => (
-          <ListItem key={room.id}>
+          <List.Item key={room.id}>
             <Button
               onClick={() => router.push(`/potlucks/${room.id}`)}
               size={"xs"}
             >
               {room.name}
             </Button>
-          </ListItem>
+          </List.Item>
         ))}
-      </List>
-    </Collapse>
+      </List.Root>
+    </Collapsible.Root>
   ) : (
     <Text
       fontSize={"xs"}
