@@ -10,7 +10,7 @@ import { DeleteIcon, CheckIcon } from "@chakra-ui/icons";
 import { ScaleFade } from "@chakra-ui/react";
 import { Food, User } from "@/types";
 
-interface FoodItemProps {
+interface FoodListProps {
   foods: Food[];
   claimFood: (id: string) => void;
   removeFood: (id: string) => void;
@@ -18,13 +18,13 @@ interface FoodItemProps {
   currUser: User | undefined;
 }
 
-export const FoodItem = ({
+export const FoodList = ({
   foods,
   claimFood,
   removeFood,
   users,
   currUser
-}: FoodItemProps) => {
+}: FoodListProps) => {
   return (
     <List
       display="flex"

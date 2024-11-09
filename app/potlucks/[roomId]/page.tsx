@@ -22,7 +22,7 @@ import { useRealtimeData } from "@/firebase/firestore/brains";
 import { handleEnterKeyPress } from "@/utils/misc";
 import { EditableControls } from "@/utils/EditableControls";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
-import { FoodItem } from "@/components/FoodItem";
+import { FoodList } from "@/components/FoodList";
 import { UserList } from "@/components/UserList";
 import { IRoomObj } from "@/types";
 
@@ -196,7 +196,7 @@ export default function Room() {
               </Text>
             </Collapse>
             <Collapse in={Boolean(data?.foods?.length)}>
-              <FoodItem
+              <FoodList
                 foods={data?.foods || []}
                 claimFood={claimFood}
                 removeFood={removeFood}
