@@ -1,0 +1,46 @@
+import { Collapse, List } from "@chakra-ui/react";
+import { ScaleFade } from "@chakra-ui/react";
+import { WithId } from "@/firebase/firestore/brains";
+import { IRoomObj, User } from "@/types";
+import UserItem from "@/components/UserItem";
+
+interface UserListProps {
+  data: WithId<IRoomObj> | null;
+  claimUser: (id: string) => void;
+  currUser: User | undefined;
+  removeUser: (id: string) => void;
+}
+
+const UserList = ({
+  data,
+  claimUser,
+  currUser,
+  removeUser,
+}: UserListProps) => {
+  return (
+    <Collapse in={Boolean(data?.users?.length)}>
+      <List
+        display="flex"
+        flexDirection="row"
+        alignItems="center"
+        mb={2}
+        maxWidth={"md"}
+        flexWrap={"wrap"}
+        justifyContent={"space-around"}
+      >
+        {data?.users.map((user) => (
+          <ScaleFade key={user.id} in={!!user} unmountOnExit>
+            <UserItem
+              user={user}
+              claimUser={claimUser}
+              isSelectedUser={currUser?.id === user.id}
+              removeUser={removeUser}
+            />
+          </ScaleFade>
+        ))}
+      </List>
+    </Collapse>
+  );
+};
+
+export default UserList; 

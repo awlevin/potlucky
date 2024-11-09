@@ -1,74 +1,40 @@
 "use client";
-import { modifyItemById } from "@/utils/modifyItemById";
-import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Container,
   Button,
-  List,
-  ListItem,
   Input,
   InputGroup,
   InputRightElement,
+  Spinner,
+  Text,
+  Collapse,
   Editable,
   EditablePreview,
   EditableInput,
-  Spinner,
-  Text,
-  useToast,
-  IconButton,
-  Collapse,
-  ScaleFade,
-  Tooltip,
 } from "@chakra-ui/react";
-import { DeleteIcon, CheckIcon } from "@chakra-ui/icons"
 import dynamic from "next/dynamic";
-import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
-import { WithId, useRealtimeData } from "@/firebase/firestore/brains";
+import { useUsers } from "@/hooks/useUsers";
+import { useFoods } from "@/hooks/useFoods";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { useRealtimeData } from "@/firebase/firestore/brains";
 import { handleEnterKeyPress } from "@/utils/misc";
 import { EditableControls } from "@/utils/EditableControls";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
+import { FoodItem } from "@/components/FoodItem";
+import { UserList } from "@/components/UserList";
+import { IRoomObj } from "@/types";
+
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
   () =>
-  import("@/components/SetPreviousRooms").then(
-      // this feels jank but it made typescript stop complaining
+    import("@/components/SetPreviousRooms").then(
       (mod) => mod.default as React.ComponentType<ISetPrevRoomProps>
     ),
   {
     ssr: false,
   }
 );
-
-type User = {
-  id: string;
-  name: string; // first and last
-  dateJoined: Date; // date joined this room
-  lastActive: Date; // last active in this room
-  isActive: boolean;
-  color: string;
-};
-
-type Food = {
-  id: string;
-  claimedBy?: string | null; // userId or not
-  title: string;
-  type?: "appetizer" | "entree" | "dessert";
-  attributes?: (
-    | "vegetarian"
-    | "vegan"
-    | "keto"
-    | "pescatarian"
-    | "dairy free"
-  )[];
-};
-
-interface IRoomObj {
-  id: string;
-  name: string;
-  users: User[];
-  foods: Food[];
-}
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -78,115 +44,44 @@ export default function Room() {
     updateData: addData,
   } = useRealtimeData<IRoomObj>("rooms", roomId);
 
-  const [userInput, setUserInput] = useState("");
-  const [foodInput, setFoodInput] = useState("");
-  const [hasClaimedUserBefore, setHasClaimedUserBefore] = useState(false);
+  // State to track if user has claimed food before
   const [hasClaimedFoodBefore, setHasClaimedFoodBefore] = useState(false);
-  const toast = useToast();
 
-  const [currUser, setCurrUser] = useState<IRoomObj["users"][0]>();
-  const claimUser = (id: string) => {
-    setHasClaimedUserBefore(true);
-    if (currUser?.id === id) {
-      setCurrUser(undefined);
-    } else {
-      const foundUser = data?.users?.find((u) => u.id === id);
-      setCurrUser(foundUser);
-    }
-  };
+  // Using custom hooks
+  const {
+    userInput,
+    setUserInput,
+    hasClaimedUserBefore,
+    currUser,
+    claimUser,
+    removeUser,
+    addUser,
+  } = useUsers({ data, addData });
 
-  const removeUser = (id: string) => {
-    if (currUser?.id === id) {
-      setCurrUser(undefined);
-    }
-    addData({
-      ...data,
-      users: data?.users?.filter((u) => u.id !== id),
-      foods: data?.foods?.map((food) => {
-        if (food.claimedBy === id) {
-          return { ...food, claimedBy: null };
-        }
-        return food;
-      }),
-    });
-  }
+  const {
+    foodInput,
+    setFoodInput,
+    addFood,
+    removeFood,
+    claimFood,
+  } = useFoods({
+    data,
+    addData,
+    currUser,
+    hasClaimedFoodBefore,
+    setHasClaimedFoodBefore,
+  });
 
-  const removeFood= (id: string) => {
-    addData({
-      ...data,
-      foods: data?.foods?.filter((food) => food.id !== id),
-    });
-  }
-
-  const addFood = async () => {
-    setFoodInput("");
-    await addData({
-      ...data,
-      foods: [
-        ...(data?.foods || []),
-        { id: nanoid(5), title: foodInput } as Food,
-      ],
-    });
-  };
-
-  const addUser = async () => {
-    setUserInput("");
-    await addData({
-      ...data,
-      users: [
-        ...(data?.users || []),
-        { id: nanoid(5), name: userInput } as User,
-      ],
-    });
-  };
-
-  const claimFood = (id: string) => {
-    if (!currUser) {
-      toast({
-        description: "pick a user first you silly little goofball",
-        status: "error",
-        isClosable: true,
-      })
-      return;
-    }
-
-    const newFoods = modifyItemById(data?.foods || [], id, (food) => {
-      return {
-        ...food,
-        claimedBy: food.claimedBy === currUser.id ? null : currUser.id,
-      };
-    });
-
-    if (!hasClaimedFoodBefore) {
-      setHasClaimedFoodBefore(true);
-    }
-    addData({
-      ...data,
-      foods: newFoods,
-    });
-  };
+  const {
+    hasCompletedOnboardingBefore,
+    isOnboardingComplete,
+  } = useOnboarding({ hasClaimedUserBefore, hasClaimedFoodBefore });
 
   const changeRoomName = (newName: string) => {
     addData({
-      name: newName
-    })
-  }
-
-  const [hasCompletedOnboardingBefore, setHasCompletedOnboardingBefore] =
-    useLocalStorage("hasCompletedOnboardingBefore", false);
-  const isOnboardingComplete = hasClaimedUserBefore && hasClaimedFoodBefore;
-  useEffect(() => {
-    if (isOnboardingComplete && !hasCompletedOnboardingBefore) {
-      toast({
-        title: "yay!! you did it! 🎉🎉🎉",
-        description: "you're a potlucking pro! have fun out there 🥳🥳🥳",
-        status: "success",
-        isClosable: true,
-        position: "top",
-      })
-      setHasCompletedOnboardingBefore(true);
-    }
-  }, [isOnboardingComplete, hasCompletedOnboardingBefore])
+      name: newName,
+    });
+  };
 
   return (
     <main>
@@ -224,7 +119,7 @@ export default function Room() {
         {loadingRoom ? (
           <>
             <Spinner mb={2} />
-            <Text>loading...</Text>
+            <Text>Loading...</Text>
           </>
         ) : (
           <>
@@ -235,7 +130,7 @@ export default function Room() {
                   transition={{ exit: { delay: 0.5 } }}
                 >
                   <Text fontWeight="light" fontSize="xs" mb={1}>
-                    add a friend to get started. you have friends right?
+                    Add a friend to get started!
                   </Text>
                 </Collapse>
                 <Collapse
@@ -243,7 +138,7 @@ export default function Room() {
                   transition={{ enter: { delay: 0.5 } }}
                 >
                   <Text fontWeight="light" fontSize="xs" mb={1}>
-                    now tap them to continue
+                    Now tap them to continue.
                   </Text>
                 </Collapse>
               </>
@@ -256,19 +151,24 @@ export default function Room() {
             />
             <InputGroup size="sm" maxWidth={"xs"} mb={6}>
               <Input
-                placeholder="add friends here 🫂"
+                placeholder="Add friends here 🫂"
                 pr="4.5rem"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={handleEnterKeyPress(addUser)}
               />
               <InputRightElement width="6.5rem">
-                <Button onClick={addUser} h="1.75rem" size="xs" disabled={true}>
-                  add friend
+                <Button
+                  onClick={addUser}
+                  h="1.75rem"
+                  size="xs"
+                  disabled={!userInput}
+                >
+                  Add Friend
                 </Button>
               </InputRightElement>
             </InputGroup>
-            foods:
+            Foods:
             <Collapse
               in={
                 hasClaimedUserBefore &&
@@ -279,7 +179,7 @@ export default function Room() {
               transition={{ enter: { delay: 0.5 }, exit: { delay: 0.5 } }}
             >
               <Text fontWeight="light" fontSize="xs" mb={1}>
-                now add a food plz
+                Now add a food item, please.
               </Text>
             </Collapse>
             <Collapse
@@ -292,40 +192,21 @@ export default function Room() {
               transition={{ enter: { delay: 0.5 } }}
             >
               <Text fontWeight="light" fontSize="xs" mb={1}>
-                now tap the food to claim it!
+                Now tap the food to claim it!
               </Text>
             </Collapse>
             <Collapse in={Boolean(data?.foods?.length)}>
-              <List
-                display="flex"
-                flexDirection="row"
-                alignItems="center"
-                mb={2}
-                maxWidth={"md"}
-                flexWrap={"wrap"}
-                justifyContent={"space-around"}
-              >
-                {data?.foods.map((food) => (
-                  <ScaleFade key={food.id} in={!!food} unmountOnExit>
-                    <FoodItem
-                      claimFood={claimFood}
-                      food={food}
-                      removeFood={removeFood}
-                      key={food.id}
-                      userClaimedBy={data?.users?.find(
-                        (u) => u.id === food.claimedBy
-                      )}
-                      isForSelectedUser={Boolean(
-                        food.claimedBy && food.claimedBy === currUser?.id
-                      )}
-                    />
-                  </ScaleFade>
-                ))}
-              </List>
+              <FoodItem
+                foods={data?.foods || []}
+                claimFood={claimFood}
+                removeFood={removeFood}
+                users={data?.users}
+                currUser={currUser}
+              />
             </Collapse>
             <InputGroup size="sm" maxWidth={"xs"}>
               <Input
-                placeholder="add food here 😋"
+                placeholder="Add food here 😋"
                 pr="4.5rem"
                 value={foodInput}
                 onChange={(e) => setFoodInput(e.target.value)}
@@ -338,7 +219,7 @@ export default function Room() {
                   size="xs"
                   disabled={!foodInput}
                 >
-                  add food
+                  Add Food
                 </Button>
               </InputRightElement>
             </InputGroup>
@@ -348,178 +229,3 @@ export default function Room() {
     </main>
   );
 }
-
-const UserList = ({
-  data,
-  claimUser,
-  currUser,
-  removeUser,
-}: {
-  data: WithId<IRoomObj> | null;
-  claimUser: (id: string) => void;
-  currUser: User | undefined;
-  removeUser: (id: string) => void;
-}) => {
-  return (
-    <Collapse in={Boolean(data?.users?.length)}>
-      <List
-        display="flex"
-        flexDirection="row"
-        alignItems="center"
-        mb={2}
-        maxWidth={"md"}
-        flexWrap={"wrap"}
-        justifyContent={"space-around"}
-      >
-        {data?.users.map((user) => (
-          <ScaleFade key={user.id} in={!!user} unmountOnExit>
-            <UserItem
-              user={user}
-              claimUser={claimUser}
-              isSelectedUser={currUser?.id === user.id}
-              removeUser={removeUser}
-            />
-          </ScaleFade>
-        ))}
-      </List>
-    </Collapse>
-  );
-};
-
-const UserItem = ({
-  user,
-  claimUser,
-  removeUser,
-  isSelectedUser
-}: {
-  user: User;
-  claimUser: (id: string) => void;
-  removeUser: (id: string) => void;
-  isSelectedUser: boolean,
-}) => {
-
-  const [isClicked, setIsClicked] = useState(false);
-  useEffect(() => {
-    if (isClicked) {
-      setTimeout(() => {
-        setIsClicked(false);
-      }, 2000)
-    }
-  }, [isClicked])
-
-  // @ts-ignore
-  const handleDelete = (e) => {
-    // @ts-ignore
-    e.stopPropagation();
-    if (!isClicked) {
-      setIsClicked(true);
-    } else {
-      removeUser(user.id);
-    }
-  }
-
-  return (
-    <ListItem
-      key={user.id}
-      onClick={() => claimUser(user.id)}
-      backgroundColor={isSelectedUser ? "green.100" : "gray.100"}
-      display="flex"
-      mr={5}
-      rounded={20}
-      px={2}
-      py={1}
-      alignItems="center"
-      _hover={{ backgroundColor: isSelectedUser ? "green.200" : "gray.200" }}
-      role={"button"}
-      mt={2}
-    >
-      <Text fontSize="small">{user.name}</Text>
-      <Tooltip
-        label={"confirm delete"}
-        isDisabled={!isClicked}
-        hasArrow
-        placement="top"
-      >
-        <IconButton
-          aria-label={`remove ${user.name}`}
-          size="xs"
-          variant="text"
-          onClick={handleDelete}
-          _hover={{ backgroundColor: isSelectedUser ? "green.300" : "red.100" }}
-        >
-          {isClicked ? <CheckIcon /> : <DeleteIcon />}
-        </IconButton>
-      </Tooltip>
-    </ListItem>
-  );
-};
-
-const FoodItem = ({
-  food,
-  claimFood,
-  removeFood,
-  userClaimedBy,
-  isForSelectedUser,
-}: {
-  food: Food;
-  claimFood: (id: string) => void;
-  removeFood: (id: string) => void;
-  userClaimedBy: User | undefined,
-  isForSelectedUser: boolean,
-}) => {
-
-  const [isClicked, setIsClicked] = useState(false);
-  useEffect(() => {
-    if (isClicked) {
-      setTimeout(() => {
-        setIsClicked(false);
-      }, 2000)
-    }
-  }, [isClicked])
-
-  // @ts-ignore
-  const handleDelete = (e) => {
-    // @ts-ignore
-    e.stopPropagation();
-    if (!isClicked) {
-      setIsClicked(true);
-    } else {
-      removeFood(food.id);
-    }
-  }
-  
-  return (
-    <ListItem
-      key={food.id}
-      onClick={() => claimFood(food.id)}
-      backgroundColor={isForSelectedUser ? "green.100" : "gray.100"}
-      display="flex"
-      mr={5}
-      rounded={20}
-      px={2}
-      py={1}
-      alignItems="center"
-      _hover={{ backgroundColor: isForSelectedUser ? "green.200" : "gray.200" }}
-      role={"button"}
-      mt={2}
-    >
-      <Text fontSize="small">{food.title}{userClaimedBy ? ` - ${userClaimedBy.name}` : ""}</Text>
-      <Tooltip
-        label={"confirm delete"}
-        isDisabled={!isClicked}
-        hasArrow
-        placement="top"
-      >
-        <IconButton
-          aria-label={`remove ${food.title}`}
-          size="xs"
-          variant="text"
-          onClick={handleDelete}
-          _hover={{ backgroundColor: isForSelectedUser ? "green.300" : "red.100" }}
-        >
-          {isClicked ? <CheckIcon /> : <DeleteIcon />}
-        </IconButton>
-      </Tooltip>
-    </ListItem>
-  );
-};

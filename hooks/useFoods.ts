@@ -1,0 +1,76 @@
+import { useState } from "react";
+import { nanoid } from "nanoid";
+import { Food, IRoomObj } from "@/types";
+import { modifyItemById } from "@/utils/modifyItemById";
+import { useToast } from "@chakra-ui/react";
+
+interface UseFoodsProps {
+  data: IRoomObj | null;
+  addData: (data: Partial<IRoomObj>) => Promise<void>;
+  currUser: IRoomObj["users"][0] | undefined;
+  hasClaimedFoodBefore: boolean;
+  setHasClaimedFoodBefore: (value: boolean) => void;
+}
+
+export function useFoods({
+  data,
+  addData,
+  currUser,
+  hasClaimedFoodBefore,
+  setHasClaimedFoodBefore,
+}: UseFoodsProps) {
+  const [foodInput, setFoodInput] = useState("");
+  const toast = useToast();
+
+  const addFood = async () => {
+    setFoodInput("");
+    await addData({
+      ...data,
+      foods: [
+        ...(data?.foods || []),
+        { id: nanoid(5), title: foodInput } as Food,
+      ],
+    });
+  };
+
+  const removeFood = async (id: string) => {
+    await addData({
+      ...data,
+      foods: data?.foods?.filter((food) => food.id !== id),
+    });
+  };
+
+  const claimFood = (id: string) => {
+    if (!currUser) {
+      toast({
+        description: "Pick a user first!",
+        status: "error",
+        isClosable: true,
+      });
+      return;
+    }
+
+    const newFoods = modifyItemById(data?.foods || [], id, (food) => {
+      return {
+        ...food,
+        claimedBy: food.claimedBy === currUser.id ? null : currUser.id,
+      };
+    });
+
+    if (!hasClaimedFoodBefore) {
+      setHasClaimedFoodBefore(true);
+    }
+    addData({
+      ...data,
+      foods: newFoods,
+    });
+  };
+
+  return {
+    foodInput,
+    setFoodInput,
+    addFood,
+    removeFood,
+    claimFood,
+  };
+} 
