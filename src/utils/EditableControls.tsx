@@ -17,10 +17,11 @@ export function EditableControls({
       <IconButton
         ml={2}
         size="sm"
-        icon={<LuPencil />}
         onClick={onEdit}
         aria-label="edit room title"
-      />
+      >
+        <LuPencil />
+      </IconButton>
     )
   );
 }
