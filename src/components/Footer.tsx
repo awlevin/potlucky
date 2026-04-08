@@ -16,7 +16,7 @@ export function Footer() {
         Made with 🍳 for friends who feast together
       </Text>
       <Text color="text.muted" fontSize="xs" mt={2}>
-        Potlucky &copy; 2024
+        Potlucky &copy; {new Date().getFullYear()}
       </Text>
     </Box>
   )
