@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useLocalStorage } from "@uidotdev/usehooks"
 import { useRouter } from "next/navigation"
-import { Box, Grid, Heading, Text } from "@chakra-ui/react"
+import { Box, Heading, Text } from "@chakra-ui/react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { IPrevRoom } from "@/utils/misc"
 import { PotluckCard } from "@/components/PotluckCard"
@@ -34,14 +34,11 @@ export const PreviousRoomsList = () => {
   if (!mounted) {
     return (
       <Box maxW="3xl" mx="auto" py={8} px={{ base: 4, md: 8 }}>
-        <Grid
-          gridTemplateColumns={{ base: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }}
-          gap={4}
-        >
+        <div className="prev-potlucks-grid">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} height="100px" rounded="xl" />
           ))}
-        </Grid>
+        </div>
       </Box>
     )
   }
@@ -88,10 +85,7 @@ export const PreviousRoomsList = () => {
       >
         Recent Potlucks
       </Heading>
-      <Grid
-        gridTemplateColumns={{ base: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }}
-        gap={4}
-      >
+      <div className="prev-potlucks-grid">
         <AnimatePresence>
           {sortedRooms.map((room, index) => (
             <motion.div
@@ -109,7 +103,7 @@ export const PreviousRoomsList = () => {
             </motion.div>
           ))}
         </AnimatePresence>
-      </Grid>
+      </div>
     </Box>
   )
 }

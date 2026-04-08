@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Box, Flex, Heading, Text } from "@chakra-ui/react";
+import { Box, Heading, Text } from "@chakra-ui/react";
 import { motion, useInView } from "framer-motion";
 
 const steps = [
@@ -43,8 +43,7 @@ function StepCard({
       ref={ref}
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-      transition={{ duration: 0.5, delay: index * 0.2 }}
-      style={{ flex: 1, minWidth: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.15 }}
     >
       <Box
         textAlign="center"
@@ -76,7 +75,7 @@ function StepCard({
           {step.number}
         </Box>
         <Text
-          fontFamily="var(--font-fraunces), serif"
+          fontFamily="var(--font-fraunces), Georgia, serif"
           fontWeight={500}
           fontSize="lg"
           mb={2}
@@ -91,28 +90,14 @@ function StepCard({
   );
 }
 
-function StepDivider() {
-  return (
-    <Box
-      display={{ base: "none", md: "flex" }}
-      alignItems="center"
-      px={1}
-    >
-      <Text color="text.muted" fontSize="xl" letterSpacing="0.2em">
-        ---
-      </Text>
-    </Box>
-  );
-}
-
 export default function HowItWorks() {
   return (
-    <Box bg="bg.canvas" py={16} px={4}>
+    <Box py={16} px={4}>
       <Box maxW="4xl" mx="auto">
         <Heading
           as="h2"
           size="lg"
-          fontFamily="var(--font-fraunces), serif"
+          fontFamily="var(--font-fraunces), Georgia, serif"
           textAlign="center"
           mb={3}
         >
@@ -126,19 +111,12 @@ export default function HowItWorks() {
           mt={1}
           mb={10}
         />
-        <Flex
-          direction={{ base: "column", md: "row" }}
-          gap={{ base: 6, md: 4 }}
-          justifyContent="center"
-          alignItems={{ base: "stretch", md: "stretch" }}
-        >
+        {/* Using CSS class for guaranteed responsive grid */}
+        <div className="steps-grid">
           {steps.map((step, index) => (
-            <Box key={step.number} display="contents">
-              <StepCard step={step} index={index} />
-              {index < steps.length - 1 && <StepDivider />}
-            </Box>
+            <StepCard key={step.number} step={step} index={index} />
           ))}
-        </Flex>
+        </div>
       </Box>
     </Box>
   );

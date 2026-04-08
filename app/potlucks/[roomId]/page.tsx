@@ -2,11 +2,9 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import {
-  Container,
   Button,
   Input,
   Box,
-  Flex,
   Text,
   Heading,
   Collapsible,
@@ -139,24 +137,18 @@ export default function Room() {
         roomId={roomId}
         roomName={data?.name || ""}
       />
-      <Container
-        display="flex"
-        flexDirection="column"
-        maxW="2xl"
-        py={8}
-        px={{ base: 4, md: 6 }}
-        gap={6}
-      >
+      <div className="room-container" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+
         {loadingRoom ? (
-          <Flex direction="column" gap={6}>
+          <Box display="flex" flexDirection="column" gap={6}>
             <Skeleton height="40px" rounded="xl" width="60%" mx="auto" />
             <Skeleton height="200px" rounded="2xl" />
             <Skeleton height="200px" rounded="2xl" />
-          </Flex>
+          </Box>
         ) : (
           <>
             {/* Room Header */}
-            <Flex direction="column" alignItems="center" gap={3}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
               {data && (
                 <Editable.Root
                   defaultValue={data?.name || data?.id}
@@ -185,7 +177,7 @@ export default function Room() {
                 <LuShare2 />
                 Share Link
               </Button>
-            </Flex>
+            </div>
 
             {/* Guests Section */}
             <SectionCard>
@@ -234,9 +226,8 @@ export default function Room() {
                 </Box>
               )}
 
-              <Flex gap={2}>
+              <div className="input-row">
                 <Input
-                  flex="1"
                   placeholder="Add a guest..."
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
@@ -250,7 +241,7 @@ export default function Room() {
                 >
                   Add
                 </Button>
-              </Flex>
+              </div>
             </SectionCard>
 
             {/* Menu Section */}
@@ -309,9 +300,8 @@ export default function Room() {
                 </Box>
               )}
 
-              <Flex gap={2}>
+              <div className="input-row">
                 <Input
-                  flex="1"
                   placeholder="Add a dish..."
                   value={foodInput}
                   onChange={(e) => setFoodInput(e.target.value)}
@@ -325,11 +315,11 @@ export default function Room() {
                 >
                   Add
                 </Button>
-              </Flex>
+              </div>
             </SectionCard>
           </>
         )}
-      </Container>
+      </div>
     </main>
   );
 }

@@ -1,0 +1,110 @@
+/* Responsive layout helpers — Chakra v3 responsive props are unreliable */
+.steps-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .steps-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.hero-heading {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+@media (min-width: 640px) {
+  .hero-heading {
+    font-size: 3rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-heading {
+    font-size: 3.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-heading {
+    font-size: 4rem;
+  }
+}
+
+.hero-section {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+@media (min-width: 768px) {
+  .hero-section {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+}
+
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.room-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .room-container {
+    padding: 2rem 1.5rem;
+  }
+}
+
+.prev-potlucks-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 480px) {
+  .prev-potlucks-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .prev-potlucks-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Floating emoji styles */
+.floating-emoji {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.12;
+}
+
+/* Noise texture overlay */
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] .noise-overlay {
+  opacity: 0.05;
+}
