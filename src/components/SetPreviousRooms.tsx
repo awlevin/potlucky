@@ -18,12 +18,12 @@ const useSetPrevRooms = ({ roomId, roomName, ready }: ISetPrevRoomProps) => {
         const updatedRoomName = roomName || roomId;
         if (!room) {
           // if not, add it
-          return [...prevRooms, { id: roomId, name: updatedRoomName }];
+          return [...prevRooms, { id: roomId, name: updatedRoomName, lastVisited: new Date().toISOString() }];
         } else {
           // if it is, update it to make sure it has the right room name
           return prevRooms.map((prevRoom) => {
             if (prevRoom.id === roomId) {
-              return { ...prevRoom, name: updatedRoomName };
+              return { ...prevRoom, name: updatedRoomName, lastVisited: new Date().toISOString() };
             }
             return prevRoom;
           });

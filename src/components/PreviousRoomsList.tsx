@@ -1,43 +1,75 @@
-import { useLocalStorage } from "@uidotdev/usehooks";
-import { useRouter } from "next/navigation";
-import { Button, Collapsible, List, Text } from '@chakra-ui/react'
-import { IPrevRoom } from "@/utils/misc";
-import { useEffect, useState } from "react";
+"use client"
+
+import { useLocalStorage } from "@uidotdev/usehooks"
+import { useRouter } from "next/navigation"
+import { Box, Grid, Heading, Text } from "@chakra-ui/react"
+import { IPrevRoom } from "@/utils/misc"
+import { PotluckCard } from "@/components/PotluckCard"
+import { AnimatePresence, motion } from "framer-motion"
 
 export const PreviousRoomsList = () => {
-  const [prevRooms] = useLocalStorage<IPrevRoom[]>("prevRooms", []);
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-    return () => {
-      setMounted(false);
-    }
-  }, []);
+  const [prevRooms, setPrevRooms] = useLocalStorage<IPrevRoom[]>("prevRooms", [])
+  const router = useRouter()
 
-  return prevRooms.length > 0 ? (
-    <Collapsible.Root open={mounted}>
-      <List.Root>
-        {prevRooms.reverse().map((room) => (
-          <List.Item key={room.id}>
-            <Button
-              onClick={() => router.push(`/potlucks/${room.id}`)}
-              size={"xs"}
+  const handleNavigate = (id: string) => {
+    router.push(`/potlucks/${id}`)
+  }
+
+  const handleRemove = (id: string) => {
+    setPrevRooms((rooms) => rooms.filter((r) => r.id !== id))
+  }
+
+  // Show rooms in reverse chronological order
+  const sortedRooms = [...prevRooms].reverse()
+
+  if (sortedRooms.length === 0) {
+    return (
+      <Box maxW="3xl" mx="auto" py={8}>
+        <Box textAlign="center" py={12}>
+          <Text fontSize="5xl" mb={4}>
+            🍽️
+          </Text>
+          <Heading size="md" color="text.primary" mb={2}>
+            No potlucks yet!
+          </Heading>
+          <Text color="text.muted">
+            Start one above and it&apos;ll show up here.
+          </Text>
+        </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <Box maxW="3xl" mx="auto" py={8}>
+      <Heading size="md" color="text.primary" mb={4}>
+        Your Potlucks
+      </Heading>
+      <Grid
+        gridTemplateColumns={{ base: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }}
+        gap={4}
+      >
+        <AnimatePresence>
+          {sortedRooms.map((room, index) => (
+            <motion.div
+              key={room.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2, delay: index * 0.05 }}
             >
-              {room.name}
-            </Button>
-          </List.Item>
-        ))}
-      </List.Root>
-    </Collapsible.Root>
-  ) : (
-    <Text
-      fontSize={"xs"}
-      color={"gray.500"}
-      textAlign={"center"}
-    >recent potlucks will show up here!</Text>
-  );
-};
+              <PotluckCard
+                room={room}
+                onNavigate={handleNavigate}
+                onRemove={handleRemove}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </Grid>
+    </Box>
+  )
+}
 
 // doing default export so next/dynamic will stop complaining
-export default PreviousRoomsList;
+export default PreviousRoomsList
