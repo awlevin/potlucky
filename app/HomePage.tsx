@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Container, Heading } from '@chakra-ui/react'
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import HowItWorks from "@/components/HowItWorks";
 import { HeroSection } from "@/components/HeroSection";
 const PreviousRoomsList = dynamic(
   () => import("@/components/PreviousRoomsList"),
@@ -55,6 +56,8 @@ export default function Home() {
   return (
     <main>
       <HeroSection onStart={onNewRoomClick} loading={loading} />
+
+      <HowItWorks />
 
       <Container
         maxW="md"
