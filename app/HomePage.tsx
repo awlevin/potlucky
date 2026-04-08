@@ -2,7 +2,7 @@
 import { useAddData } from "@/lib/firebase/firestore/addData";
 import { nanoid } from 'nanoid'
 import { useRouter } from "next/navigation";
-import { Container, Heading } from '@chakra-ui/react'
+import { Container } from '@chakra-ui/react'
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -72,9 +72,6 @@ export default function Home() {
           flexDirection={"column"}
           py={8}
         >
-          <Heading as="h3" size="md" mb={4}>
-            Previous Potlucks
-          </Heading>
           <PreviousRoomsList />
         </Container>
       </motion.div>
