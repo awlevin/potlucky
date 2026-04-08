@@ -2,6 +2,7 @@
 
 import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react"
 import { motion } from "framer-motion"
+import { useColorModeValue } from "@/components/ui/color-mode"
 
 interface HeroSectionProps {
   onStart: () => void
@@ -20,6 +21,11 @@ const FLOATING_EMOJIS = [
 ]
 
 export function HeroSection({ onStart, loading }: HeroSectionProps) {
+  const heroBg = useColorModeValue(
+    "linear-gradient(135deg, #FFF8E7 0%, #FFF7ED 40%, #FFEFC2 70%, #FEF0ED 100%)",
+    "linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #1a1a2e 70%, #0f3460 100%)",
+  )
+
   return (
     <Box
       as="section"
@@ -28,8 +34,7 @@ export function HeroSection({ onStart, loading }: HeroSectionProps) {
       w="full"
       py={{ base: 16, md: 24 }}
       style={{
-        background:
-          "linear-gradient(135deg, #FFF8E7 0%, #FFF7ED 40%, #FFEFC2 70%, #FEF0ED 100%)",
+        background: heroBg,
       }}
     >
       {/* Floating food emojis */}
