@@ -44,19 +44,29 @@ function StepCard({
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, delay: index * 0.2 }}
-      style={{ flex: 1 }}
+      style={{ flex: 1, minWidth: 0 }}
     >
-      <Box textAlign="center" p={6}>
-        <Text fontSize="3rem" mb={3}>
+      <Box
+        textAlign="center"
+        p={8}
+        bg="bg.surface"
+        rounded="2xl"
+        border="1px solid"
+        borderColor="border.default"
+        boxShadow="0 2px 8px rgba(0,0,0,0.04)"
+        height="100%"
+      >
+        <Text fontSize="2.5rem" mb={3}>
           {step.emoji}
         </Text>
         <Box
-          rounded="full"
-          w={6}
-          h={6}
+          rounded="lg"
+          w={8}
+          h={8}
           bg="brand.500"
           color="white"
           fontSize="sm"
+          fontWeight={700}
           display="flex"
           alignItems="center"
           justifyContent="center"
@@ -65,10 +75,15 @@ function StepCard({
         >
           {step.number}
         </Box>
-        <Text fontWeight={600} mb={2}>
+        <Text
+          fontFamily="var(--font-fraunces), serif"
+          fontWeight={500}
+          fontSize="lg"
+          mb={2}
+        >
           {step.title}
         </Text>
-        <Text fontSize="sm" color="text.muted">
+        <Text fontSize="sm" color="text.secondary" lineHeight="1.6">
           {step.description}
         </Text>
       </Box>
@@ -76,20 +91,52 @@ function StepCard({
   );
 }
 
+function StepDivider() {
+  return (
+    <Box
+      display={{ base: "none", md: "flex" }}
+      alignItems="center"
+      px={1}
+    >
+      <Text color="text.muted" fontSize="xl" letterSpacing="0.2em">
+        ---
+      </Text>
+    </Box>
+  );
+}
+
 export default function HowItWorks() {
   return (
-    <Box bg="bg.muted" py={16} px={4}>
+    <Box bg="bg.canvas" py={16} px={4}>
       <Box maxW="4xl" mx="auto">
-        <Heading as="h2" size="lg" textAlign="center" mb={8}>
+        <Heading
+          as="h2"
+          size="lg"
+          fontFamily="var(--font-fraunces), serif"
+          textAlign="center"
+          mb={3}
+        >
           How It Works
         </Heading>
+        <Box
+          w={12}
+          h="2px"
+          bg="brand.400"
+          mx="auto"
+          mt={1}
+          mb={10}
+        />
         <Flex
           direction={{ base: "column", md: "row" }}
-          gap={8}
+          gap={{ base: 6, md: 4 }}
           justifyContent="center"
+          alignItems={{ base: "stretch", md: "stretch" }}
         >
           {steps.map((step, index) => (
-            <StepCard key={step.number} step={step} index={index} />
+            <Box key={step.number} display="contents">
+              <StepCard step={step} index={index} />
+              {index < steps.length - 1 && <StepDivider />}
+            </Box>
           ))}
         </Flex>
       </Box>

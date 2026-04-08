@@ -8,7 +8,7 @@ export const tokens = defineTokens({
       100: { value: "#FFEFC2" },
       200: { value: "#FFE299" },
       300: { value: "#FFD56F" },
-      400: { value: "#FFC84A" },
+      400: { value: "#E8A817" },
       500: { value: "#FFBA24" },
       600: { value: "#E5A00D" },
       700: { value: "#B87D0A" },
@@ -43,7 +43,7 @@ export const tokens = defineTokens({
     },
     // Soft off-whites and warm grays — backgrounds, cards, surfaces
     cream: {
-      50: { value: "#FFFCF7" },
+      50: { value: "#FFFCF5" },
       100: { value: "#FFF7ED" },
       200: { value: "#FFEED6" },
       300: { value: "#FFE4BF" },
@@ -61,29 +61,35 @@ export const semanticTokens = defineSemanticTokens({
   colors: {
     bg: {
       canvas: {
-        value: { _light: "{colors.cream.50}", _dark: "{colors.gray.900}" },
+        value: { _light: "{colors.cream.50}", _dark: "#1C1917" },
       },
       surface: {
-        value: { _light: "{colors.white}", _dark: "{colors.gray.800}" },
+        value: { _light: "{colors.white}", _dark: "#292524" },
       },
       muted: {
-        value: { _light: "{colors.cream.100}", _dark: "{colors.gray.700}" },
+        value: { _light: "{colors.cream.100}", _dark: "#44403C" },
+      },
+      elevated: {
+        value: { _light: "{colors.white}", _dark: "#44403C" },
       },
     },
     text: {
       primary: {
-        value: { _light: "{colors.gray.800}", _dark: "{colors.cream.50}" },
+        value: { _light: "#292524", _dark: "{colors.cream.100}" },
       },
       secondary: {
-        value: { _light: "{colors.gray.600}", _dark: "{colors.cream.200}" },
+        value: { _light: "#57534E", _dark: "{colors.cream.300}" },
       },
       muted: {
-        value: { _light: "{colors.gray.500}", _dark: "{colors.cream.400}" },
+        value: { _light: "#A8A29E", _dark: "#78716C" },
       },
     },
     border: {
       default: {
-        value: { _light: "{colors.cream.300}", _dark: "{colors.gray.600}" },
+        value: { _light: "#E7E5E4", _dark: "#44403C" },
+      },
+      subtle: {
+        value: { _light: "#F5F5F4", _dark: "#292524" },
       },
     },
   },
