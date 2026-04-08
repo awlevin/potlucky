@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Container, Button, Heading } from '@chakra-ui/react'
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import HowItWorks from "@/components/HowItWorks";
 const PreviousRoomsList = dynamic(
   () => import("@/components/PreviousRoomsList"),
   { ssr: false, loading: () => <div /> }
@@ -74,7 +75,16 @@ export default function Home() {
         <Button onClick={onNewRoomClick} disabled={loading} mb={16}>
           {loading ? "loading" : "new potluck"}
         </Button>
+      </Container>
 
+      <HowItWorks />
+
+      <Container
+        maxW="md"
+        alignItems={"center"}
+        display="flex"
+        flexDirection={"column"}
+      >
         <Heading as="h3" size="md" mb={4}>
           Previous Potlucks
         </Heading>
