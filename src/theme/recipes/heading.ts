@@ -3,22 +3,24 @@ import { defineRecipe } from "@chakra-ui/react"
 export const headingRecipe = defineRecipe({
   className: "chakra-heading",
   base: {
-    fontFamily: "var(--font-inter), Inter, sans-serif",
+    fontFamily: "var(--font-fraunces), Georgia, serif",
     color: "text.primary",
   },
   variants: {
     size: {
       xl: {
-        fontSize: "4xl",
-        fontWeight: "800",
+        fontSize: { base: "3xl", md: "5xl" },
+        fontWeight: "600",
         lineHeight: "1.1",
         letterSpacing: "-0.02em",
+        fontVariationSettings: "'SOFT' 50, 'WONK' 1",
       },
       lg: {
         fontSize: "3xl",
-        fontWeight: "800",
+        fontWeight: "600",
         lineHeight: "1.2",
         letterSpacing: "-0.01em",
+        fontVariationSettings: "'SOFT' 50, 'WONK' 1",
       },
       md: {
         fontSize: "2xl",

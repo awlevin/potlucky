@@ -3,6 +3,17 @@
 import { Box, IconButton, Text } from "@chakra-ui/react"
 import { IPrevRoom } from "@/utils/misc"
 
+const FOOD_EMOJIS = ["🍕", "🥗", "🧁", "🍲", "🥘", "🍰", "🌮", "🥖", "🍝", "🧀", "🥧", "🍣"]
+
+function getEmojiForName(name: string): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash << 5) - hash) + name.charCodeAt(i)
+    hash |= 0
+  }
+  return FOOD_EMOJIS[Math.abs(hash) % FOOD_EMOJIS.length]
+}
+
 function formatRelativeDate(dateStr?: string): string {
   if (!dateStr) return "Visited recently"
 
@@ -26,19 +37,21 @@ interface PotluckCardProps {
 }
 
 export function PotluckCard({ room, onNavigate, onRemove }: PotluckCardProps) {
+  const emoji = getEmojiForName(room.name || room.id)
+
   return (
     <Box
       position="relative"
       bg="bg.surface"
       rounded="xl"
-      shadow="sm"
       border="1px solid"
       borderColor="border.default"
       p={4}
       cursor="pointer"
-      transition="all 0.2s"
+      transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+      boxShadow="0 2px 8px rgba(0,0,0,0.04)"
       _hover={{
-        shadow: "md",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
         transform: "translateY(-2px)",
         borderColor: "brand.300",
       }}
@@ -59,7 +72,25 @@ export function PotluckCard({ room, onNavigate, onRemove }: PotluckCardProps) {
       }}
       onClick={() => onNavigate(room.id)}
       role="group"
+      overflow="hidden"
     >
+      {/* Food emoji accent */}
+      <Box
+        position="absolute"
+        top={2}
+        right={8}
+        fontSize="lg"
+        opacity={0.5}
+        transition="all 0.3s ease"
+        _groupHover={{
+          transform: "rotate(15deg) scale(1.2)",
+          opacity: 0.8,
+        }}
+        pointerEvents="none"
+      >
+        {emoji}
+      </Box>
+
       <IconButton
         aria-label={`Remove ${room.name}`}
         size="xs"
@@ -79,12 +110,13 @@ export function PotluckCard({ room, onNavigate, onRemove }: PotluckCardProps) {
       </IconButton>
 
       <Text
+        fontFamily="var(--font-fraunces), serif"
         fontWeight={600}
         overflow="hidden"
         textOverflow="ellipsis"
         whiteSpace="nowrap"
         color="text.primary"
-        pr={6}
+        pr={10}
       >
         {room.name}
       </Text>

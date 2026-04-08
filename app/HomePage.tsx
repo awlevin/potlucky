@@ -2,7 +2,6 @@
 import { useAddData } from "@/lib/firebase/firestore/addData";
 import { nanoid } from 'nanoid'
 import { useRouter } from "next/navigation";
-import { Container } from '@chakra-ui/react'
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -47,8 +46,6 @@ export default function Home() {
       router.push(`/potlucks/${roomId}`)
     }
     setTimeout(() => {
-      // this is pretty jank and i'm pretty sure will cause errors if this stuff has unmounted when it gets called after the page re-routes
-      // ... but it fixes the flickery loading state
       setLoading(false);
     }, 3000)
   }
@@ -65,15 +62,7 @@ export default function Home() {
 
         <HowItWorks />
 
-        <Container
-          maxW="3xl"
-          alignItems={"center"}
-          display="flex"
-          flexDirection={"column"}
-          py={8}
-        >
-          <PreviousRoomsList />
-        </Container>
+        <PreviousRoomsList />
       </motion.div>
     </main>
   );

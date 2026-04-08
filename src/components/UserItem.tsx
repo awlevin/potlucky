@@ -1,6 +1,9 @@
+"use client"
+
 import { useEffect, useState } from "react";
 import {
-  List,
+  Box,
+  Flex,
   Text,
   IconButton,
 } from "@chakra-ui/react";
@@ -42,21 +45,41 @@ const UserItem = ({
   };
 
   return (
-    <List.Item
-      key={user.id}
+    <Flex
       onClick={() => claimUser(user.id)}
-      backgroundColor={isSelectedUser ? "green.100" : "gray.100"}
+      bg={isSelectedUser ? "accent.100" : "bg.muted"}
+      border="1.5px solid"
+      borderColor={isSelectedUser ? "accent.500" : "border.default"}
       display="flex"
-      mr={5}
-      rounded={20}
-      px={2}
-      py={1}
+      rounded="xl"
+      px={3}
+      py={1.5}
       alignItems="center"
-      _hover={{ backgroundColor: isSelectedUser ? "green.200" : "gray.200" }}
-      role={"button"}
-      mt={2}
+      gap={1.5}
+      cursor="pointer"
+      transition="all 0.2s"
+      _hover={{
+        borderColor: isSelectedUser ? "accent.600" : "brand.300",
+        bg: isSelectedUser ? "accent.200" : "bg.elevated",
+      }}
+      role="button"
     >
-      <Text fontSize="small">{user.name}</Text>
+      {isSelectedUser && (
+        <Box
+          w={2}
+          h={2}
+          borderRadius="full"
+          bg="accent.500"
+          flexShrink={0}
+        />
+      )}
+      <Text
+        fontSize="sm"
+        fontWeight={isSelectedUser ? 600 : 400}
+        color={isSelectedUser ? "accent.800" : "text.primary"}
+      >
+        {user.name}
+      </Text>
       <Tooltip
         content={"Confirm delete"}
         disabled={!isClicked}
@@ -68,15 +91,24 @@ const UserItem = ({
           size="xs"
           variant="ghost"
           onClick={handleDelete}
+          opacity={isClicked ? 1 : 0}
+          _groupHover={{ opacity: 1 }}
+          transition="opacity 0.2s"
+          color={isClicked ? "warm.500" : "warm.400"}
           _hover={{
-            backgroundColor: isSelectedUser ? "green.300" : "red.100",
+            bg: isClicked ? "warm.50" : "bg.muted",
+          }}
+          css={{
+            ".chakra-flex:hover &": {
+              opacity: 1,
+            },
           }}
         >
           {isClicked ? <LuCheck /> : <LuDelete />}
         </IconButton>
       </Tooltip>
-    </List.Item>
+    </Flex>
   );
 };
 
-export default UserItem; 
+export default UserItem;

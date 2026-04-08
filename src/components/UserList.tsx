@@ -1,7 +1,10 @@
-import { Box, Collapsible, List } from "@chakra-ui/react";
+"use client"
+
+import { Flex } from "@chakra-ui/react";
 import { WithId } from "@/lib/firebase/firestore/brains";
 import { IRoomObj, User } from "@/types";
 import UserItem from "@/components/UserItem";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface UserListProps {
   data: WithId<IRoomObj> | null;
@@ -16,32 +19,33 @@ export const UserList = ({
   currUser,
   removeUser,
 }: UserListProps) => {
+  if (!data?.users?.length) return null;
+
   return (
-    <Collapsible.Root open={Boolean(data?.users?.length)}>
-      <Box
-        as="ul"
-        display="flex"
-        flexDirection="row"
-        alignItems="center"
-        mb={2}
-        maxWidth={"md"}
-        flexWrap={"wrap"}
-        justifyContent={"space-around"}
-      >
-        <List.Root>
-          {data?.users.map((user) => (
-            // <ScaleFade key={user.id} in={!!user} unmountOnExit>
+    <Flex
+      flexDirection="row"
+      alignItems="center"
+      flexWrap="wrap"
+      gap={2}
+    >
+      <AnimatePresence>
+        {data.users.map((user) => (
+          <motion.div
+            key={user.id}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+          >
             <UserItem
-              key={user.id}
               user={user}
               claimUser={claimUser}
               isSelectedUser={currUser?.id === user.id}
               removeUser={removeUser}
             />
-            // </ScaleFade>
-          ))}
-        </List.Root>
-      </Box>
-    </Collapsible.Root>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </Flex>
   );
 };

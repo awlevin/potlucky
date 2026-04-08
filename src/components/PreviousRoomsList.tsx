@@ -33,7 +33,7 @@ export const PreviousRoomsList = () => {
 
   if (!mounted) {
     return (
-      <Box maxW="3xl" mx="auto" py={8}>
+      <Box maxW="3xl" mx="auto" py={8} px={{ base: 4, md: 8 }}>
         <Grid
           gridTemplateColumns={{ base: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }}
           gap={4}
@@ -48,15 +48,29 @@ export const PreviousRoomsList = () => {
 
   if (sortedRooms.length === 0) {
     return (
-      <Box maxW="3xl" mx="auto" py={8}>
-        <Box textAlign="center" py={12}>
+      <Box maxW="3xl" mx="auto" py={8} px={{ base: 4, md: 8 }}>
+        <Heading
+          size="md"
+          fontFamily="var(--font-fraunces), serif"
+          color="text.primary"
+          mb={4}
+        >
+          Recent Potlucks
+        </Heading>
+        <Box
+          textAlign="center"
+          py={16}
+          border="2px dashed"
+          borderColor="border.default"
+          rounded="2xl"
+        >
           <Text fontSize="5xl" mb={4}>
             🍽️
           </Text>
-          <Heading size="md" color="text.primary" mb={2}>
+          <Heading size="sm" color="text.primary" mb={2}>
             No potlucks yet!
           </Heading>
-          <Text color="text.muted">
+          <Text color="text.muted" fontSize="sm">
             Start one above and it&apos;ll show up here.
           </Text>
         </Box>
@@ -65,9 +79,14 @@ export const PreviousRoomsList = () => {
   }
 
   return (
-    <Box maxW="3xl" mx="auto" py={8}>
-      <Heading size="md" color="text.primary" mb={4}>
-        Your Potlucks
+    <Box maxW="3xl" mx="auto" py={8} px={{ base: 4, md: 8 }}>
+      <Heading
+        size="md"
+        fontFamily="var(--font-fraunces), serif"
+        color="text.primary"
+        mb={4}
+      >
+        Recent Potlucks
       </Heading>
       <Grid
         gridTemplateColumns={{ base: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }}
