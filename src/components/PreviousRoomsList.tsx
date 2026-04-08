@@ -1,15 +1,22 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useLocalStorage } from "@uidotdev/usehooks"
 import { useRouter } from "next/navigation"
 import { Box, Grid, Heading, Text } from "@chakra-ui/react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { IPrevRoom } from "@/utils/misc"
 import { PotluckCard } from "@/components/PotluckCard"
 import { AnimatePresence, motion } from "framer-motion"
 
 export const PreviousRoomsList = () => {
+  const [mounted, setMounted] = useState(false)
   const [prevRooms, setPrevRooms] = useLocalStorage<IPrevRoom[]>("prevRooms", [])
   const router = useRouter()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleNavigate = (id: string) => {
     router.push(`/potlucks/${id}`)
@@ -21,6 +28,21 @@ export const PreviousRoomsList = () => {
 
   // Show rooms in reverse chronological order
   const sortedRooms = [...prevRooms].reverse()
+
+  if (!mounted) {
+    return (
+      <Box maxW="3xl" mx="auto" py={8}>
+        <Grid
+          gridTemplateColumns={{ base: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" }}
+          gap={4}
+        >
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} height="100px" rounded="xl" />
+          ))}
+        </Grid>
+      </Box>
+    )
+  }
 
   if (sortedRooms.length === 0) {
     return (

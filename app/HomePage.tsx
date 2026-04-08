@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Container, Heading } from '@chakra-ui/react'
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import HowItWorks from "@/components/HowItWorks";
 import { HeroSection } from "@/components/HeroSection";
 const PreviousRoomsList = dynamic(
@@ -55,22 +56,28 @@ export default function Home() {
 
   return (
     <main>
-      <HeroSection onStart={onNewRoomClick} loading={loading} />
-
-      <HowItWorks />
-
-      <Container
-        maxW="md"
-        alignItems={"center"}
-        display="flex"
-        flexDirection={"column"}
-        py={8}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
       >
-        <Heading as="h3" size="md" mb={4}>
-          Previous Potlucks
-        </Heading>
-        <PreviousRoomsList />
-      </Container>
+        <HeroSection onStart={onNewRoomClick} loading={loading} />
+
+        <HowItWorks />
+
+        <Container
+          maxW="md"
+          alignItems={"center"}
+          display="flex"
+          flexDirection={"column"}
+          py={8}
+        >
+          <Heading as="h3" size="md" mb={4}>
+            Previous Potlucks
+          </Heading>
+          <PreviousRoomsList />
+        </Container>
+      </motion.div>
     </main>
   );
 }

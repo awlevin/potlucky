@@ -65,30 +65,48 @@ export function HeroSection({ onStart, loading }: HeroSectionProps) {
         zIndex={1}
         px={{ base: 4, md: 8 }}
       >
-        <Heading
-          as="h1"
-          fontSize={{ base: "2xl", md: "4xl", lg: "5xl" }}
-          fontWeight={800}
-          color="text.primary"
-          mb={4}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
         >
-          Every great meal starts with great friends.
-        </Heading>
+          <Heading
+            as="h1"
+            fontSize={{ base: "2xl", md: "4xl", lg: "5xl" }}
+            fontWeight={800}
+            color="text.primary"
+            mb={4}
+          >
+            Every great meal starts with great friends.
+          </Heading>
+        </motion.div>
 
-        <Text
-          fontSize={{ base: "md", md: "lg" }}
-          color="text.secondary"
-          maxW="lg"
-          mb={8}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Plan your potluck in seconds. Share a link, claim dishes, and feast
-          together.
-        </Text>
+          <Text
+            fontSize={{ base: "md", md: "lg" }}
+            color="text.secondary"
+            maxW="lg"
+            mb={8}
+          >
+            Plan your potluck in seconds. Share a link, claim dishes, and feast
+            together.
+          </Text>
+        </motion.div>
 
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-          <Button size="lg" onClick={onStart} disabled={loading}>
-            {loading ? "Setting the table..." : "Start a Potluck 🎉"}
-          </Button>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.7, duration: 0.4 }}
+        >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+            <Button size="lg" onClick={onStart} disabled={loading}>
+              {loading ? "Setting the table..." : "Start a Potluck 🎉"}
+            </Button>
+          </motion.div>
         </motion.div>
       </Flex>
     </Box>

@@ -40,6 +40,19 @@ export function PotluckCard({ room, onNavigate, onRemove }: PotluckCardProps) {
       _hover={{
         shadow: "md",
         transform: "translateY(-2px)",
+        borderColor: "brand.300",
+      }}
+      _focusVisible={{
+        outline: "2px solid",
+        outlineColor: "brand.500",
+        outlineOffset: "2px",
+      }}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onNavigate(room.id)
+        }
       }}
       onClick={() => onNavigate(room.id)}
       role="group"
