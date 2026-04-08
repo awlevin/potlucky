@@ -26,8 +26,10 @@ export const PreviousRoomsList = () => {
     setPrevRooms((rooms) => rooms.filter((r) => r.id !== id))
   }
 
-  // Show rooms in reverse chronological order
-  const sortedRooms = [...prevRooms].reverse()
+  // Show rooms in reverse chronological order (by lastVisited)
+  const sortedRooms = [...prevRooms].sort(
+    (a, b) => new Date(b.lastVisited || 0).getTime() - new Date(a.lastVisited || 0).getTime()
+  )
 
   if (!mounted) {
     return (
