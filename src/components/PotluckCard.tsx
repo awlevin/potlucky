@@ -1,6 +1,5 @@
 "use client"
 
-import { Box, IconButton, Text } from "@chakra-ui/react"
 import { IPrevRoom } from "@/utils/misc"
 
 const FOOD_EMOJIS = ["🍕", "🥗", "🧁", "🍲", "🥘", "🍰", "🌮", "🥖", "🍝", "🧀", "🥧", "🍣"]
@@ -40,27 +39,11 @@ export function PotluckCard({ room, onNavigate, onRemove }: PotluckCardProps) {
   const emoji = getEmojiForName(room.name || room.id)
 
   return (
-    <Box
-      position="relative"
-      bg="bg.surface"
-      rounded="xl"
-      border="1px solid"
-      borderColor="border.default"
-      p={4}
-      cursor="pointer"
-      transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
-      boxShadow="0 2px 8px rgba(0,0,0,0.04)"
-      _hover={{
-        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-        transform: "translateY(-2px)",
-        borderColor: "brand.300",
-      }}
-      _focusVisible={{
-        outline: "2px solid",
-        outlineColor: "brand.500",
-        outlineOffset: "2px",
-      }}
+    <div
+      className="potluck-card"
       tabIndex={0}
+      role="button"
+      onClick={() => onNavigate(room.id)}
       onKeyDown={(e) => {
         if (
           (e.key === "Enter" || e.key === " ") &&
@@ -70,60 +53,66 @@ export function PotluckCard({ room, onNavigate, onRemove }: PotluckCardProps) {
           onNavigate(room.id)
         }
       }}
-      onClick={() => onNavigate(room.id)}
-      role="group"
-      overflow="hidden"
     >
       {/* Food emoji accent */}
-      <Box
-        position="absolute"
-        top={2}
-        right={8}
-        fontSize="lg"
-        opacity={0.5}
-        transition="all 0.3s ease"
-        _groupHover={{
-          transform: "rotate(15deg) scale(1.2)",
-          opacity: 0.8,
+      <span
+        style={{
+          position: "absolute",
+          top: "8px",
+          right: "32px",
+          fontSize: "1.125rem",
+          opacity: 0.5,
+          pointerEvents: "none",
+          transition: "all 0.3s ease",
         }}
-        pointerEvents="none"
       >
         {emoji}
-      </Box>
+      </span>
 
-      <IconButton
+      {/* Remove button */}
+      <button
         aria-label={`Remove ${room.name}`}
-        size="xs"
-        variant="ghost"
-        position="absolute"
-        top={2}
-        right={2}
-        opacity={0}
-        _groupHover={{ opacity: 1 }}
-        transition="opacity 0.2s"
+        className="btn btn-ghost btn-icon btn-xs"
+        style={{
+          position: "absolute",
+          top: "8px",
+          right: "8px",
+          opacity: 0,
+          transition: "opacity 0.2s",
+        }}
         onClick={(e) => {
           e.stopPropagation()
           onRemove(room.id)
         }}
+        onMouseEnter={(e) => { (e.currentTarget.style.opacity = "1") }}
+        onMouseLeave={(e) => { (e.currentTarget.style.opacity = "0") }}
       >
         &times;
-      </IconButton>
+      </button>
 
-      <Text
-        fontFamily="var(--font-fraunces), serif"
-        fontWeight={600}
-        overflow="hidden"
-        textOverflow="ellipsis"
-        whiteSpace="nowrap"
-        color="text.primary"
-        pr={10}
+      <p
+        style={{
+          fontFamily: "var(--font-fraunces), Georgia, serif",
+          fontWeight: 600,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          color: "var(--color-text)",
+          paddingRight: "2.5rem",
+        }}
       >
         {room.name}
-      </Text>
+      </p>
 
-      <Text fontSize="sm" color="text.muted" mt={1}>
+      <p
+        style={{
+          fontSize: "0.875rem",
+          color: "var(--color-text-muted)",
+          marginTop: "4px",
+        }}
+      >
         {formatRelativeDate(room.lastVisited)}
-      </Text>
-    </Box>
+      </p>
+    </div>
   )
 }

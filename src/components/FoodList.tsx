@@ -1,10 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
 import { LuDelete, LuCheck } from "react-icons/lu";
 import { Food, User } from "@/types";
-import { Tooltip } from "@/components/ui/tooltip";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface FoodListProps {
@@ -23,12 +21,7 @@ export const FoodList = ({
   currUser
 }: FoodListProps) => {
   return (
-    <Flex
-      flexDirection="row"
-      alignItems="center"
-      flexWrap="wrap"
-      gap={2}
-    >
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
       <AnimatePresence>
         {foods.map((food) => {
           const userClaimedBy = users?.find((u) => u.id === food.claimedBy);
@@ -54,7 +47,7 @@ export const FoodList = ({
           );
         })}
       </AnimatePresence>
-    </Flex>
+    </div>
   );
 };
 
@@ -96,110 +89,48 @@ const FoodItemRow = ({
   const isUnclaimed = !userClaimedBy;
   const isClaimedByOther = !!userClaimedBy && !isForSelectedUser;
 
+  const stateClass = isForSelectedUser
+    ? "food-item-mine"
+    : isUnclaimed
+      ? "food-item-unclaimed"
+      : "food-item-claimed";
+
   return (
     <motion.div whileTap={{ scale: 0.97 }}>
-      <Flex
+      <div
+        className={`food-item ${stateClass}`}
         onClick={() => claimFood(food.id)}
-        bg={
-          isForSelectedUser
-            ? "accent.50"
-            : isClaimedByOther
-              ? "bg.muted"
-              : "bg.surface"
-        }
-        border={
-          isForSelectedUser
-            ? "1.5px solid"
-            : isUnclaimed
-              ? "1.5px dashed"
-              : "1.5px solid"
-        }
-        borderColor={
-          isForSelectedUser
-            ? "accent.400"
-            : "border.default"
-        }
-        rounded="xl"
-        px={3}
-        py={2}
-        alignItems="center"
-        gap={2}
-        cursor="pointer"
-        transition="all 0.2s"
-        _hover={{
-          borderColor: isForSelectedUser ? "accent.500" : "brand.300",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-        }}
         role="button"
+        tabIndex={0}
       >
-        <Text
-          fontSize="sm"
-          fontWeight={isForSelectedUser ? 600 : 400}
-          color={
-            isForSelectedUser
-              ? "accent.800"
-              : isUnclaimed
-                ? "text.secondary"
-                : "text.primary"
-          }
+        <span
+          style={{
+            fontSize: "0.875rem",
+            fontWeight: isForSelectedUser ? 600 : 400,
+          }}
         >
           {food.title}
-        </Text>
+        </span>
         {isClaimedByOther && userClaimedBy && (
-          <Box
-            bg="brand.50"
-            color="brand.700"
-            fontSize="xs"
-            fontWeight={600}
-            px={1.5}
-            py={0.5}
-            rounded="md"
-            whiteSpace="nowrap"
-          >
+          <span className="badge badge-brand">
             {userClaimedBy.name}
-          </Box>
+          </span>
         )}
         {isForSelectedUser && userClaimedBy && (
-          <Box
-            bg="accent.100"
-            color="accent.700"
-            fontSize="xs"
-            fontWeight={600}
-            px={1.5}
-            py={0.5}
-            rounded="md"
-            whiteSpace="nowrap"
-          >
+          <span className="badge badge-accent">
             {userClaimedBy.name}
-          </Box>
+          </span>
         )}
-        <Tooltip
-          content={"Confirm delete"}
-          disabled={!isClicked}
-          showArrow
-          positioning={{ placement: "top" }}
+        <button
+          aria-label={`Remove ${food.title}`}
+          className={`item-delete-btn ${isClicked ? "confirm" : ""}`}
+          onClick={handleDelete}
+          type="button"
+          title={isClicked ? "Click again to confirm" : `Remove ${food.title}`}
         >
-          <IconButton
-            aria-label={`Remove ${food.title}`}
-            size="xs"
-            variant="ghost"
-            onClick={handleDelete}
-            opacity={isClicked ? 1 : 0}
-            transition="opacity 0.2s"
-            color={isClicked ? "warm.500" : "warm.400"}
-            _hover={{
-              bg: isClicked ? "warm.50" : "bg.muted",
-            }}
-            css={{
-              ".chakra-flex:hover &": {
-                opacity: 1,
-              },
-            }}
-          >
-            {isClicked ? <LuCheck /> : <LuDelete />}
-          </IconButton>
-        </Tooltip>
-      </Flex>
+          {isClicked ? <LuCheck /> : <LuDelete />}
+        </button>
+      </div>
     </motion.div>
   );
 };

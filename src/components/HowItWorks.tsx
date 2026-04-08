@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef } from "react";
-import { Box, Heading, Text } from "@chakra-ui/react";
 import { motion, useInView } from "framer-motion";
 
 const steps = [
@@ -36,7 +35,7 @@ function StepCard({
   index: number;
 }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const isInView = useInView(ref, { once: true, margin: "-20px" });
 
   return (
     <motion.div
@@ -44,80 +43,68 @@ function StepCard({
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, delay: index * 0.15 }}
+      style={{ opacity: isInView ? undefined : 0 }}
     >
-      <Box
-        textAlign="center"
-        p={8}
-        bg="bg.surface"
-        rounded="2xl"
-        border="1px solid"
-        borderColor="border.default"
-        boxShadow="0 2px 8px rgba(0,0,0,0.04)"
-        height="100%"
-      >
-        <Text fontSize="2.5rem" mb={3}>
+      <div className="step-card">
+        <div style={{ fontSize: "2.5rem", marginBottom: "12px" }}>
           {step.emoji}
-        </Text>
-        <Box
-          rounded="lg"
-          w={8}
-          h={8}
-          bg="brand.500"
-          color="white"
-          fontSize="sm"
-          fontWeight={700}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          mx="auto"
-          mb={3}
-        >
+        </div>
+        <div className="step-number">
           {step.number}
-        </Box>
-        <Text
-          fontFamily="var(--font-fraunces), Georgia, serif"
-          fontWeight={500}
-          fontSize="lg"
-          mb={2}
+        </div>
+        <p
+          style={{
+            fontFamily: "var(--font-fraunces), Georgia, serif",
+            fontWeight: 500,
+            fontSize: "1.125rem",
+            marginBottom: "8px",
+            color: "var(--color-text)",
+          }}
         >
           {step.title}
-        </Text>
-        <Text fontSize="sm" color="text.secondary" lineHeight="1.6">
+        </p>
+        <p
+          style={{
+            fontSize: "0.875rem",
+            color: "var(--color-text-secondary)",
+            lineHeight: 1.6,
+          }}
+        >
           {step.description}
-        </Text>
-      </Box>
+        </p>
+      </div>
     </motion.div>
   );
 }
 
 export default function HowItWorks() {
   return (
-    <Box py={16} px={4}>
-      <Box maxW="4xl" mx="auto">
-        <Heading
-          as="h2"
-          size="lg"
-          fontFamily="var(--font-fraunces), Georgia, serif"
-          textAlign="center"
-          mb={3}
+    <div style={{ padding: "64px 16px" }}>
+      <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
+        <h2
+          className="display-heading"
+          style={{
+            textAlign: "center",
+            fontSize: "1.5rem",
+            marginBottom: "12px",
+          }}
         >
           How It Works
-        </Heading>
-        <Box
-          w={12}
-          h="2px"
-          bg="brand.400"
-          mx="auto"
-          mt={1}
-          mb={10}
+        </h2>
+        <div
+          style={{
+            width: "48px",
+            height: "2px",
+            background: "var(--color-brand)",
+            margin: "4px auto 40px",
+          }}
         />
-        {/* Using CSS class for guaranteed responsive grid */}
         <div className="steps-grid">
           {steps.map((step, index) => (
             <StepCard key={step.number} step={step} index={index} />
           ))}
         </div>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

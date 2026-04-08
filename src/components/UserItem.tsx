@@ -1,15 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Flex,
-  Text,
-  IconButton,
-} from "@chakra-ui/react";
 import { LuDelete, LuCheck } from "react-icons/lu";
 import { User } from "@/types";
-import { Tooltip } from "@/components/ui/tooltip";
 
 interface UserItemProps {
   user: User;
@@ -45,69 +38,41 @@ const UserItem = ({
   };
 
   return (
-    <Flex
+    <div
+      className={`pill ${isSelectedUser ? "pill-selected" : ""}`}
       onClick={() => claimUser(user.id)}
-      bg={isSelectedUser ? "accent.100" : "bg.muted"}
-      border="1.5px solid"
-      borderColor={isSelectedUser ? "accent.500" : "border.default"}
-      display="flex"
-      rounded="xl"
-      px={3}
-      py={1.5}
-      alignItems="center"
-      gap={1.5}
-      cursor="pointer"
-      transition="all 0.2s"
-      _hover={{
-        borderColor: isSelectedUser ? "accent.600" : "brand.300",
-        bg: isSelectedUser ? "accent.200" : "bg.elevated",
-      }}
       role="button"
+      tabIndex={0}
     >
       {isSelectedUser && (
-        <Box
-          w={2}
-          h={2}
-          borderRadius="full"
-          bg="accent.500"
-          flexShrink={0}
+        <span
+          style={{
+            width: "8px",
+            height: "8px",
+            borderRadius: "50%",
+            background: "var(--color-accent)",
+            flexShrink: 0,
+          }}
         />
       )}
-      <Text
-        fontSize="sm"
-        fontWeight={isSelectedUser ? 600 : 400}
-        color={isSelectedUser ? "accent.800" : "text.primary"}
+      <span
+        style={{
+          fontSize: "0.875rem",
+          fontWeight: isSelectedUser ? 600 : 400,
+        }}
       >
         {user.name}
-      </Text>
-      <Tooltip
-        content={"Confirm delete"}
-        disabled={!isClicked}
-        showArrow
-        positioning={{ placement: "top" }}
+      </span>
+      <button
+        aria-label={`Remove ${user.name}`}
+        className={`item-delete-btn ${isClicked ? "confirm" : ""}`}
+        onClick={handleDelete}
+        type="button"
+        title={isClicked ? "Click again to confirm" : `Remove ${user.name}`}
       >
-        <IconButton
-          aria-label={`Remove ${user.name}`}
-          size="xs"
-          variant="ghost"
-          onClick={handleDelete}
-          opacity={isClicked ? 1 : 0}
-          _groupHover={{ opacity: 1 }}
-          transition="opacity 0.2s"
-          color={isClicked ? "warm.500" : "warm.400"}
-          _hover={{
-            bg: isClicked ? "warm.50" : "bg.muted",
-          }}
-          css={{
-            ".chakra-flex:hover &": {
-              opacity: 1,
-            },
-          }}
-        >
-          {isClicked ? <LuCheck /> : <LuDelete />}
-        </IconButton>
-      </Tooltip>
-    </Flex>
+        {isClicked ? <LuCheck /> : <LuDelete />}
+      </button>
+    </div>
   );
 };
 

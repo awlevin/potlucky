@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react"
 import { useLocalStorage } from "@uidotdev/usehooks"
 import { useRouter } from "next/navigation"
-import { Box, Heading, Text } from "@chakra-ui/react"
-import { Skeleton } from "@/components/ui/skeleton"
 import { IPrevRoom } from "@/utils/misc"
 import { PotluckCard } from "@/components/PotluckCard"
 import { AnimatePresence, motion } from "framer-motion"
@@ -26,65 +24,73 @@ export const PreviousRoomsList = () => {
     setPrevRooms((rooms) => rooms.filter((r) => r.id !== id))
   }
 
-  // Show rooms in reverse chronological order (by lastVisited)
   const sortedRooms = [...prevRooms].sort(
     (a, b) => new Date(b.lastVisited || 0).getTime() - new Date(a.lastVisited || 0).getTime()
   )
 
   if (!mounted) {
     return (
-      <Box maxW="3xl" mx="auto" py={8} px={{ base: 4, md: 8 }}>
+      <div style={{ maxWidth: "48rem", margin: "0 auto", padding: "32px 16px" }}>
         <div className="prev-potlucks-grid">
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} height="100px" rounded="xl" />
+            <div
+              key={i}
+              style={{
+                height: "100px",
+                borderRadius: "var(--radius-lg)",
+                background: "var(--color-border-subtle)",
+              }}
+            />
           ))}
         </div>
-      </Box>
+      </div>
     )
   }
 
   if (sortedRooms.length === 0) {
     return (
-      <Box maxW="3xl" mx="auto" py={8} px={{ base: 4, md: 8 }}>
-        <Heading
-          size="md"
-          fontFamily="var(--font-fraunces), serif"
-          color="text.primary"
-          mb={4}
+      <div style={{ maxWidth: "48rem", margin: "0 auto", padding: "32px 16px" }}>
+        <h2
+          className="display-heading"
+          style={{ fontSize: "1.25rem", marginBottom: "16px" }}
         >
           Recent Potlucks
-        </Heading>
-        <Box
-          textAlign="center"
-          py={16}
-          border="2px dashed"
-          borderColor="border.default"
-          rounded="2xl"
+        </h2>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "64px 16px",
+            border: "2px dashed var(--color-border)",
+            borderRadius: "var(--radius-lg)",
+          }}
         >
-          <Text fontSize="5xl" mb={4}>
-            🍽️
-          </Text>
-          <Heading size="sm" color="text.primary" mb={2}>
+          <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🍽️</div>
+          <p
+            style={{
+              fontFamily: "var(--font-fraunces), Georgia, serif",
+              fontWeight: 500,
+              color: "var(--color-text)",
+              marginBottom: "8px",
+            }}
+          >
             No potlucks yet!
-          </Heading>
-          <Text color="text.muted" fontSize="sm">
+          </p>
+          <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem" }}>
             Start one above and it&apos;ll show up here.
-          </Text>
-        </Box>
-      </Box>
+          </p>
+        </div>
+      </div>
     )
   }
 
   return (
-    <Box maxW="3xl" mx="auto" py={8} px={{ base: 4, md: 8 }}>
-      <Heading
-        size="md"
-        fontFamily="var(--font-fraunces), serif"
-        color="text.primary"
-        mb={4}
+    <div style={{ maxWidth: "48rem", margin: "0 auto", padding: "32px 16px" }}>
+      <h2
+        className="display-heading"
+        style={{ fontSize: "1.25rem", marginBottom: "16px" }}
       >
         Recent Potlucks
-      </Heading>
+      </h2>
       <div className="prev-potlucks-grid">
         <AnimatePresence>
           {sortedRooms.map((room, index) => (
@@ -104,9 +110,8 @@ export const PreviousRoomsList = () => {
           ))}
         </AnimatePresence>
       </div>
-    </Box>
+    </div>
   )
 }
 
-// doing default export so next/dynamic will stop complaining
 export default PreviousRoomsList

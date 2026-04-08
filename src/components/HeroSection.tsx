@@ -1,8 +1,6 @@
 "use client"
 
-import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react"
 import { motion } from "framer-motion"
-import { useColorModeValue } from "@/components/ui/color-mode"
 
 interface HeroSectionProps {
   onStart: () => void
@@ -23,32 +21,10 @@ const FLOATING_EMOJIS = [
 const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
 
 export function HeroSection({ onStart, loading }: HeroSectionProps) {
-  const heroBg = useColorModeValue(
-    "linear-gradient(160deg, #FFFCF5 0%, #FFF0C7 35%, #FEF1ED 65%, #FFFCF5 100%)",
-    "linear-gradient(160deg, #1C1917 0%, #292524 35%, #2C2520 65%, #1C1917 100%)",
-  )
-  const noiseOpacity = useColorModeValue(0.03, 0.05)
-  const textShadow = useColorModeValue("none", "0 2px 8px rgba(0,0,0,0.3)")
-
   return (
-    <Box
-      position="relative"
-      overflow="hidden"
-      w="full"
-      py={{ base: 20, md: 32 }}
-      style={{
-        background: heroBg,
-      }}
-    >
+    <div className="hero">
       {/* Noise texture overlay */}
-      <Box
-        position="absolute"
-        inset={0}
-        backgroundImage={NOISE_SVG}
-        backgroundRepeat="repeat"
-        opacity={noiseOpacity}
-        pointerEvents="none"
-      />
+      <div className="noise-overlay" />
 
       {/* Floating food emojis */}
       {FLOATING_EMOJIS.map(({ emoji, delay, size, ...pos }) => (
@@ -78,31 +54,25 @@ export function HeroSection({ onStart, loading }: HeroSectionProps) {
       ))}
 
       {/* Main content */}
-      <Flex
-        direction="column"
-        alignItems="center"
-        textAlign="center"
-        position="relative"
-        zIndex={1}
-        px={{ base: 4, md: 8 }}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          position: "relative",
+          zIndex: 1,
+          padding: "0 16px",
+        }}
       >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <Heading
-            as="h1"
-            fontFamily="var(--font-fraunces), Georgia, serif"
-            fontSize={{ base: "3xl", sm: "4xl", md: "5xl", lg: "6xl" }}
-            fontWeight={600}
-            fontVariationSettings="'SOFT' 50, 'WONK' 1"
-            color="text.primary"
-            mb={4}
-            textShadow={textShadow}
-          >
+          <h1 className="hero-heading">
             Every great meal starts with great friends.
-          </Heading>
+          </h1>
         </motion.div>
 
         <motion.div
@@ -110,15 +80,19 @@ export function HeroSection({ onStart, loading }: HeroSectionProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          <Text
-            fontSize="lg"
-            color="text.secondary"
-            maxW="md"
-            mb={8}
+          <p
+            style={{
+              fontSize: "1.125rem",
+              color: "var(--color-text-secondary)",
+              maxWidth: "28rem",
+              marginBottom: "2rem",
+              marginTop: "1rem",
+              lineHeight: 1.6,
+            }}
           >
             Plan your potluck in seconds. Share a link, claim dishes, and feast
             together.
-          </Text>
+          </p>
         </motion.div>
 
         <motion.div
@@ -143,14 +117,18 @@ export function HeroSection({ onStart, loading }: HeroSectionProps) {
                 ease: "easeInOut",
               },
             }}
-            style={{ borderRadius: "var(--chakra-radii-xl)" }}
+            style={{ borderRadius: "var(--radius-lg)" }}
           >
-            <Button size="lg" onClick={onStart} disabled={loading}>
-              {loading ? "Setting the table..." : "Start a Potluck →"}
-            </Button>
+            <button
+              className="btn btn-lg"
+              onClick={onStart}
+              disabled={loading}
+            >
+              {loading ? "Setting the table..." : "Start a Potluck \u2192"}
+            </button>
           </motion.div>
         </motion.div>
-      </Flex>
-    </Box>
+      </div>
+    </div>
   )
 }

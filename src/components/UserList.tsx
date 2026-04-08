@@ -1,6 +1,5 @@
 "use client"
 
-import { Flex } from "@chakra-ui/react";
 import { WithId } from "@/lib/firebase/firestore/brains";
 import { IRoomObj, User } from "@/types";
 import UserItem from "@/components/UserItem";
@@ -22,12 +21,7 @@ export const UserList = ({
   if (!data?.users?.length) return null;
 
   return (
-    <Flex
-      flexDirection="row"
-      alignItems="center"
-      flexWrap="wrap"
-      gap={2}
-    >
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
       <AnimatePresence>
         {data.users.map((user) => (
           <motion.div
@@ -46,6 +40,6 @@ export const UserList = ({
           </motion.div>
         ))}
       </AnimatePresence>
-    </Flex>
+    </div>
   );
 };

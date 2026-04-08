@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Fraunces, DM_Sans } from "next/font/google";
-import { Box } from '@chakra-ui/react'
 import { Providers } from "./providers";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -29,16 +28,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${dmSans.variable}`}>
-      <body style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}>
+    <html lang="en" className={`${fraunces.variable} ${dmSans.variable}`} suppressHydrationWarning>
+      <body>
         <Providers>
-          <Box minH="100vh" display="flex" flexDirection="column" bg="bg.canvas">
+          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
             <Navbar />
-            <Box flex="1">
+            <div style={{ flex: 1 }}>
               {children}
-            </Box>
+            </div>
             <Footer />
-          </Box>
+          </div>
         </Providers>
       </body>
     </html>

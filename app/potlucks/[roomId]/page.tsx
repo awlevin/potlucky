@@ -2,11 +2,6 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import {
-  Button,
-  Input,
-  Box,
-  Text,
-  Heading,
   Collapsible,
   Editable,
   EditableValueChangeDetails,
@@ -21,7 +16,6 @@ import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { FoodList } from "@/components/FoodList";
 import { UserList } from "@/components/UserList";
 import { IRoomObj } from "@/types";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toaster } from "@/components/ui/toaster";
 import { LuShare2 } from "react-icons/lu";
 
@@ -37,33 +31,18 @@ const SetPrevRooms = dynamic<ISetPrevRoomProps>(
 
 function SectionCard({ children }: { children: React.ReactNode }) {
   return (
-    <Box
-      bg="bg.surface"
-      rounded="2xl"
-      border="1px solid"
-      borderColor="border.default"
-      p={6}
-    >
+    <div className="card">
       {children}
-    </Box>
+    </div>
   );
 }
 
 function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
   return (
-    <Heading
-      as="h3"
-      size="sm"
-      fontFamily="var(--font-fraunces), serif"
-      fontWeight={500}
-      mb={4}
-      display="flex"
-      alignItems="center"
-      gap={2}
-    >
-      <Text fontSize="lg">{emoji}</Text>
+    <h3 className="section-label">
+      <span style={{ fontSize: "1.125rem" }}>{emoji}</span>
       {title}
-    </Heading>
+    </h3>
   );
 }
 
@@ -140,11 +119,31 @@ export default function Room() {
       <div className="room-container" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
         {loadingRoom ? (
-          <Box display="flex" flexDirection="column" gap={6}>
-            <Skeleton height="40px" rounded="xl" width="60%" mx="auto" />
-            <Skeleton height="200px" rounded="2xl" />
-            <Skeleton height="200px" rounded="2xl" />
-          </Box>
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            <div
+              style={{
+                height: "40px",
+                borderRadius: "var(--radius)",
+                background: "var(--color-border-subtle)",
+                width: "60%",
+                margin: "0 auto",
+              }}
+            />
+            <div
+              style={{
+                height: "200px",
+                borderRadius: "var(--radius-lg)",
+                background: "var(--color-border-subtle)",
+              }}
+            />
+            <div
+              style={{
+                height: "200px",
+                borderRadius: "var(--radius-lg)",
+                background: "var(--color-border-subtle)",
+              }}
+            />
+          </div>
         ) : (
           <>
             {/* Room Header */}
@@ -159,7 +158,6 @@ export default function Room() {
                 >
                   <Editable.Preview
                     fontFamily="var(--font-fraunces), Georgia, serif"
-                    _hover={{ color: "text.secondary", cursor: "pointer" }}
                     py={1}
                     px={2}
                   />
@@ -169,14 +167,13 @@ export default function Room() {
                   <Editable.Control />
                 </Editable.Root>
               )}
-              <Button
-                size="xs"
-                variant="outline"
+              <button
+                className="btn btn-outline btn-xs"
                 onClick={handleShare}
               >
                 <LuShare2 />
                 Share Link
-              </Button>
+              </button>
             </div>
 
             {/* Guests Section */}
@@ -188,59 +185,50 @@ export default function Room() {
                   <Collapsible.Root
                     open={!hasClaimedUserBefore && !data?.users.length}
                   >
-                    <Text fontWeight="light" fontSize="xs" color="text.muted" mb={2}>
+                    <p style={{ fontWeight: 300, fontSize: "12px", color: "var(--color-text-muted)", marginBottom: "8px" }}>
                       Add a friend to get started!
-                    </Text>
+                    </p>
                   </Collapsible.Root>
                   <Collapsible.Root
                     open={!hasClaimedUserBefore && Boolean(data?.users.length)}
                   >
-                    <Text fontWeight="light" fontSize="xs" color="text.muted" mb={2}>
+                    <p style={{ fontWeight: 300, fontSize: "12px", color: "var(--color-text-muted)", marginBottom: "8px" }}>
                       Now tap them to continue.
-                    </Text>
+                    </p>
                   </Collapsible.Root>
                 </>
               )}
 
               {data?.users?.length ? (
-                <Box mb={4}>
+                <div style={{ marginBottom: "16px" }}>
                   <UserList
                     data={data}
                     claimUser={claimUser}
                     currUser={currUser}
                     removeUser={removeUser}
                   />
-                </Box>
+                </div>
               ) : (
-                <Box
-                  textAlign="center"
-                  py={8}
-                  mb={4}
-                  border="2px dashed"
-                  borderColor="border.default"
-                  rounded="xl"
-                >
-                  <Text color="text.muted" fontSize="sm">
-                    No guests yet. Add someone below!
-                  </Text>
-                </Box>
+                <div className="empty-state">
+                  No guests yet. Add someone below!
+                </div>
               )}
 
               <div className="input-row">
-                <Input
+                <input
+                  className="input"
                   placeholder="Add a guest..."
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyDown={handleEnterKeyPress(addUser)}
                 />
-                <Button
+                <button
+                  className="btn"
                   onClick={addUser}
-                  size="md"
                   disabled={!userInput}
-                  flexShrink={0}
                 >
                   Add
-                </Button>
+                </button>
               </div>
             </SectionCard>
 
@@ -257,9 +245,9 @@ export default function Room() {
                       Boolean(!data?.foods.length)
                     }
                   >
-                    <Text fontWeight="light" fontSize="xs" color="text.muted" mb={2}>
+                    <p style={{ fontWeight: 300, fontSize: "12px", color: "var(--color-text-muted)", marginBottom: "8px" }}>
                       Now add a food item, please.
-                    </Text>
+                    </p>
                   </Collapsible.Root>
                   <Collapsible.Root
                     open={
@@ -268,15 +256,15 @@ export default function Room() {
                       Boolean(data?.foods.length)
                     }
                   >
-                    <Text fontWeight="light" fontSize="xs" color="text.muted" mb={2}>
+                    <p style={{ fontWeight: 300, fontSize: "12px", color: "var(--color-text-muted)", marginBottom: "8px" }}>
                       Now tap the food to claim it!
-                    </Text>
+                    </p>
                   </Collapsible.Root>
                 </>
               )}
 
               {data?.foods?.length ? (
-                <Box mb={4}>
+                <div style={{ marginBottom: "16px" }}>
                   <FoodList
                     foods={data.foods}
                     claimFood={claimFood}
@@ -284,37 +272,28 @@ export default function Room() {
                     users={data?.users}
                     currUser={currUser}
                   />
-                </Box>
+                </div>
               ) : (
-                <Box
-                  textAlign="center"
-                  py={8}
-                  mb={4}
-                  border="2px dashed"
-                  borderColor="border.default"
-                  rounded="xl"
-                >
-                  <Text color="text.muted" fontSize="sm">
-                    No dishes yet. Add something delicious!
-                  </Text>
-                </Box>
+                <div className="empty-state">
+                  No dishes yet. Add something delicious!
+                </div>
               )}
 
               <div className="input-row">
-                <Input
+                <input
+                  className="input"
                   placeholder="Add a dish..."
                   value={foodInput}
                   onChange={(e) => setFoodInput(e.target.value)}
                   onKeyDown={handleEnterKeyPress(addFood)}
                 />
-                <Button
+                <button
+                  className="btn"
                   onClick={addFood}
-                  size="md"
                   disabled={!foodInput}
-                  flexShrink={0}
                 >
                   Add
-                </Button>
+                </button>
               </div>
             </SectionCard>
           </>
