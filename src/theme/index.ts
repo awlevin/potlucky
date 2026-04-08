@@ -18,6 +18,7 @@ const config = defineConfig({
     body: {
       bg: "bg.canvas",
       color: "text.primary",
+      fontFamily: "var(--font-dm-sans), system-ui, sans-serif",
     },
   },
 })
