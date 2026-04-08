@@ -2,9 +2,10 @@
 import { useAddData } from "@/lib/firebase/firestore/addData";
 import { nanoid } from 'nanoid'
 import { useRouter } from "next/navigation";
-import { Container, Button, Heading } from '@chakra-ui/react'
+import { Container, Heading } from '@chakra-ui/react'
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { HeroSection } from "@/components/HeroSection";
 const PreviousRoomsList = dynamic(
   () => import("@/components/PreviousRoomsList"),
   { ssr: false, loading: () => <div /> }
@@ -53,28 +54,15 @@ export default function Home() {
 
   return (
     <main>
+      <HeroSection onStart={onNewRoomClick} loading={loading} />
+
       <Container
         maxW="md"
         alignItems={"center"}
         display="flex"
         flexDirection={"column"}
+        py={8}
       >
-        <Heading as="h1" size="xl" mb={4}>
-          Welcome to Potlucky
-        </Heading>
-        <Heading
-          as="h2"
-          size="md"
-          fontWeight={"normal"}
-          fontSize={"1.125rem"}
-          mb={6}
-        >
-          The easiest way to organize a potluck!
-        </Heading>
-        <Button onClick={onNewRoomClick} disabled={loading} mb={16}>
-          {loading ? "loading" : "new potluck"}
-        </Button>
-
         <Heading as="h3" size="md" mb={4}>
           Previous Potlucks
         </Heading>
