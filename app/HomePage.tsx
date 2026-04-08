@@ -66,7 +66,7 @@ export default function Home() {
         <HowItWorks />
 
         <Container
-          maxW="md"
+          maxW="3xl"
           alignItems={"center"}
           display="flex"
           flexDirection={"column"}
