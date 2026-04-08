@@ -3,6 +3,7 @@ import { KeyboardEvent } from "react";
 export interface IPrevRoom {
   name: string;
   id: string;
+  lastVisited?: string;
 }
 
 function handleKeyPress<T = Element>(f: () => void, key: string){
