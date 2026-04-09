@@ -589,3 +589,37 @@ body {
   padding: 4px 8px;
   box-shadow: var(--shadow-md);
 }
+
+/* ---------- Identity Gate Overlay ---------- */
+.identity-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 1rem;
+}
+.dark .identity-overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
+.identity-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* ---------- Identity Bar ---------- */
+.identity-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: var(--color-accent-light);
+  border: 1px solid var(--color-accent);
+  color: var(--color-text);
+}
