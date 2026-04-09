@@ -1,6 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { Food } from "@/types";
 import dynamic from "next/dynamic";
 import { useUsers } from "@/hooks/useUsers";
 import { useFoods } from "@/hooks/useFoods";
@@ -50,6 +51,7 @@ export default function Room() {
   } = useRealtimeData<IRoomObj>("rooms", roomId);
 
   const [hasClaimedFoodBefore, setHasClaimedFoodBefore] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Food["type"]>("main");
 
   const {
     userInput,
@@ -193,17 +195,37 @@ export default function Room() {
                 </div>
               )}
 
+              <div className="category-selector">
+                {(
+                  [
+                    { key: "appetizer", label: "Appetizer" },
+                    { key: "main", label: "Main" },
+                    { key: "side", label: "Side" },
+                    { key: "dessert", label: "Dessert" },
+                    { key: "drink", label: "Drink" },
+                  ] as { key: Food["type"]; label: string }[]
+                ).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    className={`category-pill ${selectedCategory === key ? "category-pill-selected" : ""}`}
+                    onClick={() => setSelectedCategory(key)}
+                    type="button"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <div className="input-row">
                 <input
                   className="input"
                   placeholder="Add a dish..."
                   value={foodInput}
                   onChange={(e) => setFoodInput(e.target.value)}
-                  onKeyDown={handleEnterKeyPress(addFood)}
+                  onKeyDown={handleEnterKeyPress(() => addFood(selectedCategory))}
                 />
                 <button
                   className="btn"
-                  onClick={addFood}
+                  onClick={() => addFood(selectedCategory)}
                   disabled={!foodInput}
                 >
                   Add

@@ -5,6 +5,14 @@ import { LuDelete, LuCheck } from "react-icons/lu";
 import { Food, User } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 
+const CATEGORIES: { key: Food["type"]; emoji: string; label: string }[] = [
+  { key: "appetizer", emoji: "\u{1F957}", label: "Appetizers" },
+  { key: "main", emoji: "\u{1F356}", label: "Mains" },
+  { key: "side", emoji: "\u{1F958}", label: "Sides" },
+  { key: "dessert", emoji: "\u{1F370}", label: "Desserts" },
+  { key: "drink", emoji: "\u{1F964}", label: "Drinks" },
+];
+
 interface FoodListProps {
   foods: Food[];
   claimFood: (id: string) => void;
@@ -20,33 +28,93 @@ export const FoodList = ({
   users,
   currUser
 }: FoodListProps) => {
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-      <AnimatePresence>
-        {foods.map((food) => {
-          const userClaimedBy = users?.find((u) => u.id === food.claimedBy);
-          const isForSelectedUser =
-            Boolean(food.claimedBy && food.claimedBy === currUser?.id);
+  // Group foods by category
+  const grouped = CATEGORIES.map(({ key, emoji, label }) => {
+    const items = foods.filter((f) => f.type === key);
+    return { key, emoji, label, items };
+  });
 
-          return (
-            <motion.div
-              key={food.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-            >
-              <FoodItemRow
-                food={food}
-                claimFood={claimFood}
-                removeFood={removeFood}
-                userClaimedBy={userClaimedBy}
-                isForSelectedUser={isForSelectedUser}
-              />
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+  // Uncategorized foods (no type set)
+  const uncategorized = foods.filter((f) => !f.type);
+
+  return (
+    <div>
+      {grouped.map(({ key, emoji, label, items }) => {
+        if (items.length === 0) return null;
+        return (
+          <div key={key}>
+            <div className="category-header">
+              <span>{emoji}</span>
+              <span>{label}</span>
+              <span>({items.length})</span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+              <AnimatePresence>
+                {items.map((food) => {
+                  const userClaimedBy = users?.find((u) => u.id === food.claimedBy);
+                  const isForSelectedUser =
+                    Boolean(food.claimedBy && food.claimedBy === currUser?.id);
+
+                  return (
+                    <motion.div
+                      key={food.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <FoodItemRow
+                        food={food}
+                        claimFood={claimFood}
+                        removeFood={removeFood}
+                        userClaimedBy={userClaimedBy}
+                        isForSelectedUser={isForSelectedUser}
+                      />
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </div>
+        );
+      })}
+
+      {uncategorized.length > 0 && (
+        <div>
+          <div className="category-header">
+            <span>{"\u{1F37D}\uFE0F"}</span>
+            <span>Other</span>
+            <span>({uncategorized.length})</span>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <AnimatePresence>
+              {uncategorized.map((food) => {
+                const userClaimedBy = users?.find((u) => u.id === food.claimedBy);
+                const isForSelectedUser =
+                  Boolean(food.claimedBy && food.claimedBy === currUser?.id);
+
+                return (
+                  <motion.div
+                    key={food.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <FoodItemRow
+                      food={food}
+                      claimFood={claimFood}
+                      removeFood={removeFood}
+                      userClaimedBy={userClaimedBy}
+                      isForSelectedUser={isForSelectedUser}
+                    />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
