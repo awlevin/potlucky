@@ -9,7 +9,7 @@ export type User = {
 
 export type Food = {
   id: string;
-  claimedBy?: string | null; // userId or not
+  claimedBy?: string | string[] | null; // single userId, array of userIds, or unclaimed
   title: string;
   notes?: string;
   type?: "appetizer" | "main" | "side" | "dessert" | "drink";

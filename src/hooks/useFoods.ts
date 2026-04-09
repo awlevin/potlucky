@@ -60,15 +60,26 @@ export function useFoods({
       toaster.create({
         description: "Pick a user first!",
         type: "error",
-        // isClosable: true,
       });
       return;
     }
 
     const newFoods = modifyItemById(data?.foods || [], id, (food) => {
+      // Normalize claimedBy to array
+      const current = Array.isArray(food.claimedBy)
+        ? food.claimedBy
+        : food.claimedBy
+        ? [food.claimedBy]
+        : [];
+
+      const alreadyClaimed = current.includes(currUser.id);
+      const updated = alreadyClaimed
+        ? current.filter((uid: string) => uid !== currUser.id)
+        : [...current, currUser.id];
+
       return {
         ...food,
-        claimedBy: food.claimedBy === currUser.id ? null : currUser.id,
+        claimedBy: updated.length === 0 ? null : updated,
       };
     });
 

@@ -14,12 +14,23 @@ interface SummaryPanelProps {
 export function SummaryPanel({ foods, users, currUser, roomName }: SummaryPanelProps) {
   const [expanded, setExpanded] = useState(false);
 
-  // Group foods by claimant
+  // Group foods by claimant (supports multi-claimer)
   const grouped = new Map<string | null, Food[]>();
   for (const food of foods) {
-    const key = food.claimedBy ?? null;
-    if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key)!.push(food);
+    const claimerIds = Array.isArray(food.claimedBy)
+      ? food.claimedBy
+      : food.claimedBy
+      ? [food.claimedBy]
+      : [];
+    if (claimerIds.length === 0) {
+      if (!grouped.has(null)) grouped.set(null, []);
+      grouped.get(null)!.push(food);
+    } else {
+      for (const uid of claimerIds) {
+        if (!grouped.has(uid)) grouped.set(uid, []);
+        grouped.get(uid)!.push(food);
+      }
+    }
   }
 
   // Build ordered sections: current user first, then others alphabetically, then unclaimed

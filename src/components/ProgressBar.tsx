@@ -45,7 +45,7 @@ export function ProgressBar({ foods }: { foods: Food[] }) {
   const [hasTriggered, setHasTriggered] = useState(false);
 
   const total = foods.length;
-  const claimed = foods.filter((f) => f.claimedBy).length;
+  const claimed = foods.filter((f) => Array.isArray(f.claimedBy) ? f.claimedBy.length > 0 : !!f.claimedBy).length;
   const percent = total === 0 ? 0 : Math.round((claimed / total) * 100);
   const isComplete = total > 0 && claimed === total;
 

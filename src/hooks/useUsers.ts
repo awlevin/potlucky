@@ -103,6 +103,10 @@ export function useUsers({ data, addData, roomId }: UseUsersProps) {
       ...data,
       users: data?.users?.filter((u) => u.id !== id),
       foods: data?.foods?.map((food) => {
+        if (Array.isArray(food.claimedBy)) {
+          const filtered = food.claimedBy.filter((uid) => uid !== id);
+          return { ...food, claimedBy: filtered.length === 0 ? null : filtered };
+        }
         if (food.claimedBy === id) {
           return { ...food, claimedBy: null };
         }
