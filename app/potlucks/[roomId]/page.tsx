@@ -3,8 +3,6 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import {
   Collapsible,
-  Editable,
-  EditableValueChangeDetails,
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import { useUsers } from "@/hooks/useUsers";
@@ -15,9 +13,8 @@ import { handleEnterKeyPress } from "@/utils/misc";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { FoodList } from "@/components/FoodList";
 import { UserList } from "@/components/UserList";
+import { EventHeader } from "@/components/EventHeader";
 import { IRoomObj } from "@/types";
-import { toaster } from "@/components/ui/toaster";
-import { LuShare2 } from "react-icons/lu";
 
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
   () =>
@@ -85,30 +82,6 @@ export default function Room() {
     isOnboardingComplete,
   } = useOnboarding({ hasClaimedUserBefore, hasClaimedFoodBefore });
 
-  const changeRoomName = (data: EditableValueChangeDetails) => {
-    addData({
-      name: data.value,
-    });
-  };
-
-  const handleShare = async () => {
-    const url = window.location.href;
-    try {
-      await navigator.clipboard.writeText(url);
-      toaster.create({
-        title: "Link copied!",
-        description: "Share it with your friends.",
-        type: "success",
-      });
-    } catch {
-      toaster.create({
-        title: "Couldn't copy link",
-        description: url,
-        type: "error",
-      });
-    }
-  };
-
   return (
     <main>
       <SetPrevRooms
@@ -146,35 +119,10 @@ export default function Room() {
           </div>
         ) : (
           <>
-            {/* Room Header */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-              {data && (
-                <Editable.Root
-                  defaultValue={data?.name || data?.id}
-                  textAlign="center"
-                  fontSize="2xl"
-                  fontWeight="600"
-                  onValueCommit={changeRoomName}
-                >
-                  <Editable.Preview
-                    fontFamily="var(--font-fraunces), Georgia, serif"
-                    py={1}
-                    px={2}
-                  />
-                  <Editable.Input
-                    fontFamily="var(--font-fraunces), Georgia, serif"
-                  />
-                  <Editable.Control />
-                </Editable.Root>
-              )}
-              <button
-                className="btn btn-outline btn-xs"
-                onClick={handleShare}
-              >
-                <LuShare2 />
-                Share Link
-              </button>
-            </div>
+            {/* Event Header */}
+            {data && (
+              <EventHeader data={data} addData={addData} />
+            )}
 
             {/* Guests Section */}
             <SectionCard>

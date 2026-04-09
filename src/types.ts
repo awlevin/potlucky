@@ -24,6 +24,8 @@ export type Food = {
 export interface IRoomObj {
   id: string;
   name: string;
+  date?: string;
+  location?: string;
   users: User[];
   foods: Food[];
 } 
