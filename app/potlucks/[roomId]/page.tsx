@@ -1,18 +1,16 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import {
-  Collapsible,
-} from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import { useUsers } from "@/hooks/useUsers";
 import { useFoods } from "@/hooks/useFoods";
-import { useOnboarding } from "@/hooks/useOnboarding";
 import { useRealtimeData } from "@/lib/firebase/firestore/brains";
 import { handleEnterKeyPress } from "@/utils/misc";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { FoodList } from "@/components/FoodList";
 import { UserList } from "@/components/UserList";
+import { IdentityGate } from "@/components/IdentityGate";
+import { IdentityBar } from "@/components/IdentityBar";
 import { EventHeader } from "@/components/EventHeader";
 import { IRoomObj } from "@/types";
 
@@ -56,12 +54,14 @@ export default function Room() {
   const {
     userInput,
     setUserInput,
-    hasClaimedUserBefore,
     currUser,
-    claimUser,
+    identityResolved,
+    selectIdentity,
+    createAndSelectIdentity,
+    switchIdentity,
     removeUser,
     addUser,
-  } = useUsers({ data, addData });
+  } = useUsers({ data, addData, roomId });
 
   const {
     foodInput,
@@ -77,10 +77,8 @@ export default function Room() {
     setHasClaimedFoodBefore,
   });
 
-  const {
-    hasCompletedOnboardingBefore,
-    isOnboardingComplete,
-  } = useOnboarding({ hasClaimedUserBefore, hasClaimedFoodBefore });
+  // Show identity gate if data loaded but identity not yet resolved
+  const showIdentityGate = !loadingRoom && data && !identityResolved;
 
   return (
     <main>
@@ -89,6 +87,15 @@ export default function Room() {
         roomId={roomId}
         roomName={data?.name || ""}
       />
+
+      {showIdentityGate && (
+        <IdentityGate
+          users={data?.users || []}
+          onSelectExisting={selectIdentity}
+          onCreateNew={createAndSelectIdentity}
+        />
+      )}
+
       <div className="room-container" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
         {loadingRoom ? (
@@ -119,6 +126,11 @@ export default function Room() {
           </div>
         ) : (
           <>
+            {/* Identity Bar */}
+            {currUser && identityResolved && (
+              <IdentityBar user={currUser} onSwitch={switchIdentity} />
+            )}
+
             {/* Event Header */}
             {data && (
               <EventHeader data={data} addData={addData} />
@@ -128,30 +140,11 @@ export default function Room() {
             <SectionCard>
               <SectionHeader emoji="👥" title="Guests" />
 
-              {!hasCompletedOnboardingBefore && (
-                <>
-                  <Collapsible.Root
-                    open={!hasClaimedUserBefore && !data?.users.length}
-                  >
-                    <p style={{ fontWeight: 300, fontSize: "12px", color: "var(--color-text-muted)", marginBottom: "8px" }}>
-                      Add a friend to get started!
-                    </p>
-                  </Collapsible.Root>
-                  <Collapsible.Root
-                    open={!hasClaimedUserBefore && Boolean(data?.users.length)}
-                  >
-                    <p style={{ fontWeight: 300, fontSize: "12px", color: "var(--color-text-muted)", marginBottom: "8px" }}>
-                      Now tap them to continue.
-                    </p>
-                  </Collapsible.Root>
-                </>
-              )}
-
               {data?.users?.length ? (
                 <div style={{ marginBottom: "16px" }}>
                   <UserList
                     data={data}
-                    claimUser={claimUser}
+                    claimUser={() => {}}
                     currUser={currUser}
                     removeUser={removeUser}
                   />
@@ -183,33 +176,6 @@ export default function Room() {
             {/* Menu Section */}
             <SectionCard>
               <SectionHeader emoji="🍴" title="Menu" />
-
-              {!hasCompletedOnboardingBefore && (
-                <>
-                  <Collapsible.Root
-                    open={
-                      hasClaimedUserBefore &&
-                      !hasClaimedFoodBefore &&
-                      Boolean(!data?.foods.length)
-                    }
-                  >
-                    <p style={{ fontWeight: 300, fontSize: "12px", color: "var(--color-text-muted)", marginBottom: "8px" }}>
-                      Now add a food item, please.
-                    </p>
-                  </Collapsible.Root>
-                  <Collapsible.Root
-                    open={
-                      hasClaimedUserBefore &&
-                      !hasClaimedFoodBefore &&
-                      Boolean(data?.foods.length)
-                    }
-                  >
-                    <p style={{ fontWeight: 300, fontSize: "12px", color: "var(--color-text-muted)", marginBottom: "8px" }}>
-                      Now tap the food to claim it!
-                    </p>
-                  </Collapsible.Root>
-                </>
-              )}
 
               {data?.foods?.length ? (
                 <div style={{ marginBottom: "16px" }}>
