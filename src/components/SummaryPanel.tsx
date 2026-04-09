@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Food, User } from "@/types";
 import { toaster } from "@/components/ui/toaster";
+import { DietaryBadges } from "@/components/IdentityGate";
 
 interface SummaryPanelProps {
   foods: Food[];
@@ -135,7 +136,22 @@ export function SummaryPanel({ foods, users, currUser, roomName }: SummaryPanelP
               >
                 {section.userId === null
                   ? "Unclaimed"
-                  : `${section.name} (${section.items.length} ${section.items.length === 1 ? "dish" : "dishes"})`}
+                  : (
+                    <>
+                      {section.name}
+                      {(() => {
+                        const u = users.find((u) => u.id === section.userId);
+                        return u ? (
+                          <DietaryBadges
+                            restrictions={u.dietaryRestrictions}
+                            note={u.dietaryNote}
+                            size="xs"
+                          />
+                        ) : null;
+                      })()}
+                      {` (${section.items.length} ${section.items.length === 1 ? "dish" : "dishes"})`}
+                    </>
+                  )}
               </div>
               {section.items.map((item) => (
                 <div className="summary-item" key={item.id}>

@@ -67,6 +67,7 @@ export default function Room() {
     switchIdentity,
     removeUser,
     addUser,
+    updateDietary,
   } = useUsers({ data, addData, roomId });
 
   const {
@@ -135,7 +136,11 @@ export default function Room() {
           <>
             {/* Identity Bar */}
             {currUser && identityResolved && (
-              <IdentityBar user={currUser} onSwitch={switchIdentity} />
+              <IdentityBar
+                user={currUser}
+                onSwitch={switchIdentity}
+                onUpdateDietary={updateDietary}
+              />
             )}
 
             {/* Event Header */}

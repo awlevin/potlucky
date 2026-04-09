@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { LuDelete, LuCheck } from "react-icons/lu";
 import { User } from "@/types";
+import { DietaryBadges } from "@/components/IdentityGate";
 
 interface UserItemProps {
   user: User;
@@ -63,6 +64,11 @@ const UserItem = ({
       >
         {user.name}
       </span>
+      <DietaryBadges
+        restrictions={user.dietaryRestrictions}
+        note={user.dietaryNote}
+        size="xs"
+      />
       <button
         aria-label={`Remove ${user.name}`}
         className={`item-delete-btn ${isClicked ? "confirm" : ""}`}

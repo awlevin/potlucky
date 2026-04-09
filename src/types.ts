@@ -1,3 +1,10 @@
+export type DietaryRestriction =
+  | "vegetarian"
+  | "vegan"
+  | "gluten-free"
+  | "nut-free"
+  | "dairy-free";
+
 export type User = {
   id: string;
   name: string; // first and last
@@ -5,6 +12,8 @@ export type User = {
   lastActive?: Date; // last active in this room
   isActive?: boolean;
   color?: string;
+  dietaryRestrictions?: DietaryRestriction[];
+  dietaryNote?: string; // free-text for restrictions not covered by presets
 };
 
 export type Food = {
@@ -13,13 +22,7 @@ export type Food = {
   title: string;
   notes?: string;
   type?: "appetizer" | "main" | "side" | "dessert" | "drink";
-  attributes?: (
-    | "vegetarian"
-    | "vegan"
-    | "gluten-free"
-    | "nut-free"
-    | "dairy-free"
-  )[];
+  attributes?: DietaryRestriction[];
 };
 
 export interface IRoomObj {

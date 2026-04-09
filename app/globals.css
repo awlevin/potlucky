@@ -847,19 +847,37 @@ body {
 .identity-card {
   width: 100%;
   max-width: 400px;
+  position: relative;
 }
 
 /* ---------- Identity Bar ---------- */
 .identity-bar {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0;
   padding: 10px 16px;
   border-radius: var(--radius);
   background: var(--color-accent-light);
   border: 1px solid var(--color-accent);
   color: var(--color-text);
+}
+.identity-bar-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.identity-bar-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.identity-dietary-edit {
+  overflow: hidden;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-accent);
 }
 
 /* ---------- Summary Panel ---------- */
@@ -972,3 +990,114 @@ body {
 .dietary-tag:hover { border-color: var(--color-accent); }
 .dietary-tag-selected { background: var(--color-accent-light); border-color: var(--color-accent); color: var(--color-text); }
 .food-badge { font-size: 10px; margin-left: 4px; opacity: 0.7; }
+
+/* ---------- Dietary Picker (Identity Gate + Identity Bar) ---------- */
+.dietary-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.dietary-picker-compact {
+  justify-content: flex-start;
+}
+.dietary-picker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.dietary-picker-chip:hover {
+  border-color: var(--color-accent);
+  background: var(--color-elevated);
+}
+.dietary-picker-chip-selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  color: var(--color-text);
+  font-weight: 500;
+}
+.dietary-picker-chip-sm {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  gap: 4px;
+}
+.dietary-picker-emoji {
+  font-size: 1em;
+  line-height: 1;
+}
+
+/* Dietary step actions in identity gate */
+.identity-dietary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 1.25rem;
+  align-items: center;
+}
+.identity-dietary-actions .btn {
+  width: 100%;
+}
+.identity-skip-btn {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.identity-skip-btn:hover {
+  color: var(--color-text-secondary);
+}
+.identity-back-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.125rem;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s;
+}
+.identity-back-btn:hover {
+  color: var(--color-text);
+}
+/* ---------- Inline Dietary Badges (on guest names) ---------- */
+.dietary-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+  vertical-align: baseline;
+}
+.dietary-badges-sm .dietary-badge-inline {
+  font-size: 11px;
+  opacity: 0.8;
+}
+.dietary-badges-xs .dietary-badge-inline {
+  font-size: 9px;
+  opacity: 0.7;
+}
+.dietary-badge-inline {
+  line-height: 1;
+}
+.dietary-badge-note {
+  font-size: 9px;
+  opacity: 0.6;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: help;
+}

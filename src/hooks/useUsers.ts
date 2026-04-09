@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { nanoid } from "nanoid";
-import { User, IRoomObj } from "@/types";
+import { User, IRoomObj, DietaryRestriction } from "@/types";
 
 interface UseUsersProps {
   data: IRoomObj | null;
@@ -73,8 +73,17 @@ export function useUsers({ data, addData, roomId }: UseUsersProps) {
 
   // Create a new user, add to room, and set as identity
   const createAndSelectIdentity = useCallback(
-    async (name: string) => {
-      const newUser: User = { id: nanoid(5), name };
+    async (
+      name: string,
+      dietaryRestrictions?: DietaryRestriction[],
+      dietaryNote?: string
+    ) => {
+      const newUser: User = {
+        id: nanoid(5),
+        name,
+        ...(dietaryRestrictions?.length ? { dietaryRestrictions } : {}),
+        ...(dietaryNote ? { dietaryNote } : {}),
+      };
       await addData({
         ...data,
         users: [...(data?.users || []), newUser],
@@ -84,6 +93,26 @@ export function useUsers({ data, addData, roomId }: UseUsersProps) {
       setIdentityResolved(true);
     },
     [data, addData, roomId]
+  );
+
+  // Update dietary restrictions for the current user
+  const updateDietary = useCallback(
+    async (dietaryRestrictions: DietaryRestriction[], dietaryNote?: string) => {
+      if (!currUser || !data) return;
+      const updated: User = {
+        ...currUser,
+        dietaryRestrictions: dietaryRestrictions.length
+          ? dietaryRestrictions
+          : undefined,
+        dietaryNote: dietaryNote || undefined,
+      };
+      setCurrUser(updated);
+      await addData({
+        ...data,
+        users: data.users.map((u) => (u.id === currUser.id ? updated : u)),
+      });
+    },
+    [currUser, data, addData]
   );
 
   // Switch identity (reset and show gate again)
@@ -136,5 +165,6 @@ export function useUsers({ data, addData, roomId }: UseUsersProps) {
     switchIdentity,
     removeUser,
     addUser,
+    updateDietary,
   };
 }
