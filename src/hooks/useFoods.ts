@@ -21,13 +21,18 @@ export function useFoods({
 }: UseFoodsProps) {
   const [foodInput, setFoodInput] = useState("");
 
-  const addFood = async (type?: Food["type"]) => {
+  const addFood = async (type?: Food["type"], notes?: string) => {
     setFoodInput("");
     await addData({
       ...data,
       foods: [
         ...(data?.foods || []),
-        { id: nanoid(5), title: foodInput, ...(type ? { type } : {}) } as Food,
+        {
+          id: nanoid(5),
+          title: foodInput,
+          ...(type ? { type } : {}),
+          ...(notes ? { notes } : {}),
+        } as Food,
       ],
     });
   };

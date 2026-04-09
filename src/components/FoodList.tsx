@@ -171,14 +171,19 @@ const FoodItemRow = ({
         role="button"
         tabIndex={0}
       >
-        <span
-          style={{
-            fontSize: "0.875rem",
-            fontWeight: isForSelectedUser ? 600 : 400,
-          }}
-        >
-          {food.title}
-        </span>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span
+            style={{
+              fontSize: "0.875rem",
+              fontWeight: isForSelectedUser ? 600 : 400,
+            }}
+          >
+            {food.title}
+          </span>
+          {food.notes && (
+            <span className="food-note">{food.notes}</span>
+          )}
+        </div>
         {isClaimedByOther && userClaimedBy && (
           <span className="badge badge-brand">
             {userClaimedBy.name}

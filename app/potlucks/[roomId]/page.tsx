@@ -10,6 +10,7 @@ import { handleEnterKeyPress } from "@/utils/misc";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { FoodList } from "@/components/FoodList";
 import { UserList } from "@/components/UserList";
+import { ProgressBar } from "@/components/ProgressBar";
 import { IdentityGate } from "@/components/IdentityGate";
 import { IdentityBar } from "@/components/IdentityBar";
 import { EventHeader } from "@/components/EventHeader";
@@ -54,6 +55,8 @@ export default function Room() {
 
   const [hasClaimedFoodBefore, setHasClaimedFoodBefore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Food["type"]>("main");
+  const [noteInput, setNoteInput] = useState("");
+  const [showNoteInput, setShowNoteInput] = useState(false);
 
   const {
     userInput,
@@ -192,6 +195,8 @@ export default function Room() {
             <SectionCard>
               <SectionHeader emoji="🍴" title="Menu" />
 
+              <ProgressBar foods={data?.foods || []} />
+
               {data?.foods?.length ? (
                 <div style={{ marginBottom: "16px" }}>
                   <FoodList
@@ -232,6 +237,14 @@ export default function Room() {
                     {label}
                   </button>
                 ))}
+                <button
+                  className="note-toggle"
+                  onClick={() => setShowNoteInput(!showNoteInput)}
+                  type="button"
+                  title="Add a note"
+                >
+                  📝
+                </button>
               </div>
               <div className="input-row">
                 <input
@@ -239,16 +252,36 @@ export default function Room() {
                   placeholder="Add a dish..."
                   value={foodInput}
                   onChange={(e) => setFoodInput(e.target.value)}
-                  onKeyDown={handleEnterKeyPress(() => addFood(selectedCategory))}
+                  onKeyDown={handleEnterKeyPress(() => {
+                    addFood(selectedCategory, noteInput || undefined);
+                    setNoteInput("");
+                  })}
                 />
                 <button
                   className="btn"
-                  onClick={() => addFood(selectedCategory)}
+                  onClick={() => {
+                    addFood(selectedCategory, noteInput || undefined);
+                    setNoteInput("");
+                  }}
                   disabled={!foodInput}
                 >
                   Add
                 </button>
               </div>
+              {showNoteInput && (
+                <input
+                  className="input note-input"
+                  placeholder="Add a note..."
+                  value={noteInput}
+                  onChange={(e) => setNoteInput(e.target.value)}
+                  onKeyDown={handleEnterKeyPress(() => {
+                    if (foodInput) {
+                      addFood(selectedCategory, noteInput || undefined);
+                      setNoteInput("");
+                    }
+                  })}
+                />
+              )}
             </SectionCard>
           </>
         )}
