@@ -726,3 +726,52 @@ body {
   border: 1px solid var(--color-accent);
   color: var(--color-text);
 }
+
+/* ---------- Summary Panel ---------- */
+.summary-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: var(--color-surface);
+  transition: background 0.2s;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 500;
+  font-size: 15px;
+}
+.summary-header:hover {
+  background: var(--color-elevated);
+}
+.summary-content {
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.summary-person {
+  margin-bottom: 12px;
+}
+.summary-person-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: var(--color-text);
+}
+.summary-person-name.is-you {
+  color: var(--color-accent);
+}
+.summary-item {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  padding-left: 16px;
+  line-height: 1.6;
+}
+.summary-unclaimed {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
