@@ -675,8 +675,8 @@ body {
 .event-header-details {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 4px;
+  margin-bottom: 12px;
 }
 
 .event-header-field {
@@ -721,14 +721,7 @@ body {
   text-align: center;
 }
 
-.event-header-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--color-border-subtle);
-}
+/* event-header-footer removed — guests + share now in event-header-guests */
 
 /* ---------- Editable (Chakra component overrides) ---------- */
 [data-scope="editable"] [data-part="preview"] {
@@ -850,7 +843,7 @@ body {
   position: relative;
 }
 
-/* ---------- Identity Bar ---------- */
+/* ---------- Identity Bar (standalone fallback) ---------- */
 .identity-bar {
   display: flex;
   flex-direction: column;
@@ -878,6 +871,64 @@ body {
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--color-accent);
+}
+
+/* ---------- Identity inside Event Header ---------- */
+.event-header-identity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.event-header-identity strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+.event-header-identity-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.event-header-link {
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+.event-header-link:hover {
+  color: var(--color-text);
+}
+.event-header-diet-edit {
+  overflow: hidden;
+  padding: 10px 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+/* ---------- Guests inside Event Header ---------- */
+.event-header-guests {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-subtle);
+  flex-wrap: wrap;
+}
+.event-header-guests .guests-row {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ---------- Summary Panel ---------- */

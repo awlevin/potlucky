@@ -1,23 +1,61 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Editable,
   EditableValueChangeDetails,
 } from "@chakra-ui/react";
 import { LuShare2 } from "react-icons/lu";
-import { IRoomObj } from "@/types";
+import { IRoomObj, User, DietaryRestriction } from "@/types";
 import { toaster } from "@/components/ui/toaster";
+import { DietaryBadges } from "@/components/IdentityGate";
+import { UserList } from "@/components/UserList";
+import { handleEnterKeyPress } from "@/utils/misc";
+import { AnimatePresence, motion } from "framer-motion";
+
+const DIETARY_OPTIONS: { key: DietaryRestriction; label: string; emoji: string }[] = [
+  { key: "vegetarian", label: "Vegetarian", emoji: "🌱" },
+  { key: "vegan", label: "Vegan", emoji: "🌿" },
+  { key: "gluten-free", label: "Gluten-free", emoji: "GF" },
+  { key: "nut-free", label: "Nut-free", emoji: "🥜✕" },
+  { key: "dairy-free", label: "Dairy-free", emoji: "🥛✕" },
+];
 
 interface EventHeaderProps {
   data: IRoomObj;
   addData: (newData: Partial<IRoomObj>) => void;
+  currUser?: User;
+  identityResolved?: boolean;
+  onSwitch?: () => void;
+  onUpdateDietary?: (restrictions: DietaryRestriction[], note?: string) => void;
+  removeUser?: (id: string) => void;
+  userInput?: string;
+  setUserInput?: (v: string) => void;
+  addUser?: () => void;
 }
 
-export function EventHeader({ data, addData }: EventHeaderProps) {
+export function EventHeader({
+  data,
+  addData,
+  currUser,
+  identityResolved,
+  onSwitch,
+  onUpdateDietary,
+  removeUser,
+  userInput = "",
+  setUserInput,
+  addUser,
+}: EventHeaderProps) {
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [dateInput, setDateInput] = useState(data.date || "");
   const [locationInput, setLocationInput] = useState(data.location || "");
+  const [editingDiet, setEditingDiet] = useState(false);
+  const [selectedRestrictions, setSelectedRestrictions] = useState<DietaryRestriction[]>(
+    currUser?.dietaryRestrictions || []
+  );
+  const [dietNoteInput, setDietNoteInput] = useState(currUser?.dietaryNote || "");
+  const [showGuestInput, setShowGuestInput] = useState(false);
+  const guestInputRef = useRef<HTMLInputElement>(null);
 
   const changeRoomName = (details: EditableValueChangeDetails) => {
     addData({ name: details.value });
@@ -42,23 +80,109 @@ export function EventHeader({ data, addData }: EventHeaderProps) {
   };
 
   const saveDate = () => {
-    const trimmed = dateInput.trim();
-    addData({ date: trimmed });
+    addData({ date: dateInput.trim() });
     setIsEditingDate(false);
   };
 
   const saveLocation = () => {
-    const trimmed = locationInput.trim();
-    addData({ location: trimmed });
+    addData({ location: locationInput.trim() });
     setIsEditingLocation(false);
   };
 
-  const guestCount = data.users?.length || 0;
+  const toggleRestriction = (key: DietaryRestriction) => {
+    setSelectedRestrictions((prev) =>
+      prev.includes(key) ? prev.filter((r) => r !== key) : [...prev, key]
+    );
+  };
+
+  const handleDietSave = () => {
+    onUpdateDietary?.(selectedRestrictions, dietNoteInput.trim() || undefined);
+    setEditingDiet(false);
+  };
+
+  const handleDietCancel = () => {
+    setSelectedRestrictions(currUser?.dietaryRestrictions || []);
+    setDietNoteInput(currUser?.dietaryNote || "");
+    setEditingDiet(false);
+  };
+
+  const handleGuestAdd = () => {
+    addUser?.();
+    setTimeout(() => guestInputRef.current?.focus(), 0);
+  };
 
   return (
     <div className="card event-header">
-      {/* Event name — Chakra Editable */}
-      <div style={{ textAlign: "center", marginBottom: "12px" }}>
+      {/* Identity line — subtle, inside the card */}
+      {currUser && identityResolved && (
+        <div className="event-header-identity">
+          <span>
+            You&apos;re{" "}
+            <strong>{currUser.name}</strong>
+            <DietaryBadges
+              restrictions={currUser.dietaryRestrictions}
+              note={currUser.dietaryNote}
+              size="sm"
+            />
+          </span>
+          <span className="event-header-identity-actions">
+            {!editingDiet && (
+              <button
+                className="event-header-link"
+                onClick={() => setEditingDiet(true)}
+              >
+                Diet
+              </button>
+            )}
+            <button className="event-header-link" onClick={onSwitch}>
+              Not you?
+            </button>
+          </span>
+        </div>
+      )}
+
+      {/* Diet editor — expands inline */}
+      <AnimatePresence>
+        {editingDiet && (
+          <motion.div
+            className="event-header-diet-edit"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="dietary-picker dietary-picker-compact">
+              {DIETARY_OPTIONS.map(({ key, label, emoji }) => (
+                <button
+                  key={key}
+                  className={`dietary-picker-chip dietary-picker-chip-sm ${
+                    selectedRestrictions.includes(key) ? "dietary-picker-chip-selected" : ""
+                  }`}
+                  onClick={() => toggleRestriction(key)}
+                  type="button"
+                >
+                  <span className="dietary-picker-emoji">{emoji}</span>
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+            <input
+              className="input"
+              placeholder="Other restrictions..."
+              value={dietNoteInput}
+              onChange={(e) => setDietNoteInput(e.target.value)}
+              style={{ marginTop: "8px", fontSize: "0.8125rem" }}
+            />
+            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+              <button className="btn btn-sm" onClick={handleDietSave}>Save</button>
+              <button className="btn btn-sm btn-ghost" onClick={handleDietCancel}>Cancel</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Event name */}
+      <div style={{ textAlign: "center", marginBottom: "8px" }}>
         <Editable.Root
           defaultValue={data.name || data.id}
           textAlign="center"
@@ -80,7 +204,6 @@ export function EventHeader({ data, addData }: EventHeaderProps) {
 
       {/* Date and Location row */}
       <div className="event-header-details">
-        {/* Date field */}
         <div className="event-header-field">
           <span className="event-header-icon">📅</span>
           {isEditingDate ? (
@@ -109,7 +232,6 @@ export function EventHeader({ data, addData }: EventHeaderProps) {
           )}
         </div>
 
-        {/* Location field */}
         <div className="event-header-field">
           <span className="event-header-icon">📍</span>
           {isEditingLocation ? (
@@ -139,11 +261,51 @@ export function EventHeader({ data, addData }: EventHeaderProps) {
         </div>
       </div>
 
-      {/* Bottom row: guest badge + share button */}
-      <div className="event-header-footer">
-        <span className="badge badge-accent">
-          {guestCount} {guestCount === 1 ? "guest" : "guests"}
-        </span>
+      {/* Guests + share — consolidated footer */}
+      <div className="event-header-guests">
+        <div className="guests-row">
+          {data?.users?.length ? (
+            <UserList
+              data={data as any}
+              claimUser={() => {}}
+              currUser={currUser}
+              removeUser={removeUser || (() => {})}
+            />
+          ) : null}
+
+          {showGuestInput ? (
+            <div className="add-guest-inline">
+              <input
+                ref={guestInputRef}
+                className="input"
+                placeholder="Name..."
+                value={userInput}
+                onChange={(e) => setUserInput?.(e.target.value)}
+                onKeyDown={handleEnterKeyPress(handleGuestAdd)}
+                onBlur={() => { if (!userInput) setShowGuestInput(false); }}
+              />
+              <button
+                className="btn btn-sm"
+                onClick={handleGuestAdd}
+                disabled={!userInput}
+              >
+                Add
+              </button>
+            </div>
+          ) : (
+            <button
+              className="add-guest-trigger"
+              onClick={() => {
+                setShowGuestInput(true);
+                setTimeout(() => guestInputRef.current?.focus(), 0);
+              }}
+              type="button"
+            >
+              + Add guest
+            </button>
+          )}
+        </div>
+
         <button
           className="btn btn-outline btn-xs"
           onClick={handleShare}

@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Food } from "@/types";
 import dynamic from "next/dynamic";
 import { useUsers } from "@/hooks/useUsers";
@@ -9,9 +9,7 @@ import { useRealtimeData } from "@/lib/firebase/firestore/brains";
 import { handleEnterKeyPress } from "@/utils/misc";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { FoodList } from "@/components/FoodList";
-import { UserList } from "@/components/UserList";
 import { IdentityGate } from "@/components/IdentityGate";
-import { IdentityBar } from "@/components/IdentityBar";
 import { EventHeader } from "@/components/EventHeader";
 import { SummaryPanel } from "@/components/SummaryPanel";
 import { DishSuggestion } from "@/components/DishSuggestion";
@@ -104,7 +102,7 @@ export default function Room() {
         />
       )}
 
-      <div className="room-container" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <div className="room-container" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
 
         {loadingRoom ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -124,49 +122,24 @@ export default function Room() {
                 background: "var(--color-border-subtle)",
               }}
             />
-            <div
-              style={{
-                height: "200px",
-                borderRadius: "var(--radius-lg)",
-                background: "var(--color-border-subtle)",
-              }}
-            />
           </div>
         ) : (
           <>
-            {/* Identity Bar */}
-            {currUser && identityResolved && (
-              <IdentityBar
-                user={currUser}
+            {/* Event Header — identity + event details + guests consolidated */}
+            {data && (
+              <EventHeader
+                data={data}
+                addData={addData}
+                currUser={currUser}
+                identityResolved={identityResolved}
                 onSwitch={switchIdentity}
                 onUpdateDietary={updateDietary}
+                removeUser={removeUser}
+                userInput={userInput}
+                setUserInput={setUserInput}
+                addUser={addUser}
               />
             )}
-
-            {/* Event Header */}
-            {data && (
-              <EventHeader data={data} addData={addData} />
-            )}
-
-            {/* Summary Panel */}
-            {data && (
-              <SummaryPanel
-                foods={data.foods || []}
-                users={data.users || []}
-                currUser={currUser}
-                roomName={data.name || ""}
-              />
-            )}
-
-            {/* Guests Section — compact inline */}
-            <CompactGuests
-              data={data ?? null}
-              currUser={currUser}
-              removeUser={removeUser}
-              userInput={userInput}
-              setUserInput={setUserInput}
-              addUser={addUser}
-            />
 
             {/* Menu Section */}
             <SectionCard>
@@ -287,6 +260,16 @@ export default function Room() {
                 </div>
               )}
             </SectionCard>
+
+            {/* Summary Panel — after menu */}
+            {data && (
+              <SummaryPanel
+                foods={data.foods || []}
+                users={data.users || []}
+                currUser={currUser}
+                roomName={data.name || ""}
+              />
+            )}
           </>
         )}
       </div>
@@ -294,88 +277,3 @@ export default function Room() {
   );
 }
 
-/* ---------- Compact Guests Component ---------- */
-import { WithId } from "@/lib/firebase/firestore/brains";
-import { User } from "@/types";
-
-function CompactGuests({
-  data,
-  currUser,
-  removeUser,
-  userInput,
-  setUserInput,
-  addUser,
-}: {
-  data: WithId<IRoomObj> | null;
-  currUser: User | undefined;
-  removeUser: (id: string) => void;
-  userInput: string;
-  setUserInput: (v: string) => void;
-  addUser: () => void;
-}) {
-  const [showInput, setShowInput] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleTriggerClick = () => {
-    setShowInput(true);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  };
-
-  const handleBlur = () => {
-    // Collapse back if input is empty
-    if (!userInput) {
-      setShowInput(false);
-    }
-  };
-
-  const handleAdd = () => {
-    addUser();
-    // Keep input open for adding more guests
-    setTimeout(() => inputRef.current?.focus(), 0);
-  };
-
-  return (
-    <div className="guests-section">
-      <div className="guests-label">Guests</div>
-      <div className="guests-row">
-        {data?.users?.length ? (
-          <UserList
-            data={data}
-            claimUser={() => {}}
-            currUser={currUser}
-            removeUser={removeUser}
-          />
-        ) : null}
-
-        {showInput ? (
-          <div className="add-guest-inline">
-            <input
-              ref={inputRef}
-              className="input"
-              placeholder="Name..."
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyDown={handleEnterKeyPress(handleAdd)}
-              onBlur={handleBlur}
-            />
-            <button
-              className="btn btn-sm"
-              onClick={handleAdd}
-              disabled={!userInput}
-            >
-              Add
-            </button>
-          </div>
-        ) : (
-          <button
-            className="add-guest-trigger"
-            onClick={handleTriggerClick}
-            type="button"
-          >
-            + Add guest
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
