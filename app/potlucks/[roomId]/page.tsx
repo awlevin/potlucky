@@ -10,6 +10,7 @@ import { handleEnterKeyPress } from "@/utils/misc";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { FoodList } from "@/components/FoodList";
 import { UserList } from "@/components/UserList";
+import { ProgressBar } from "@/components/ProgressBar";
 import { IdentityGate } from "@/components/IdentityGate";
 import { IdentityBar } from "@/components/IdentityBar";
 import { EventHeader } from "@/components/EventHeader";
@@ -189,6 +190,8 @@ export default function Room() {
             {/* Menu Section */}
             <SectionCard>
               <SectionHeader emoji="🍴" title="Menu" />
+
+              <ProgressBar foods={data?.foods || []} />
 
               {data?.foods?.length ? (
                 <div style={{ marginBottom: "16px" }}>

@@ -775,3 +775,18 @@ body {
   color: var(--color-text-muted);
   font-style: italic;
 }
+
+/* ---------- Progress Bar ---------- */
+.progress-container { margin-bottom: 16px; }
+.progress-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.progress-bar { height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--color-brand); border-radius: 3px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.progress-complete { color: var(--color-accent); font-weight: 600; }
+
+/* ---------- Confetti ---------- */
+.confetti-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+.confetti-piece { position: absolute; top: -10px; width: 8px; height: 8px; border-radius: 2px; animation: confetti-fall linear forwards; }
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
