@@ -12,6 +12,7 @@ import { UserList } from "@/components/UserList";
 import { IdentityGate } from "@/components/IdentityGate";
 import { IdentityBar } from "@/components/IdentityBar";
 import { EventHeader } from "@/components/EventHeader";
+import { SummaryPanel } from "@/components/SummaryPanel";
 import { IRoomObj } from "@/types";
 
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
@@ -134,6 +135,16 @@ export default function Room() {
             {/* Event Header */}
             {data && (
               <EventHeader data={data} addData={addData} />
+            )}
+
+            {/* Summary Panel */}
+            {data && (
+              <SummaryPanel
+                foods={data.foods || []}
+                users={data.users || []}
+                currUser={currUser}
+                roomName={data.name || ""}
+              />
             )}
 
             {/* Guests Section */}
