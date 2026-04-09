@@ -11,6 +11,7 @@ export type Food = {
   id: string;
   claimedBy?: string | null; // userId or not
   title: string;
+  notes?: string;
   type?: "appetizer" | "main" | "side" | "dessert" | "drink";
   attributes?: (
     | "vegetarian"
