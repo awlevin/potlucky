@@ -519,6 +519,69 @@ body {
   font-size: 12px;
 }
 
+/* ---------- Event Header ---------- */
+.event-header {
+  text-align: center;
+}
+
+.event-header-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.event-header-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.event-header-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.event-header-value {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  color: var(--color-text-secondary);
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.event-header-value:hover {
+  background: var(--color-border-subtle);
+  color: var(--color-text);
+}
+
+/* Placeholder style when no value set */
+.event-header-placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.event-header-input {
+  max-width: 280px;
+  padding: 4px 10px !important;
+  font-size: 14px !important;
+  text-align: center;
+}
+
+.event-header-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
 /* ---------- Editable (Chakra component overrides) ---------- */
 [data-scope="editable"] [data-part="preview"] {
   font-family: var(--font-fraunces), Georgia, serif;
