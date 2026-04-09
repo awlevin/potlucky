@@ -5,6 +5,14 @@ import { LuDelete, LuCheck } from "react-icons/lu";
 import { Food, User } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 
+const ATTRIBUTE_BADGES: Record<NonNullable<Food["attributes"]>[number], string> = {
+  vegetarian: "\u{1F331}",
+  vegan: "\u{1F33F}",
+  "gluten-free": "GF",
+  "nut-free": "\u{1F95C}\u2715",
+  "dairy-free": "\u{1F95B}\u2715",
+};
+
 const CATEGORIES: { key: Food["type"]; emoji: string; label: string }[] = [
   { key: "appetizer", emoji: "\u{1F957}", label: "Appetizers" },
   { key: "main", emoji: "\u{1F356}", label: "Mains" },
@@ -179,6 +187,11 @@ const FoodItemRow = ({
             }}
           >
             {food.title}
+            {food.attributes?.map((attr) => (
+              <span key={attr} className="food-badge" title={attr}>
+                {ATTRIBUTE_BADGES[attr]}
+              </span>
+            ))}
           </span>
           {food.notes && (
             <span className="food-note">{food.notes}</span>

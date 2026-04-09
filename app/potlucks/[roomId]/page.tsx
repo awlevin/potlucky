@@ -10,7 +10,6 @@ import { handleEnterKeyPress } from "@/utils/misc";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { FoodList } from "@/components/FoodList";
 import { UserList } from "@/components/UserList";
-import { ProgressBar } from "@/components/ProgressBar";
 import { IdentityGate } from "@/components/IdentityGate";
 import { IdentityBar } from "@/components/IdentityBar";
 import { EventHeader } from "@/components/EventHeader";
@@ -55,6 +54,7 @@ export default function Room() {
 
   const [hasClaimedFoodBefore, setHasClaimedFoodBefore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Food["type"]>("main");
+  const [selectedAttributes, setSelectedAttributes] = useState<NonNullable<Food["attributes"]>>([]);
   const [noteInput, setNoteInput] = useState("");
   const [showNoteInput, setShowNoteInput] = useState(false);
 
@@ -195,8 +195,6 @@ export default function Room() {
             <SectionCard>
               <SectionHeader emoji="🍴" title="Menu" />
 
-              <ProgressBar foods={data?.foods || []} />
-
               {data?.foods?.length ? (
                 <div style={{ marginBottom: "16px" }}>
                   <FoodList
@@ -246,6 +244,32 @@ export default function Room() {
                   📝
                 </button>
               </div>
+              <div className="dietary-tags">
+                {(
+                  [
+                    { key: "vegetarian", label: "\u{1F331} Vegetarian" },
+                    { key: "vegan", label: "\u{1F33F} Vegan" },
+                    { key: "gluten-free", label: "GF Gluten-free" },
+                    { key: "nut-free", label: "\u{1F95C}\u2715 Nut-free" },
+                    { key: "dairy-free", label: "\u{1F95B}\u2715 Dairy-free" },
+                  ] as { key: NonNullable<Food["attributes"]>[number]; label: string }[]
+                ).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    className={`dietary-tag ${selectedAttributes.includes(key) ? "dietary-tag-selected" : ""}`}
+                    onClick={() =>
+                      setSelectedAttributes((prev) =>
+                        prev.includes(key)
+                          ? prev.filter((a) => a !== key)
+                          : [...prev, key]
+                      )
+                    }
+                    type="button"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <div className="input-row">
                 <input
                   className="input"
@@ -253,14 +277,14 @@ export default function Room() {
                   value={foodInput}
                   onChange={(e) => setFoodInput(e.target.value)}
                   onKeyDown={handleEnterKeyPress(() => {
-                    addFood(selectedCategory, noteInput || undefined);
+                    addFood(selectedCategory, selectedAttributes, noteInput || undefined);
                     setNoteInput("");
                   })}
                 />
                 <button
                   className="btn"
                   onClick={() => {
-                    addFood(selectedCategory, noteInput || undefined);
+                    addFood(selectedCategory, selectedAttributes, noteInput || undefined);
                     setNoteInput("");
                   }}
                   disabled={!foodInput}
@@ -276,7 +300,7 @@ export default function Room() {
                   onChange={(e) => setNoteInput(e.target.value)}
                   onKeyDown={handleEnterKeyPress(() => {
                     if (foodInput) {
-                      addFood(selectedCategory, noteInput || undefined);
+                      addFood(selectedCategory, selectedAttributes, noteInput || undefined);
                       setNoteInput("");
                     }
                   })}

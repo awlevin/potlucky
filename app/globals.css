@@ -803,3 +803,10 @@ body {
 .suggestion-card { background: var(--color-brand-light); border: 1px solid var(--color-brand); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; text-align: center; }
 .suggestion-dish { font-family: var(--font-fraunces), Georgia, serif; font-size: 1.25rem; font-weight: 500; margin: 8px 0 12px; color: var(--color-text); }
 .suggestion-actions { display: flex; gap: 8px; justify-content: center; }
+
+/* ---------- Dietary Tags ---------- */
+.dietary-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.dietary-tag { padding: 2px 8px; font-size: 11px; border-radius: 6px; cursor: pointer; border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted); transition: all 0.15s; }
+.dietary-tag:hover { border-color: var(--color-accent); }
+.dietary-tag-selected { background: var(--color-accent-light); border-color: var(--color-accent); color: var(--color-text); }
+.food-badge { font-size: 10px; margin-left: 4px; opacity: 0.7; }

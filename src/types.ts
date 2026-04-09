@@ -16,9 +16,9 @@ export type Food = {
   attributes?: (
     | "vegetarian"
     | "vegan"
-    | "keto"
-    | "pescatarian"
-    | "dairy free"
+    | "gluten-free"
+    | "nut-free"
+    | "dairy-free"
   )[];
 };
 
