@@ -56,7 +56,6 @@ export default function Room() {
   const [selectedCategory, setSelectedCategory] = useState<Food["type"]>("main");
   const [selectedAttributes, setSelectedAttributes] = useState<NonNullable<Food["attributes"]>>([]);
   const [noteInput, setNoteInput] = useState("");
-  const [showNoteInput, setShowNoteInput] = useState(false);
 
   const {
     userInput,
@@ -216,60 +215,6 @@ export default function Room() {
                 onAdd={(title, category) => addFoodDirect(title, category)}
               />
 
-              <div className="category-selector">
-                {(
-                  [
-                    { key: "appetizer", label: "Appetizer" },
-                    { key: "main", label: "Main" },
-                    { key: "side", label: "Side" },
-                    { key: "dessert", label: "Dessert" },
-                    { key: "drink", label: "Drink" },
-                  ] as { key: Food["type"]; label: string }[]
-                ).map(({ key, label }) => (
-                  <button
-                    key={key}
-                    className={`category-pill ${selectedCategory === key ? "category-pill-selected" : ""}`}
-                    onClick={() => setSelectedCategory(key)}
-                    type="button"
-                  >
-                    {label}
-                  </button>
-                ))}
-                <button
-                  className="note-toggle"
-                  onClick={() => setShowNoteInput(!showNoteInput)}
-                  type="button"
-                  title="Add a note"
-                >
-                  📝
-                </button>
-              </div>
-              <div className="dietary-tags">
-                {(
-                  [
-                    { key: "vegetarian", label: "\u{1F331} Vegetarian" },
-                    { key: "vegan", label: "\u{1F33F} Vegan" },
-                    { key: "gluten-free", label: "GF Gluten-free" },
-                    { key: "nut-free", label: "\u{1F95C}\u2715 Nut-free" },
-                    { key: "dairy-free", label: "\u{1F95B}\u2715 Dairy-free" },
-                  ] as { key: NonNullable<Food["attributes"]>[number]; label: string }[]
-                ).map(({ key, label }) => (
-                  <button
-                    key={key}
-                    className={`dietary-tag ${selectedAttributes.includes(key) ? "dietary-tag-selected" : ""}`}
-                    onClick={() =>
-                      setSelectedAttributes((prev) =>
-                        prev.includes(key)
-                          ? prev.filter((a) => a !== key)
-                          : [...prev, key]
-                      )
-                    }
-                    type="button"
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
               <div className="input-row">
                 <input
                   className="input"
@@ -292,19 +237,76 @@ export default function Room() {
                   Add
                 </button>
               </div>
-              {showNoteInput && (
-                <input
-                  className="input note-input"
-                  placeholder="Add a note..."
-                  value={noteInput}
-                  onChange={(e) => setNoteInput(e.target.value)}
-                  onKeyDown={handleEnterKeyPress(() => {
-                    if (foodInput) {
-                      addFood(selectedCategory, selectedAttributes, noteInput || undefined);
-                      setNoteInput("");
-                    }
-                  })}
-                />
+              {foodInput && (
+                <div className="add-dish-options">
+                  <div className="add-dish-row">
+                    <span className="add-dish-label">Category</span>
+                    <div className="category-selector">
+                      {(
+                        [
+                          { key: "appetizer", label: "Appetizer" },
+                          { key: "main", label: "Main" },
+                          { key: "side", label: "Side" },
+                          { key: "dessert", label: "Dessert" },
+                          { key: "drink", label: "Drink" },
+                        ] as { key: Food["type"]; label: string }[]
+                      ).map(({ key, label }) => (
+                        <button
+                          key={key}
+                          className={`category-pill ${selectedCategory === key ? "category-pill-selected" : ""}`}
+                          onClick={() => setSelectedCategory(key)}
+                          type="button"
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="add-dish-row">
+                    <span className="add-dish-label">Tags</span>
+                    <div className="dietary-tags">
+                      {(
+                        [
+                          { key: "vegetarian", label: "🌱 Veg" },
+                          { key: "vegan", label: "🌿 Vegan" },
+                          { key: "gluten-free", label: "GF" },
+                          { key: "nut-free", label: "🥜✕" },
+                          { key: "dairy-free", label: "🥛✕" },
+                        ] as { key: NonNullable<Food["attributes"]>[number]; label: string }[]
+                      ).map(({ key, label }) => (
+                        <button
+                          key={key}
+                          className={`dietary-tag ${selectedAttributes.includes(key) ? "dietary-tag-selected" : ""}`}
+                          onClick={() =>
+                            setSelectedAttributes((prev) =>
+                              prev.includes(key)
+                                ? prev.filter((a) => a !== key)
+                                : [...prev, key]
+                            )
+                          }
+                          type="button"
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="add-dish-row">
+                    <span className="add-dish-label">Note</span>
+                    <input
+                      className="input note-input"
+                      placeholder="e.g., Homemade, serves 8"
+                      value={noteInput}
+                      onChange={(e) => setNoteInput(e.target.value)}
+                      onKeyDown={handleEnterKeyPress(() => {
+                        if (foodInput) {
+                          addFood(selectedCategory, selectedAttributes, noteInput || undefined);
+                          setNoteInput("");
+                        }
+                      })}
+                    />
+                  </div>
+                </div>
               )}
             </SectionCard>
           </>
