@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Food } from "@/types";
 import dynamic from "next/dynamic";
 import { useUsers } from "@/hooks/useUsers";
@@ -153,42 +153,15 @@ export default function Room() {
               />
             )}
 
-            {/* Guests Section */}
-            <SectionCard>
-              <SectionHeader emoji="👥" title="Guests" />
-
-              {data?.users?.length ? (
-                <div style={{ marginBottom: "16px" }}>
-                  <UserList
-                    data={data}
-                    claimUser={() => {}}
-                    currUser={currUser}
-                    removeUser={removeUser}
-                  />
-                </div>
-              ) : (
-                <div className="empty-state">
-                  No guests yet. Add someone below!
-                </div>
-              )}
-
-              <div className="input-row">
-                <input
-                  className="input"
-                  placeholder="Add a guest..."
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  onKeyDown={handleEnterKeyPress(addUser)}
-                />
-                <button
-                  className="btn"
-                  onClick={addUser}
-                  disabled={!userInput}
-                >
-                  Add
-                </button>
-              </div>
-            </SectionCard>
+            {/* Guests Section — compact inline */}
+            <CompactGuests
+              data={data ?? null}
+              currUser={currUser}
+              removeUser={removeUser}
+              userInput={userInput}
+              setUserInput={setUserInput}
+              addUser={addUser}
+            />
 
             {/* Menu Section */}
             <SectionCard>
@@ -313,5 +286,91 @@ export default function Room() {
         )}
       </div>
     </main>
+  );
+}
+
+/* ---------- Compact Guests Component ---------- */
+import { WithId } from "@/lib/firebase/firestore/brains";
+import { User } from "@/types";
+
+function CompactGuests({
+  data,
+  currUser,
+  removeUser,
+  userInput,
+  setUserInput,
+  addUser,
+}: {
+  data: WithId<IRoomObj> | null;
+  currUser: User | undefined;
+  removeUser: (id: string) => void;
+  userInput: string;
+  setUserInput: (v: string) => void;
+  addUser: () => void;
+}) {
+  const [showInput, setShowInput] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleTriggerClick = () => {
+    setShowInput(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleBlur = () => {
+    // Collapse back if input is empty
+    if (!userInput) {
+      setShowInput(false);
+    }
+  };
+
+  const handleAdd = () => {
+    addUser();
+    // Keep input open for adding more guests
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  return (
+    <div className="guests-section">
+      <div className="guests-label">Guests</div>
+      <div className="guests-row">
+        {data?.users?.length ? (
+          <UserList
+            data={data}
+            claimUser={() => {}}
+            currUser={currUser}
+            removeUser={removeUser}
+          />
+        ) : null}
+
+        {showInput ? (
+          <div className="add-guest-inline">
+            <input
+              ref={inputRef}
+              className="input"
+              placeholder="Name..."
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={handleEnterKeyPress(handleAdd)}
+              onBlur={handleBlur}
+            />
+            <button
+              className="btn btn-sm"
+              onClick={handleAdd}
+              disabled={!userInput}
+            >
+              Add
+            </button>
+          </div>
+        ) : (
+          <button
+            className="add-guest-trigger"
+            onClick={handleTriggerClick}
+            type="button"
+          >
+            + Add guest
+          </button>
+        )}
+      </div>
+    </div>
   );
 }

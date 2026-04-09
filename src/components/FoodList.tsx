@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { LuDelete, LuCheck } from "react-icons/lu";
 import { Food, User } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -13,12 +12,12 @@ const ATTRIBUTE_BADGES: Record<NonNullable<Food["attributes"]>[number], string> 
   "dairy-free": "\u{1F95B}\u2715",
 };
 
-const CATEGORIES: { key: Food["type"]; emoji: string; label: string }[] = [
-  { key: "appetizer", emoji: "\u{1F957}", label: "Appetizers" },
-  { key: "main", emoji: "\u{1F356}", label: "Mains" },
-  { key: "side", emoji: "\u{1F958}", label: "Sides" },
-  { key: "dessert", emoji: "\u{1F370}", label: "Desserts" },
-  { key: "drink", emoji: "\u{1F964}", label: "Drinks" },
+const CATEGORY_ORDER: Food["type"][] = [
+  "appetizer",
+  "main",
+  "side",
+  "dessert",
+  "drink",
 ];
 
 interface FoodListProps {
@@ -34,114 +33,68 @@ export const FoodList = ({
   claimFood,
   removeFood,
   users,
-  currUser
+  currUser,
 }: FoodListProps) => {
-  // Group foods by category
-  const grouped = CATEGORIES.map(({ key, emoji, label }) => {
-    const items = foods.filter((f) => f.type === key);
-    return { key, emoji, label, items };
+  // Sort foods: by category order, then alphabetically within each category
+  const sorted = [...foods].sort((a, b) => {
+    const catA = CATEGORY_ORDER.indexOf(a.type ?? ("other" as any));
+    const catB = CATEGORY_ORDER.indexOf(b.type ?? ("other" as any));
+    const orderA = catA === -1 ? CATEGORY_ORDER.length : catA;
+    const orderB = catB === -1 ? CATEGORY_ORDER.length : catB;
+    if (orderA !== orderB) return orderA - orderB;
+    return a.title.localeCompare(b.title);
   });
 
-  // Uncategorized foods (no type set)
-  const uncategorized = foods.filter((f) => !f.type);
-
   return (
-    <div>
-      {grouped.map(({ key, emoji, label, items }) => {
-        if (items.length === 0) return null;
-        return (
-          <div key={key}>
-            <div className="category-header">
-              <span>{emoji}</span>
-              <span>{label}</span>
-              <span>({items.length})</span>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-              <AnimatePresence>
-                {items.map((food) => {
-                  const userClaimedBy = users?.find((u) => u.id === food.claimedBy);
-                  const isForSelectedUser =
-                    Boolean(food.claimedBy && food.claimedBy === currUser?.id);
+    <div className="menu-list">
+      <AnimatePresence initial={false}>
+        {sorted.map((food, i) => {
+          const prevFood = i > 0 ? sorted[i - 1] : null;
+          const showCategory = !prevFood || prevFood.type !== food.type;
+          const userClaimedBy = users?.find((u) => u.id === food.claimedBy);
+          const isMine = Boolean(food.claimedBy && food.claimedBy === currUser?.id);
 
-                  return (
-                    <motion.div
-                      key={food.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <FoodItemRow
-                        food={food}
-                        claimFood={claimFood}
-                        removeFood={removeFood}
-                        userClaimedBy={userClaimedBy}
-                        isForSelectedUser={isForSelectedUser}
-                      />
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-          </div>
-        );
-      })}
-
-      {uncategorized.length > 0 && (
-        <div>
-          <div className="category-header">
-            <span>{"\u{1F37D}\uFE0F"}</span>
-            <span>Other</span>
-            <span>({uncategorized.length})</span>
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-            <AnimatePresence>
-              {uncategorized.map((food) => {
-                const userClaimedBy = users?.find((u) => u.id === food.claimedBy);
-                const isForSelectedUser =
-                  Boolean(food.claimedBy && food.claimedBy === currUser?.id);
-
-                return (
-                  <motion.div
-                    key={food.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <FoodItemRow
-                      food={food}
-                      claimFood={claimFood}
-                      removeFood={removeFood}
-                      userClaimedBy={userClaimedBy}
-                      isForSelectedUser={isForSelectedUser}
-                    />
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        </div>
-      )}
+          return (
+            <motion.div
+              key={food.id}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <MenuRow
+                food={food}
+                claimFood={claimFood}
+                removeFood={removeFood}
+                userClaimedBy={userClaimedBy}
+                isMine={isMine}
+                showCategory={showCategory}
+              />
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
     </div>
   );
 };
 
-interface FoodItemRowProps {
+interface MenuRowProps {
   food: Food;
   claimFood: (id: string) => void;
   removeFood: (id: string) => void;
   userClaimedBy: User | undefined;
-  isForSelectedUser: boolean;
+  isMine: boolean;
+  showCategory: boolean;
 }
 
-const FoodItemRow = ({
+const MenuRow = ({
   food,
   claimFood,
   removeFood,
   userClaimedBy,
-  isForSelectedUser,
-}: FoodItemRowProps) => {
+  isMine,
+  showCategory,
+}: MenuRowProps) => {
   const [isClicked, setIsClicked] = useState(false);
 
   useEffect(() => {
@@ -163,60 +116,64 @@ const FoodItemRow = ({
   };
 
   const isUnclaimed = !userClaimedBy;
-  const isClaimedByOther = !!userClaimedBy && !isForSelectedUser;
+  const isClaimedByOther = !!userClaimedBy && !isMine;
 
-  const stateClass = isForSelectedUser
-    ? "food-item-mine"
-    : isUnclaimed
-      ? "food-item-unclaimed"
-      : "food-item-claimed";
+  const rowClasses = [
+    "menu-row",
+    isMine ? "menu-row-mine" : "",
+    isUnclaimed ? "menu-row-unclaimed" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <motion.div whileTap={{ scale: 0.97 }}>
-      <div
-        className={`food-item ${stateClass}`}
-        onClick={() => claimFood(food.id)}
-        role="button"
-        tabIndex={0}
-      >
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <span
-            style={{
-              fontSize: "0.875rem",
-              fontWeight: isForSelectedUser ? 600 : 400,
-            }}
-          >
-            {food.title}
-            {food.attributes?.map((attr) => (
-              <span key={attr} className="food-badge" title={attr}>
-                {ATTRIBUTE_BADGES[attr]}
-              </span>
-            ))}
-          </span>
-          {food.notes && (
-            <span className="food-note">{food.notes}</span>
-          )}
+    <div
+      className={rowClasses}
+      onClick={() => claimFood(food.id)}
+      role="button"
+      tabIndex={0}
+    >
+      {/* Dish info */}
+      <div className="menu-dish-info">
+        <div className="menu-dish-name">
+          {food.title}
+          {food.attributes?.map((attr) => (
+            <span key={attr} className="food-badge" title={attr}>
+              {ATTRIBUTE_BADGES[attr]}
+            </span>
+          ))}
         </div>
-        {isClaimedByOther && userClaimedBy && (
-          <span className="badge badge-brand">
-            {userClaimedBy.name}
-          </span>
+        {food.notes && (
+          <div className="menu-dish-note">{food.notes}</div>
         )}
-        {isForSelectedUser && userClaimedBy && (
-          <span className="badge badge-accent">
-            {userClaimedBy.name}
-          </span>
-        )}
-        <button
-          aria-label={`Remove ${food.title}`}
-          className={`item-delete-btn ${isClicked ? "confirm" : ""}`}
-          onClick={handleDelete}
-          type="button"
-          title={isClicked ? "Click again to confirm" : `Remove ${food.title}`}
-        >
-          {isClicked ? <LuCheck /> : <LuDelete />}
-        </button>
       </div>
-    </motion.div>
+
+      {/* Category tag — only on first item of each group */}
+      <span className="menu-category-tag">
+        {showCategory ? (food.type ?? "other") : ""}
+      </span>
+
+      {/* Claimer */}
+      {isMine && userClaimedBy ? (
+        <span className="menu-claimer menu-claimer-you">you</span>
+      ) : isClaimedByOther && userClaimedBy ? (
+        <span className="menu-claimer menu-claimer-other">
+          {userClaimedBy.name}
+        </span>
+      ) : (
+        <span className="menu-claimer menu-claimer-none">&mdash;</span>
+      )}
+
+      {/* Delete button */}
+      <button
+        aria-label={`Remove ${food.title}`}
+        className={`menu-delete ${isClicked ? "menu-delete-confirm" : ""}`}
+        onClick={handleDelete}
+        type="button"
+        title={isClicked ? "Click again to confirm" : `Remove ${food.title}`}
+      >
+        {isClicked ? "\u2713" : "\u00d7"}
+      </button>
+    </div>
   );
 };

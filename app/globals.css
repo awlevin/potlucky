@@ -233,41 +233,159 @@ body {
   border-color: var(--color-accent);
 }
 
-/* ---------- Food Items ---------- */
-.food-item {
-  display: inline-flex;
+/* ---------- Menu Table ---------- */
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--color-border-subtle);
+  position: relative;
+}
+.menu-row:last-child {
+  border-bottom: none;
+}
+.menu-row:hover {
+  background: var(--color-muted);
+}
+
+.menu-row-mine {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 11px; /* 14 - 3 for border */
+}
+
+.menu-row-unclaimed .menu-dish-name {
+  opacity: 0.65;
+}
+
+.menu-dish-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-dish-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.menu-dish-note {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-top: 1px;
+}
+
+.menu-category-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  min-width: 64px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.menu-claimer {
+  font-size: 13px;
+  min-width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.menu-claimer-you {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.menu-claimer-other {
+  color: var(--color-text-muted);
+}
+.menu-claimer-none {
+  color: var(--color-border);
+}
+
+.menu-delete {
+  opacity: 0;
+  transition: opacity 0.15s;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.menu-row:hover .menu-delete {
+  opacity: 1;
+}
+.menu-delete:hover {
+  color: var(--color-warm);
+  background: var(--color-warm-light);
+}
+.menu-delete-confirm {
+  opacity: 1;
+  color: var(--color-warm);
+}
+
+/* ---------- Compact Guests ---------- */
+.guests-section {
+  margin-bottom: 8px;
+}
+.guests-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+.guests-row {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border-radius: var(--radius);
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
 }
-.food-item-unclaimed {
-  border: 1.5px dashed var(--color-border);
+.add-guest-trigger {
+  font-size: 13px;
+  color: var(--color-text-muted);
   background: transparent;
-  color: var(--color-text-secondary);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.food-item-unclaimed:hover {
+.add-guest-trigger:hover {
   border-color: var(--color-brand);
-  background: var(--color-brand-light);
-}
-.food-item-mine {
-  border: 1.5px solid var(--color-accent);
-  background: var(--color-accent-light);
   color: var(--color-text);
 }
-.food-item-mine:hover {
-  border-color: var(--color-accent-dark);
+.add-guest-inline {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
-.food-item-claimed {
-  border: 1.5px solid var(--color-border);
-  background: var(--color-elevated);
-  color: var(--color-text-secondary);
+.add-guest-inline input {
+  padding: 5px 10px;
+  font-size: 13px;
+  width: 140px;
 }
-.food-item-claimed:hover {
-  border-color: var(--color-text-muted);
+.add-guest-inline button {
+  padding: 5px 10px;
+  font-size: 13px;
 }
 
 /* ---------- Potluck Card ---------- */
@@ -463,8 +581,7 @@ body {
 }
 
 /* Show delete button on parent hover */
-.pill:hover .item-delete-btn,
-.food-item:hover .item-delete-btn {
+.pill:hover .item-delete-btn {
   opacity: 1;
 }
 
@@ -653,20 +770,7 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-/* ---------- Category Headers & Selector ---------- */
-.category-header {
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-weight: 500;
-  font-size: 15px;
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-  margin-top: 16px;
-}
-.category-header:first-child { margin-top: 0; }
-
+/* ---------- Category Selector ---------- */
 .category-selector {
   display: flex;
   flex-wrap: wrap;
