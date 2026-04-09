@@ -32,6 +32,16 @@ export function useFoods({
     });
   };
 
+  const addFoodDirect = async (title: string, type?: Food["type"]) => {
+    await addData({
+      ...data,
+      foods: [
+        ...(data?.foods || []),
+        { id: nanoid(5), title, ...(type ? { type } : {}) } as Food,
+      ],
+    });
+  };
+
   const removeFood = async (id: string) => {
     await addData({
       ...data,
@@ -69,6 +79,7 @@ export function useFoods({
     foodInput,
     setFoodInput,
     addFood,
+    addFoodDirect,
     removeFood,
     claimFood,
   };

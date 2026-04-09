@@ -775,3 +775,10 @@ body {
   color: var(--color-text-muted);
   font-style: italic;
 }
+
+/* ---------- Dish Suggestion ---------- */
+.suggestion-trigger { font-size: 13px; color: var(--color-brand); background: transparent; border: none; cursor: pointer; padding: 4px 0; margin-bottom: 8px; }
+.suggestion-trigger:hover { text-decoration: underline; }
+.suggestion-card { background: var(--color-brand-light); border: 1px solid var(--color-brand); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; text-align: center; }
+.suggestion-dish { font-family: var(--font-fraunces), Georgia, serif; font-size: 1.25rem; font-weight: 500; margin: 8px 0 12px; color: var(--color-text); }
+.suggestion-actions { display: flex; gap: 8px; justify-content: center; }

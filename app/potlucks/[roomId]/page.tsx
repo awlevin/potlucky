@@ -14,6 +14,7 @@ import { IdentityGate } from "@/components/IdentityGate";
 import { IdentityBar } from "@/components/IdentityBar";
 import { EventHeader } from "@/components/EventHeader";
 import { SummaryPanel } from "@/components/SummaryPanel";
+import { DishSuggestion } from "@/components/DishSuggestion";
 import { IRoomObj } from "@/types";
 
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
@@ -70,6 +71,7 @@ export default function Room() {
     foodInput,
     setFoodInput,
     addFood,
+    addFoodDirect,
     removeFood,
     claimFood,
   } = useFoods({
@@ -205,6 +207,11 @@ export default function Room() {
                   No dishes yet. Add something delicious!
                 </div>
               )}
+
+              <DishSuggestion
+                foods={data?.foods || []}
+                onAdd={(title, category) => addFoodDirect(title, category)}
+              />
 
               <div className="category-selector">
                 {(
