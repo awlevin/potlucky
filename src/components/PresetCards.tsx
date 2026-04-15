@@ -51,7 +51,7 @@ function PresetCard({
 }
 
 export function PresetCards({ presets, onSelect, loading }: PresetCardsProps) {
-  const displayed = presets.slice(0, 4);
+  const displayed = presets.slice(0, 8);
 
   return (
     <div style={{ padding: "0 16px 48px" }}>
