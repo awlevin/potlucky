@@ -14,6 +14,8 @@ import { EventHeader } from "@/components/EventHeader";
 import { SummaryPanel } from "@/components/SummaryPanel";
 import { DishSuggestion } from "@/components/DishSuggestion";
 import { PresetPicker } from "@/components/PresetPicker";
+import { RecipeWizard } from "@/components/RecipeWizard";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { IRoomObj } from "@/types";
 
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
@@ -45,6 +47,7 @@ function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
+  const recipesEnabled = useFeatureFlag("recipes");
   const {
     data,
     loading: loadingRoom,
@@ -266,6 +269,26 @@ export default function Room() {
                 </div>
               )}
             </SectionCard>
+
+            {/* Recipe Wizard — behind feature flag */}
+            {recipesEnabled && data && currUser && (() => {
+              const myDishes = (data.foods || []).filter((f) => {
+                const claimers = Array.isArray(f.claimedBy)
+                  ? f.claimedBy
+                  : f.claimedBy
+                    ? [f.claimedBy]
+                    : [];
+                return claimers.includes(currUser.id);
+              });
+              return myDishes.length > 0 ? (
+                <RecipeWizard
+                  myDishes={myDishes}
+                  users={data.users || []}
+                  currUser={currUser}
+                  roomId={roomId}
+                />
+              ) : null;
+            })()}
 
             {/* Summary Panel — after menu */}
             {data && (
