@@ -3,14 +3,31 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
 
+/** Extract the first JSON object from a model response, ignoring markdown fences or preamble text. */
+function extractJSON(text: string): unknown {
+  // Try direct parse first
+  try {
+    return JSON.parse(text.trim());
+  } catch {
+    // Fall through
+  }
+  // Find the first { and last } to extract the JSON object
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error(`No JSON object found in response: ${text.slice(0, 200)}`);
+  }
+  return JSON.parse(text.slice(start, end + 1));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
     if (body.action === "generate-options") {
-      return generateOptions(body);
+      return await generateOptions(body);
     } else if (body.action === "generate-recipes") {
-      return generateRecipes(body);
+      return await generateRecipes(body);
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
@@ -103,9 +120,7 @@ Return ONLY valid JSON with no markdown formatting:
 
   const text =
     message.content[0].type === "text" ? message.content[0].text : "";
-  // Strip any markdown code fences if present
-  const cleaned = text.replace(/```json\s*\n?/g, "").replace(/```\s*$/g, "").trim();
-  const json = JSON.parse(cleaned);
+  const json = extractJSON(text);
 
   return NextResponse.json(json);
 }
@@ -124,7 +139,7 @@ async function generateRecipes(body: {
 
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 4096,
+    max_tokens: 8192,
     messages: [
       {
         role: "user",
@@ -168,8 +183,7 @@ Return ONLY valid JSON with no markdown formatting:
 
   const text =
     message.content[0].type === "text" ? message.content[0].text : "";
-  const cleaned = text.replace(/```json\s*\n?/g, "").replace(/```\s*$/g, "").trim();
-  const json = JSON.parse(cleaned);
+  const json = extractJSON(text);
 
   return NextResponse.json(json);
 }
