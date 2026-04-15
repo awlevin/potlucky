@@ -2059,6 +2059,17 @@ body {
   gap: 8px;
 }
 
+/* ---------- Copy Button Feedback ---------- */
+.shopping-copy-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  min-width: 90px;
+}
+.shopping-copy-btn-copied {
+  background: var(--color-recipe-sage) !important;
+  border-color: var(--color-recipe-sage) !important;
+  color: #fff !important;
+}
+
 /* ---------- Error ---------- */
 .recipe-error {
   font-size: 13px;

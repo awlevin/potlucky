@@ -13,6 +13,8 @@ interface ShoppingListProps {
 type AisleGroup = { aisle: string; items: ShoppingItem[] };
 
 export function ShoppingList({ items, roomId }: ShoppingListProps) {
+  const [copied, setCopied] = useState(false);
+
   // Load checked state from localStorage
   const [checked, setChecked] = useState<Record<string, boolean>>(() => {
     try {
@@ -56,19 +58,20 @@ export function ShoppingList({ items, roomId }: ShoppingListProps) {
   };
 
   const handleCopy = async () => {
-    const lines: string[] = ["🛒 Shopping List", ""];
+    const lines: string[] = ["## Shopping List", ""];
     for (const group of aisleGroups) {
-      lines.push(`${group.aisle}:`);
+      lines.push(`### ${group.aisle}`);
       for (const item of group.items) {
-        const mark = checked[`${item.aisle}-${item.item}`] ? "✓" : "○";
-        lines.push(`  ${mark} ${item.quantity} ${item.item}`);
+        const isChecked = !!checked[`${item.aisle}-${item.item}`];
+        lines.push(`- [${isChecked ? "x" : " "}] ${item.quantity} ${item.item}`);
       }
       lines.push("");
     }
 
     try {
       await navigator.clipboard.writeText(lines.join("\n").trimEnd());
-      toaster.create({ title: "Shopping list copied!", type: "success" });
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       toaster.create({ title: "Failed to copy", type: "error" });
     }
@@ -129,8 +132,11 @@ export function ShoppingList({ items, roomId }: ShoppingListProps) {
       </div>
 
       <div className="shopping-list-footer">
-        <button className="btn btn-sm btn-outline" onClick={handleCopy}>
-          Copy list
+        <button
+          className={`btn btn-sm btn-outline shopping-copy-btn${copied ? " shopping-copy-btn-copied" : ""}`}
+          onClick={handleCopy}
+        >
+          {copied ? "Copied!" : "Copy list"}
         </button>
       </div>
     </motion.div>
