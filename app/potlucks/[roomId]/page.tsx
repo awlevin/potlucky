@@ -13,6 +13,7 @@ import { IdentityGate } from "@/components/IdentityGate";
 import { EventHeader } from "@/components/EventHeader";
 import { SummaryPanel } from "@/components/SummaryPanel";
 import { DishSuggestion } from "@/components/DishSuggestion";
+import { PresetPicker } from "@/components/PresetPicker";
 import { IRoomObj } from "@/types";
 
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
@@ -156,9 +157,14 @@ export default function Room() {
                   />
                 </div>
               ) : (
-                <div className="empty-state">
-                  No dishes yet. Add something delicious!
-                </div>
+                <PresetPicker
+                  onApply={(foods, name, date) => {
+                    const updates: Record<string, unknown> = { foods };
+                    if (name && !data?.name) updates.name = name;
+                    if (date && !data?.date) updates.date = date;
+                    addData(updates);
+                  }}
+                />
               )}
 
               <DishSuggestion
