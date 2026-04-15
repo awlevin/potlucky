@@ -58,22 +58,50 @@ export function ShoppingList({ items, roomId }: ShoppingListProps) {
   };
 
   const handleCopy = async () => {
-    const lines: string[] = ["## Shopping List", ""];
+    // Markdown version (GitHub, Notion, etc.)
+    const mdLines: string[] = ["## Shopping List", ""];
     for (const group of aisleGroups) {
-      lines.push(`### ${group.aisle}`);
+      mdLines.push(`### ${group.aisle}`);
       for (const item of group.items) {
         const isChecked = !!checked[`${item.aisle}-${item.item}`];
-        lines.push(`- [${isChecked ? "x" : " "}] ${item.quantity} ${item.item}`);
+        mdLines.push(`- [${isChecked ? "x" : " "}] ${item.quantity} ${item.item}`);
       }
-      lines.push("");
+      mdLines.push("");
     }
+    const markdown = mdLines.join("\n").trimEnd();
+
+    // HTML version (Apple Notes, Google Docs, etc.)
+    const htmlParts: string[] = ["<h2>Shopping List</h2>"];
+    for (const group of aisleGroups) {
+      htmlParts.push(`<h3>${group.aisle}</h3><ul>`);
+      for (const item of group.items) {
+        const isChecked = !!checked[`${item.aisle}-${item.item}`];
+        const strike = isChecked ? ' style="text-decoration:line-through;opacity:0.5"' : "";
+        htmlParts.push(`<li${strike}><b>${item.quantity}</b> ${item.item}</li>`);
+      }
+      htmlParts.push("</ul>");
+    }
+    const html = htmlParts.join("");
 
     try {
-      await navigator.clipboard.writeText(lines.join("\n").trimEnd());
+      // Write both formats — the OS picks the best one for the target app
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/plain": new Blob([markdown], { type: "text/plain" }),
+          "text/html": new Blob([html], { type: "text/html" }),
+        }),
+      ]);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toaster.create({ title: "Failed to copy", type: "error" });
+      // Fallback for browsers that don't support ClipboardItem
+      try {
+        await navigator.clipboard.writeText(markdown);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        toaster.create({ title: "Failed to copy", type: "error" });
+      }
     }
   };
 
