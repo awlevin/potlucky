@@ -3,15 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
 
-/** Extract the first JSON object from a model response, ignoring markdown fences or preamble text. */
+/** Extract the first JSON object from a string, ignoring markdown fences or preamble. */
 function extractJSON(text: string): unknown {
-  // Try direct parse first
   try {
     return JSON.parse(text.trim());
   } catch {
     // Fall through
   }
-  // Find the first { and last } to extract the JSON object
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start === -1 || end === -1 || end <= start) {
@@ -27,7 +25,7 @@ export async function POST(request: NextRequest) {
     if (body.action === "generate-options") {
       return await generateOptions(body);
     } else if (body.action === "generate-recipes") {
-      return await generateRecipes(body);
+      return await generateRecipesStreaming(body);
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
@@ -126,7 +124,12 @@ Return ONLY valid JSON with no markdown formatting:
   return NextResponse.json(json);
 }
 
-async function generateRecipes(body: {
+/**
+ * Stream recipe generation to avoid Vercel's 10s function timeout.
+ * Tokens are forwarded as they arrive, keeping the connection alive.
+ * Client accumulates the full text and parses JSON when the stream ends.
+ */
+async function generateRecipesStreaming(body: {
   selections: { dishTitle: string; recipeName: string; servings: number }[];
 }) {
   const { selections } = body;
@@ -138,7 +141,7 @@ async function generateRecipes(body: {
     )
     .join("\n");
 
-  const message = await client.messages.create({
+  const stream = client.messages.stream({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 8192,
     messages: [
@@ -182,9 +185,32 @@ Return ONLY valid JSON with no markdown formatting:
     ],
   });
 
-  const text =
-    message.content[0].type === "text" ? message.content[0].text : "";
-  const json = extractJSON(text);
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            controller.enqueue(encoder.encode(event.delta.text));
+          }
+        }
+        controller.close();
+      } catch (err) {
+        // Send error as text so client can detect it
+        const msg = err instanceof Error ? err.message : String(err);
+        controller.enqueue(encoder.encode(`\n__ERROR__:${msg}`));
+        controller.close();
+      }
+    },
+  });
 
-  return NextResponse.json(json);
+  return new Response(readable, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }

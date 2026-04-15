@@ -240,7 +240,34 @@ export function RecipeWizard({
         throw new Error(`API ${res.status}: ${errBody}`);
       }
 
-      const data = await res.json();
+      // Read streamed response (avoids Vercel function timeout)
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        fullText += decoder.decode(value, { stream: true });
+      }
+
+      // Check for streamed error marker
+      if (fullText.includes("__ERROR__:")) {
+        const errMsg = fullText.split("__ERROR__:").pop() ?? "Unknown error";
+        throw new Error(errMsg);
+      }
+
+      // Parse JSON from accumulated text
+      let data: { recipes?: RecipeResult[]; shoppingList?: ShoppingItem[] };
+      try {
+        data = JSON.parse(fullText.trim());
+      } catch {
+        const start = fullText.indexOf("{");
+        const end = fullText.lastIndexOf("}");
+        if (start === -1 || end <= start) throw new Error("Invalid response from recipe API");
+        data = JSON.parse(fullText.slice(start, end + 1));
+      }
+
       setRecipes(data.recipes ?? []);
       setShoppingList(data.shoppingList ?? []);
       setStep("done");
