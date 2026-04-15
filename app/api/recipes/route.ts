@@ -3,20 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
 
-/** Extract the first JSON object from a string, ignoring markdown fences or preamble. */
-function extractJSON(text: string): unknown {
-  try {
-    return JSON.parse(text.trim());
-  } catch {
-    // Fall through
-  }
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) {
-    throw new Error(`No JSON object found in response: ${text.slice(0, 200)}`);
-  }
-  return JSON.parse(text.slice(start, end + 1));
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -100,7 +86,7 @@ IMPORTANT:
 - Cost estimates should be realistic US averages for a midsize-to-large city
 - prepTime is total time including prep and cooking
 
-Return ONLY valid JSON with no markdown formatting:
+Return valid JSON matching this schema:
 {
   "dishes": [
     {
@@ -114,12 +100,15 @@ Return ONLY valid JSON with no markdown formatting:
   ]
 }`,
       },
+      // Prefill forces the model to start with "{", avoiding markdown fences
+      { role: "assistant", content: "{" },
     ],
   });
 
   const text =
     message.content[0].type === "text" ? message.content[0].text : "";
-  const json = extractJSON(text);
+  // Prepend the "{" we prefilled since the model continues from there
+  const json = JSON.parse("{" + text);
 
   return NextResponse.json(json);
 }
@@ -143,7 +132,7 @@ async function generateRecipesStreaming(body: {
 
   const stream = client.messages.stream({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 8192,
+    max_tokens: 16384,
     messages: [
       {
         role: "user",
@@ -154,7 +143,7 @@ ${selectionList}
 
 For each recipe provide:
 - Full ingredient list with precise quantities (scaled to the serving count)
-- Clear, numbered step-by-step instructions
+- Clear, numbered step-by-step instructions (keep each step to 1-2 sentences)
 - One helpful tip
 
 Then consolidate ALL ingredients across all recipes into a single shopping list:
@@ -162,7 +151,7 @@ Then consolidate ALL ingredients across all recipes into a single shopping list:
 - Merge duplicate ingredients across recipes and combine their quantities
 - Use common grocery store section names
 
-Return ONLY valid JSON with no markdown formatting:
+Return valid JSON matching this schema:
 {
   "recipes": [
     {
@@ -182,6 +171,8 @@ Return ONLY valid JSON with no markdown formatting:
   ]
 }`,
       },
+      // Prefill forces the model to start with "{", avoiding markdown fences
+      { role: "assistant", content: "{" },
     ],
   });
 
@@ -189,6 +180,8 @@ Return ONLY valid JSON with no markdown formatting:
   const readable = new ReadableStream({
     async start(controller) {
       try {
+        // Send the prefilled "{" that the model continues from
+        controller.enqueue(encoder.encode("{"));
         for await (const event of stream) {
           if (
             event.type === "content_block_delta" &&
