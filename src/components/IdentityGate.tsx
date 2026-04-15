@@ -4,7 +4,7 @@ import { useState } from "react";
 import { User, DietaryRestriction } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 
-const DIETARY_OPTIONS: { key: DietaryRestriction; label: string; emoji: string }[] = [
+export const DIETARY_OPTIONS: { key: DietaryRestriction; label: string; emoji: string }[] = [
   { key: "vegetarian", label: "Vegetarian", emoji: "🌱" },
   { key: "vegan", label: "Vegan", emoji: "🌿" },
   { key: "gluten-free", label: "Gluten-free", emoji: "GF" },

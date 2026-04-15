@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LuDelete, LuCheck } from "react-icons/lu";
 import { User } from "@/types";
-import { DietaryBadges } from "@/components/IdentityGate";
+import { DietaryBadges, DIETARY_OPTIONS } from "@/components/IdentityGate";
+import { Tooltip } from "@/components/ui/tooltip";
 
 interface UserItemProps {
   user: User;
@@ -38,47 +39,78 @@ const UserItem = ({
     }
   };
 
+  const hasDietary = !!(user.dietaryRestrictions?.length || user.dietaryNote);
+
+  const tooltipContent = useMemo(() => {
+    if (!hasDietary) return null;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+        {user.dietaryRestrictions?.map((r) => {
+          const opt = DIETARY_OPTIONS.find((o) => o.key === r);
+          return (
+            <span key={r}>
+              {opt?.emoji} {opt?.label || r}
+            </span>
+          );
+        })}
+        {user.dietaryNote && (
+          <span style={{ color: "var(--color-text-muted)", fontStyle: "italic" }}>
+            {user.dietaryNote}
+          </span>
+        )}
+      </div>
+    );
+  }, [hasDietary, user.dietaryRestrictions, user.dietaryNote]);
+
   return (
-    <div
-      className={`pill ${isSelectedUser ? "pill-selected" : ""}`}
-      onClick={() => claimUser(user.id)}
-      role="button"
-      tabIndex={0}
+    <Tooltip
+      content={tooltipContent}
+      disabled={!hasDietary}
+      openDelay={500}
+      closeDelay={0}
+      showArrow
     >
-      {isSelectedUser && (
+      <div
+        className={`pill ${isSelectedUser ? "pill-selected" : ""}`}
+        onClick={() => claimUser(user.id)}
+        role="button"
+        tabIndex={0}
+      >
+        {isSelectedUser && (
+          <span
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              background: "var(--color-accent)",
+              flexShrink: 0,
+            }}
+          />
+        )}
         <span
           style={{
-            width: "8px",
-            height: "8px",
-            borderRadius: "50%",
-            background: "var(--color-accent)",
-            flexShrink: 0,
+            fontSize: "0.875rem",
+            fontWeight: isSelectedUser ? 600 : 400,
           }}
+        >
+          {user.name}
+        </span>
+        <DietaryBadges
+          restrictions={user.dietaryRestrictions}
+          note={user.dietaryNote}
+          size="xs"
         />
-      )}
-      <span
-        style={{
-          fontSize: "0.875rem",
-          fontWeight: isSelectedUser ? 600 : 400,
-        }}
-      >
-        {user.name}
-      </span>
-      <DietaryBadges
-        restrictions={user.dietaryRestrictions}
-        note={user.dietaryNote}
-        size="xs"
-      />
-      <button
-        aria-label={`Remove ${user.name}`}
-        className={`item-delete-btn ${isClicked ? "confirm" : ""}`}
-        onClick={handleDelete}
-        type="button"
-        title={isClicked ? "Click again to confirm" : `Remove ${user.name}`}
-      >
-        {isClicked ? <LuCheck /> : <LuDelete />}
-      </button>
-    </div>
+        <button
+          aria-label={`Remove ${user.name}`}
+          className={`item-delete-btn ${isClicked ? "confirm" : ""}`}
+          onClick={handleDelete}
+          type="button"
+          title={isClicked ? "Click again to confirm" : `Remove ${user.name}`}
+        >
+          {isClicked ? <LuCheck /> : <LuDelete />}
+        </button>
+      </div>
+    </Tooltip>
   );
 };
 
