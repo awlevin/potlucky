@@ -4,7 +4,8 @@ import {
   Editable,
   EditableValueChangeDetails,
 } from "@chakra-ui/react";
-import { LuShare2 } from "react-icons/lu";
+import { LuShare2, LuCheck, LuX } from "react-icons/lu";
+import { QRCodeSVG } from "qrcode.react";
 import { IRoomObj, User, DietaryRestriction } from "@/types";
 import { toaster } from "@/components/ui/toaster";
 import { DietaryBadges } from "@/components/IdentityGate";
@@ -55,25 +56,24 @@ export function EventHeader({
   );
   const [dietNoteInput, setDietNoteInput] = useState(currUser?.dietaryNote || "");
   const [showGuestInput, setShowGuestInput] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [copied, setCopied] = useState(false);
   const guestInputRef = useRef<HTMLInputElement>(null);
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
   const changeRoomName = (details: EditableValueChangeDetails) => {
     addData({ name: details.value });
   };
 
-  const handleShare = async () => {
-    const url = window.location.href;
+  const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(url);
-      toaster.create({
-        title: "Link copied!",
-        description: "Share it with your friends.",
-        type: "success",
-      });
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       toaster.create({
         title: "Couldn't copy link",
-        description: url,
+        description: shareUrl,
         type: "error",
       });
     }
@@ -307,13 +307,66 @@ export function EventHeader({
         </div>
 
         <button
-          className="btn btn-outline btn-xs"
-          onClick={handleShare}
+          className={`btn btn-outline btn-xs${showShare ? " share-btn-active" : ""}`}
+          onClick={() => setShowShare((v) => !v)}
         >
-          <LuShare2 />
-          Share Link
+          {showShare ? <LuX /> : <LuShare2 />}
+          {showShare ? "Close" : "Share"}
         </button>
       </div>
+
+      {/* Share panel — progressive disclosure */}
+      <AnimatePresence>
+        {showShare && (
+          <motion.div
+            className="share-panel"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <div className="share-panel-inner">
+              <p className="share-panel-label">Scan to join</p>
+
+              <motion.div
+                className="share-qr-frame"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.08, duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
+              >
+                <QRCodeSVG
+                  value={shareUrl}
+                  size={152}
+                  bgColor="transparent"
+                  fgColor="#292524"
+                  level="M"
+                  imageSettings={{
+                    src: "",
+                    height: 0,
+                    width: 0,
+                    excavate: false,
+                  }}
+                />
+              </motion.div>
+
+              <motion.div
+                className="share-url-row"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.25 }}
+              >
+                <span className="share-url">{shareUrl}</span>
+                <button
+                  className={`btn btn-sm share-copy-btn${copied ? " share-copied" : ""}`}
+                  onClick={handleCopyLink}
+                >
+                  {copied ? <><LuCheck /> Copied</> : "Copy Link"}
+                </button>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
