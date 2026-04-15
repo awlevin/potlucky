@@ -1551,44 +1551,113 @@ body {
   color: var(--color-text);
 }
 
-/* ---------- Servings Stepper ---------- */
-.recipe-servings-stepper {
+/* ---------- Eligibility Indicator ---------- */
+.recipe-eligibility {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  cursor: default;
+  padding: 4px 10px 4px 6px;
+  border-radius: 20px;
+  background: var(--color-muted);
+  transition: background 0.2s;
+}
+.recipe-eligibility:hover {
+  background: color-mix(in srgb, var(--color-muted) 80%, var(--color-recipe-warm-light) 20%);
+}
+.recipe-eligibility-dots {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.recipe-eligibility-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-surface);
+  flex-shrink: 0;
+  margin-left: -3px;
+}
+.recipe-eligibility-dot:first-child {
+  margin-left: 0;
+}
+.recipe-eligibility-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+.recipe-eligibility-all {
+  color: var(--color-recipe-sage);
+}
+
+/* Tooltip */
+.recipe-eligibility-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  max-width: 260px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+}
+.recipe-tooltip-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.recipe-tooltip-section-blocked {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+.recipe-tooltip-heading {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+.recipe-tooltip-heading-ok {
+  color: var(--color-recipe-sage);
+}
+.recipe-tooltip-heading-blocked {
+  color: var(--color-text-muted);
+}
+.recipe-tooltip-user {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 2px 0;
+}
+.recipe-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
-.recipe-servings-label {
+.recipe-tooltip-dot-blocked {
+  background: var(--color-border);
+}
+.recipe-tooltip-name {
   font-size: 12px;
-  color: var(--color-text-muted);
-}
-.recipe-stepper-btn {
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  line-height: 1;
-}
-.recipe-stepper-btn:hover {
-  border-color: var(--color-recipe-warm);
-  background: var(--color-recipe-warm-light);
-  color: var(--color-recipe-warm);
-}
-.recipe-servings-value {
-  font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text);
-  min-width: 20px;
-  text-align: center;
+  white-space: nowrap;
+}
+.recipe-tooltip-reason {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  margin-left: auto;
+  padding-left: 8px;
 }
 
 /* ---------- Option Cards Row ---------- */

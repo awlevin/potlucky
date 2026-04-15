@@ -1,30 +1,44 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { RecipeOption } from "@/types";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { RecipeOption, User } from "@/types";
 
 interface RecipeOptionPickerProps {
   dishTitle: string;
   dishIndex: number;
   options: RecipeOption[];
   selectedIdx: number | null;
-  servings: number;
+  eligibleUsers: User[];
+  ineligibleUsers: User[];
   onSelect: (idx: number) => void;
-  onServingsChange: (servings: number) => void;
 }
 
 const tierLabels = ["Quick & Easy", "Balanced", "Impressive"];
-const tierEmojis = ["⚡", "⚖️", "✨"];
+const tierEmojis = ["\u26A1", "\u2696\uFE0F", "\u2728"];
+
+const DOT_COLORS = [
+  "#E07C5A", "#6BA37E", "#5B8DB8", "#C5A55A", "#9B72B0",
+  "#D4726A", "#5AAE9E", "#7B8FC4", "#BC8F5E", "#8EB86A",
+];
+
+function getUserColor(index: number): string {
+  return DOT_COLORS[index % DOT_COLORS.length];
+}
 
 export function RecipeOptionPicker({
   dishTitle,
   dishIndex,
   options,
   selectedIdx,
-  servings,
+  eligibleUsers,
+  ineligibleUsers,
   onSelect,
-  onServingsChange,
 }: RecipeOptionPickerProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const totalUsers = eligibleUsers.length + ineligibleUsers.length;
+  const allEligible = ineligibleUsers.length === 0;
+
   return (
     <motion.div
       className="recipe-dish-group"
@@ -34,23 +48,73 @@ export function RecipeOptionPicker({
     >
       <div className="recipe-dish-header">
         <h4 className="recipe-dish-title">{dishTitle}</h4>
-        <div className="recipe-servings-stepper">
-          <span className="recipe-servings-label">Serves</span>
-          <button
-            className="recipe-stepper-btn"
-            onClick={() => onServingsChange(Math.max(1, servings - 1))}
-            aria-label="Decrease servings"
-          >
-            −
-          </button>
-          <span className="recipe-servings-value">{servings}</span>
-          <button
-            className="recipe-stepper-btn"
-            onClick={() => onServingsChange(servings + 1)}
-            aria-label="Increase servings"
-          >
-            +
-          </button>
+        <div
+          className="recipe-eligibility"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          onClick={() => setShowTooltip((v) => !v)}
+        >
+          <div className="recipe-eligibility-dots">
+            {eligibleUsers.map((u, i) => (
+              <span
+                key={u.id}
+                className="recipe-eligibility-dot"
+                style={{ backgroundColor: getUserColor(i) }}
+                title={u.name}
+              />
+            ))}
+          </div>
+          <span className={`recipe-eligibility-label${allEligible ? " recipe-eligibility-all" : ""}`}>
+            {allEligible
+              ? `Feeds everyone`
+              : `${eligibleUsers.length} of ${totalUsers}`}
+          </span>
+
+          <AnimatePresence>
+            {showTooltip && (
+              <motion.div
+                className="recipe-eligibility-tooltip"
+                initial={{ opacity: 0, y: 4, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 4, scale: 0.96 }}
+                transition={{ duration: 0.15 }}
+              >
+                <div className="recipe-tooltip-section">
+                  <div className="recipe-tooltip-heading recipe-tooltip-heading-ok">
+                    Can eat this
+                  </div>
+                  {eligibleUsers.map((u, i) => (
+                    <div key={u.id} className="recipe-tooltip-user">
+                      <span
+                        className="recipe-tooltip-dot"
+                        style={{ backgroundColor: getUserColor(i) }}
+                      />
+                      <span className="recipe-tooltip-name">{u.name}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {ineligibleUsers.length > 0 && (
+                  <div className="recipe-tooltip-section recipe-tooltip-section-blocked">
+                    <div className="recipe-tooltip-heading recipe-tooltip-heading-blocked">
+                      Can&apos;t eat this
+                    </div>
+                    {ineligibleUsers.map((u) => (
+                      <div key={u.id} className="recipe-tooltip-user">
+                        <span className="recipe-tooltip-dot recipe-tooltip-dot-blocked" />
+                        <span className="recipe-tooltip-name">{u.name}</span>
+                        {u.dietaryRestrictions && u.dietaryRestrictions.length > 0 && (
+                          <span className="recipe-tooltip-reason">
+                            {u.dietaryRestrictions.join(", ")}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

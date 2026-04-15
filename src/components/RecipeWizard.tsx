@@ -69,12 +69,19 @@ function saveCache(roomId: string, cache: RecipeCache) {
   }
 }
 
-function computeEligibleServings(dish: Food, users: User[]): number {
-  const eligible = users.filter((u) => {
-    if (!u.dietaryRestrictions?.length) return true;
-    return u.dietaryRestrictions.every((r) => dish.attributes?.includes(r));
-  });
-  return Math.max(eligible.length, 2);
+function computeEligibility(dish: Food, users: User[]): { eligible: User[]; ineligible: User[] } {
+  const eligible: User[] = [];
+  const ineligible: User[] = [];
+  for (const u of users) {
+    if (!u.dietaryRestrictions?.length) {
+      eligible.push(u);
+    } else if (u.dietaryRestrictions.every((r) => dish.attributes?.includes(r))) {
+      eligible.push(u);
+    } else {
+      ineligible.push(u);
+    }
+  }
+  return { eligible, ineligible };
 }
 
 export function RecipeWizard({
@@ -112,31 +119,22 @@ export function RecipeWizard({
   const [error, setError] = useState<string | null>(null);
   const [loadingPhrase, setLoadingPhrase] = useState(loadingPhrases[0]);
 
-  // Smart servings defaults
-  const defaultServings = useMemo(() => {
-    const map: Record<string, number> = {};
+  // Derive servings from eligible users — no manual override needed
+  const eligibilityMap = useMemo(() => {
+    const map: Record<string, { eligible: User[]; ineligible: User[] }> = {};
     for (const dish of myDishes) {
-      map[dish.id] = computeEligibleServings(dish, users);
+      map[dish.id] = computeEligibility(dish, users);
     }
     return map;
   }, [myDishes, users]);
 
-  const [servings, setServings] = useState<Record<string, number>>(
-    () => cached?.servings ?? defaultServings
-  );
-
-  // Sync servings defaults when dishes change
-  useEffect(() => {
-    setServings((prev) => {
-      const next = { ...prev };
-      for (const dish of myDishes) {
-        if (!(dish.id in next)) {
-          next[dish.id] = computeEligibleServings(dish, users);
-        }
-      }
-      return next;
-    });
-  }, [myDishes, users]);
+  const servings = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const dish of myDishes) {
+      map[dish.id] = Math.max(eligibilityMap[dish.id]?.eligible.length ?? 0, 2);
+    }
+    return map;
+  }, [myDishes, eligibilityMap]);
 
   // Rotate loading phrases
   useEffect(() => {
@@ -166,7 +164,7 @@ export function RecipeWizard({
           dishes: myDishes.map((d) => ({
             title: d.title,
             type: d.type,
-            servings: servings[d.id] ?? defaultServings[d.id],
+            servings: servings[d.id],
             attributes: d.attributes,
           })),
           users: users.map((u) => ({
@@ -211,7 +209,7 @@ export function RecipeWizard({
       setError("Something went wrong generating recipe options. Please try again.");
       setStep("idle");
     }
-  }, [myDishes, users, servings, defaultServings, roomId, dishIds]);
+  }, [myDishes, users, servings, roomId, dishIds]);
 
   const handleGenerateRecipes = useCallback(async () => {
     setStep("loading-recipes");
@@ -224,7 +222,7 @@ export function RecipeWizard({
         return {
           dishTitle: dish.title,
           recipeName: option?.name ?? dish.title,
-          servings: servings[dish.id] ?? defaultServings[dish.id],
+          servings: servings[dish.id],
         };
       });
 
@@ -263,7 +261,7 @@ export function RecipeWizard({
       setError(`Something went wrong: ${msg}`);
       setStep("picking");
     }
-  }, [myDishes, dishOptions, selections, servings, defaultServings, roomId, dishIds]);
+  }, [myDishes, dishOptions, selections, servings, roomId, dishIds]);
 
   const handleReset = useCallback(() => {
     setStep("idle");
@@ -366,7 +364,8 @@ export function RecipeWizard({
                 dishIndex={i}
                 options={dishOptions[dish.id] ?? []}
                 selectedIdx={selections[dish.id] ?? null}
-                servings={servings[dish.id] ?? defaultServings[dish.id]}
+                eligibleUsers={eligibilityMap[dish.id]?.eligible ?? []}
+                ineligibleUsers={eligibilityMap[dish.id]?.ineligible ?? []}
                 onSelect={(idx) => {
                   const next = { ...selections, [dish.id]: idx };
                   setSelections(next);
@@ -381,9 +380,6 @@ export function RecipeWizard({
                     generatedAt: new Date().toISOString(),
                   });
                 }}
-                onServingsChange={(val) =>
-                  setServings((prev) => ({ ...prev, [dish.id]: val }))
-                }
               />
             ))}
 
