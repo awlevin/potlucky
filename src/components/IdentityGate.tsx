@@ -288,7 +288,7 @@ export function IdentityGate({
                 ))}
               </div>
 
-              <div style={{ marginTop: "12px" }}>
+              <div style={{ marginTop: "12px", maxWidth: "80%", marginInline: "auto" }}>
                 <input
                   className="input"
                   placeholder="Anything else? (e.g., shellfish allergy)"
