@@ -1,57 +1,47 @@
-import { Food } from "@/types";
+import { Food, DietaryRestriction } from "@/types";
 import { nanoid } from "nanoid";
+
+export interface PresetDish {
+  title: string;
+  type: Food["type"];
+  attributes?: DietaryRestriction[];
+}
 
 export interface PotluckPreset {
   id: string;
   name: string;
   emoji: string;
   date?: string;
-  dishes: { title: string; type: Food["type"] }[];
+  dishes: PresetDish[];
 }
 
-function dish(title: string, type: Food["type"]): { title: string; type: Food["type"] } {
-  return { title, type };
+function dish(
+  title: string,
+  type: Food["type"],
+  attributes?: DietaryRestriction[],
+): PresetDish {
+  return attributes ? { title, type, attributes } : { title, type };
 }
 
 export const presets: PotluckPreset[] = [
-  {
-    id: "easter",
-    name: "Easter Potluck",
-    emoji: "🐣",
-    date: "April 19, 2026",
-    dishes: [
-      dish("Deviled Eggs", "appetizer"),
-      dish("Cheese Board", "appetizer"),
-      dish("Honey-Glazed Ham", "main"),
-      dish("Lamb Chops", "main"),
-      dish("Scalloped Potatoes", "side"),
-      dish("Spring Salad", "side"),
-      dish("Roasted Asparagus", "side"),
-      dish("Hot Cross Buns", "side"),
-      dish("Carrot Cake", "dessert"),
-      dish("Lemon Bars", "dessert"),
-      dish("Sparkling Lemonade", "drink"),
-      dish("Rosé", "drink"),
-    ],
-  },
   {
     id: "cinco-de-mayo",
     name: "Cinco de Mayo Fiesta",
     emoji: "🇲🇽",
     date: "May 5, 2026",
     dishes: [
-      dish("Guacamole & Chips", "appetizer"),
-      dish("Queso Fundido", "appetizer"),
+      dish("Guacamole & Chips", "appetizer", ["vegan", "gluten-free"]),
+      dish("Queso Fundido", "appetizer", ["vegetarian"]),
       dish("Street Tacos", "main"),
       dish("Chicken Enchiladas", "main"),
-      dish("Carnitas", "main"),
-      dish("Mexican Rice", "side"),
-      dish("Elote (Street Corn)", "side"),
-      dish("Pico de Gallo", "side"),
-      dish("Churros", "dessert"),
-      dish("Tres Leches Cake", "dessert"),
-      dish("Margaritas", "drink"),
-      dish("Horchata", "drink"),
+      dish("Carnitas", "main", ["gluten-free", "dairy-free"]),
+      dish("Mexican Rice", "side", ["vegan", "gluten-free"]),
+      dish("Elote (Street Corn)", "side", ["vegetarian", "gluten-free"]),
+      dish("Pico de Gallo", "side", ["vegan", "gluten-free"]),
+      dish("Churros", "dessert", ["vegetarian"]),
+      dish("Tres Leches Cake", "dessert", ["vegetarian"]),
+      dish("Margaritas", "drink", ["vegan", "gluten-free"]),
+      dish("Horchata", "drink", ["vegan", "dairy-free"]),
     ],
   },
   {
@@ -60,17 +50,17 @@ export const presets: PotluckPreset[] = [
     emoji: "💐",
     date: "May 10, 2026",
     dishes: [
-      dish("Fruit & Yogurt Parfaits", "appetizer"),
+      dish("Fruit & Yogurt Parfaits", "appetizer", ["vegetarian", "gluten-free"]),
       dish("Smoked Salmon Crostini", "appetizer"),
-      dish("Quiche Lorraine", "main"),
+      dish("Quiche Lorraine", "main", ["vegetarian"]),
       dish("Eggs Benedict", "main"),
-      dish("French Toast Casserole", "main"),
-      dish("Mixed Berry Salad", "side"),
-      dish("Roasted Potatoes", "side"),
-      dish("Scones & Clotted Cream", "dessert"),
-      dish("Strawberry Shortcake", "dessert"),
-      dish("Mimosas", "drink"),
-      dish("Fresh-Squeezed OJ", "drink"),
+      dish("French Toast Casserole", "main", ["vegetarian"]),
+      dish("Mixed Berry Salad", "side", ["vegan", "gluten-free"]),
+      dish("Roasted Potatoes", "side", ["vegan", "gluten-free"]),
+      dish("Scones & Clotted Cream", "dessert", ["vegetarian"]),
+      dish("Strawberry Shortcake", "dessert", ["vegetarian"]),
+      dish("Mimosas", "drink", ["vegan", "gluten-free"]),
+      dish("Fresh-Squeezed OJ", "drink", ["vegan", "gluten-free"]),
     ],
   },
   {
@@ -79,18 +69,18 @@ export const presets: PotluckPreset[] = [
     emoji: "🇺🇸",
     date: "May 25, 2026",
     dishes: [
-      dish("Spinach Artichoke Dip", "appetizer"),
+      dish("Spinach Artichoke Dip", "appetizer", ["vegetarian"]),
       dish("Pigs in a Blanket", "appetizer"),
       dish("Burgers", "main"),
-      dish("BBQ Ribs", "main"),
-      dish("Grilled Chicken", "main"),
-      dish("Coleslaw", "side"),
-      dish("Potato Salad", "side"),
-      dish("Corn on the Cob", "side"),
-      dish("Baked Beans", "side"),
-      dish("Watermelon Slices", "dessert"),
-      dish("Apple Pie", "dessert"),
-      dish("Lemonade", "drink"),
+      dish("BBQ Ribs", "main", ["gluten-free", "dairy-free"]),
+      dish("Grilled Chicken", "main", ["gluten-free", "dairy-free"]),
+      dish("Coleslaw", "side", ["vegetarian", "gluten-free"]),
+      dish("Potato Salad", "side", ["vegetarian", "gluten-free"]),
+      dish("Corn on the Cob", "side", ["vegan", "gluten-free"]),
+      dish("Baked Beans", "side", ["vegan", "gluten-free"]),
+      dish("Watermelon Slices", "dessert", ["vegan", "gluten-free"]),
+      dish("Apple Pie", "dessert", ["vegetarian"]),
+      dish("Lemonade", "drink", ["vegan", "gluten-free"]),
     ],
   },
   {
@@ -99,18 +89,18 @@ export const presets: PotluckPreset[] = [
     emoji: "🎆",
     date: "July 4, 2026",
     dishes: [
-      dish("Caprese Skewers", "appetizer"),
+      dish("Caprese Skewers", "appetizer", ["vegetarian", "gluten-free"]),
       dish("Buffalo Chicken Dip", "appetizer"),
       dish("Hot Dogs", "main"),
       dish("Pulled Pork Sliders", "main"),
-      dish("Grilled Sausages", "main"),
-      dish("Mac & Cheese", "side"),
-      dish("Cornbread", "side"),
-      dish("Pasta Salad", "side"),
-      dish("Red, White & Blue Trifle", "dessert"),
-      dish("Brownies", "dessert"),
-      dish("Sweet Tea", "drink"),
-      dish("Beer", "drink"),
+      dish("Grilled Sausages", "main", ["gluten-free", "dairy-free"]),
+      dish("Mac & Cheese", "side", ["vegetarian"]),
+      dish("Cornbread", "side", ["vegetarian"]),
+      dish("Pasta Salad", "side", ["vegetarian"]),
+      dish("Red, White & Blue Trifle", "dessert", ["vegetarian"]),
+      dish("Brownies", "dessert", ["vegetarian"]),
+      dish("Sweet Tea", "drink", ["vegan", "gluten-free"]),
+      dish("Beer", "drink", ["vegan"]),
     ],
   },
   {
@@ -120,17 +110,17 @@ export const presets: PotluckPreset[] = [
     date: "October 31, 2026",
     dishes: [
       dish("Mummy Jalapeño Poppers", "appetizer"),
-      dish("Spider Web Dip", "appetizer"),
+      dish("Spider Web Dip", "appetizer", ["vegetarian"]),
       dish("Monster Meatball Subs", "main"),
       dish("Witch's Brew Chili", "main"),
-      dish("Jack-o-Lantern Stuffed Peppers", "main"),
+      dish("Jack-o-Lantern Stuffed Peppers", "main", ["vegetarian"]),
       dish("Graveyard Taco Dip", "side"),
       dish("Mummy Hot Dogs", "side"),
-      dish("Candy Apples", "dessert"),
-      dish("Pumpkin Cupcakes", "dessert"),
-      dish("Ghost Cookies", "dessert"),
-      dish("Apple Cider", "drink"),
-      dish("Witch's Brew Punch", "drink"),
+      dish("Candy Apples", "dessert", ["vegan", "gluten-free"]),
+      dish("Pumpkin Cupcakes", "dessert", ["vegetarian"]),
+      dish("Ghost Cookies", "dessert", ["vegetarian"]),
+      dish("Apple Cider", "drink", ["vegan", "gluten-free"]),
+      dish("Witch's Brew Punch", "drink", ["vegan", "gluten-free"]),
     ],
   },
   {
@@ -139,20 +129,20 @@ export const presets: PotluckPreset[] = [
     emoji: "🦃",
     date: "November 26, 2026",
     dishes: [
-      dish("Cheese & Crackers", "appetizer"),
-      dish("Butternut Squash Soup", "appetizer"),
-      dish("Roast Turkey", "main"),
-      dish("Honey-Glazed Ham", "main"),
-      dish("Stuffing", "side"),
-      dish("Mashed Potatoes & Gravy", "side"),
-      dish("Cranberry Sauce", "side"),
-      dish("Green Bean Casserole", "side"),
-      dish("Sweet Potato Casserole", "side"),
-      dish("Dinner Rolls", "side"),
-      dish("Pumpkin Pie", "dessert"),
-      dish("Pecan Pie", "dessert"),
-      dish("Apple Cider", "drink"),
-      dish("Wine", "drink"),
+      dish("Cheese & Crackers", "appetizer", ["vegetarian"]),
+      dish("Butternut Squash Soup", "appetizer", ["vegetarian", "gluten-free"]),
+      dish("Roast Turkey", "main", ["gluten-free", "dairy-free"]),
+      dish("Honey-Glazed Ham", "main", ["gluten-free", "dairy-free"]),
+      dish("Stuffing", "side", ["vegetarian"]),
+      dish("Mashed Potatoes & Gravy", "side", ["vegetarian", "gluten-free"]),
+      dish("Cranberry Sauce", "side", ["vegan", "gluten-free"]),
+      dish("Green Bean Casserole", "side", ["vegetarian"]),
+      dish("Sweet Potato Casserole", "side", ["vegetarian", "gluten-free"]),
+      dish("Dinner Rolls", "side", ["vegetarian"]),
+      dish("Pumpkin Pie", "dessert", ["vegetarian"]),
+      dish("Pecan Pie", "dessert", ["vegetarian"]),
+      dish("Apple Cider", "drink", ["vegan", "gluten-free"]),
+      dish("Wine", "drink", ["vegan", "gluten-free"]),
     ],
   },
   {
@@ -160,18 +150,18 @@ export const presets: PotluckPreset[] = [
     name: "Friendsgiving",
     emoji: "🤗",
     dishes: [
-      dish("Bruschetta", "appetizer"),
-      dish("Hummus & Pita", "appetizer"),
-      dish("Lasagna", "main"),
-      dish("Mac & Cheese", "main"),
-      dish("Caesar Salad", "side"),
-      dish("Garlic Bread", "side"),
-      dish("Roasted Vegetables", "side"),
-      dish("Mashed Potatoes", "side"),
-      dish("Tiramisu", "dessert"),
-      dish("Chocolate Chip Cookies", "dessert"),
-      dish("Sangria", "drink"),
-      dish("Sparkling Water", "drink"),
+      dish("Bruschetta", "appetizer", ["vegan"]),
+      dish("Hummus & Pita", "appetizer", ["vegan"]),
+      dish("Lasagna", "main", ["vegetarian"]),
+      dish("Mac & Cheese", "main", ["vegetarian"]),
+      dish("Caesar Salad", "side", ["vegetarian"]),
+      dish("Garlic Bread", "side", ["vegetarian"]),
+      dish("Roasted Vegetables", "side", ["vegan", "gluten-free"]),
+      dish("Mashed Potatoes", "side", ["vegetarian", "gluten-free"]),
+      dish("Tiramisu", "dessert", ["vegetarian"]),
+      dish("Chocolate Chip Cookies", "dessert", ["vegetarian"]),
+      dish("Sangria", "drink", ["vegan", "gluten-free"]),
+      dish("Sparkling Water", "drink", ["vegan", "gluten-free"]),
     ],
   },
   {
@@ -180,18 +170,18 @@ export const presets: PotluckPreset[] = [
     emoji: "🎄",
     date: "December 25, 2026",
     dishes: [
-      dish("Shrimp Cocktail", "appetizer"),
-      dish("Brie & Cranberry Bites", "appetizer"),
-      dish("Prime Rib", "main"),
-      dish("Roast Chicken", "main"),
-      dish("Scalloped Potatoes", "side"),
-      dish("Roasted Brussels Sprouts", "side"),
-      dish("Glazed Carrots", "side"),
-      dish("Dinner Rolls", "side"),
-      dish("Yule Log Cake", "dessert"),
-      dish("Gingerbread Cookies", "dessert"),
-      dish("Eggnog", "drink"),
-      dish("Mulled Wine", "drink"),
+      dish("Shrimp Cocktail", "appetizer", ["gluten-free", "dairy-free"]),
+      dish("Brie & Cranberry Bites", "appetizer", ["vegetarian"]),
+      dish("Prime Rib", "main", ["gluten-free", "dairy-free"]),
+      dish("Roast Chicken", "main", ["gluten-free", "dairy-free"]),
+      dish("Scalloped Potatoes", "side", ["vegetarian", "gluten-free"]),
+      dish("Roasted Brussels Sprouts", "side", ["vegan", "gluten-free"]),
+      dish("Glazed Carrots", "side", ["vegan", "gluten-free"]),
+      dish("Dinner Rolls", "side", ["vegetarian"]),
+      dish("Yule Log Cake", "dessert", ["vegetarian"]),
+      dish("Gingerbread Cookies", "dessert", ["vegetarian"]),
+      dish("Eggnog", "drink", ["vegetarian", "gluten-free"]),
+      dish("Mulled Wine", "drink", ["vegan", "gluten-free"]),
     ],
   },
   {
@@ -200,18 +190,56 @@ export const presets: PotluckPreset[] = [
     emoji: "🏈",
     date: "February 7, 2027",
     dishes: [
-      dish("Buffalo Wings", "appetizer"),
+      dish("Buffalo Wings", "appetizer", ["gluten-free", "dairy-free"]),
       dish("Nachos Supreme", "appetizer"),
-      dish("Seven-Layer Dip", "appetizer"),
+      dish("Seven-Layer Dip", "appetizer", ["vegetarian", "gluten-free"]),
       dish("Pulled Pork Sliders", "main"),
-      dish("Chili", "main"),
+      dish("Chili", "main", ["gluten-free", "dairy-free"]),
       dish("Pizza Rolls", "main"),
-      dish("Loaded Potato Skins", "side"),
+      dish("Loaded Potato Skins", "side", ["gluten-free"]),
       dish("Jalapeño Poppers", "side"),
-      dish("Brownies", "dessert"),
-      dish("Cookies", "dessert"),
-      dish("Beer", "drink"),
-      dish("Soda", "drink"),
+      dish("Brownies", "dessert", ["vegetarian"]),
+      dish("Cookies", "dessert", ["vegetarian"]),
+      dish("Beer", "drink", ["vegan"]),
+      dish("Soda", "drink", ["vegan", "gluten-free"]),
+    ],
+  },
+  {
+    id: "plant-based",
+    name: "Plant-Based Feast",
+    emoji: "🌱",
+    dishes: [
+      dish("Stuffed Grape Leaves", "appetizer", ["vegan", "gluten-free"]),
+      dish("White Bean & Roasted Garlic Dip", "appetizer", ["vegan", "gluten-free", "nut-free"]),
+      dish("Mushroom Bolognese", "main", ["vegan", "dairy-free"]),
+      dish("Coconut Chickpea Curry", "main", ["vegan", "gluten-free", "nut-free"]),
+      dish("Black Bean Tacos", "main", ["vegan", "gluten-free", "nut-free"]),
+      dish("Rainbow Grain Bowl", "side", ["vegan", "nut-free"]),
+      dish("Charred Broccolini", "side", ["vegan", "gluten-free", "nut-free"]),
+      dish("Roasted Beet Salad", "side", ["vegan", "gluten-free"]),
+      dish("Mango Coconut Panna Cotta", "dessert", ["vegan", "gluten-free"]),
+      dish("Dark Chocolate Avocado Mousse", "dessert", ["vegan", "gluten-free", "dairy-free"]),
+      dish("Hibiscus Agua Fresca", "drink", ["vegan", "gluten-free", "nut-free"]),
+      dish("Oat Milk Chai", "drink", ["vegan", "dairy-free", "nut-free"]),
+    ],
+  },
+  {
+    id: "pizza-night",
+    name: "Pizza Night",
+    emoji: "🍕",
+    dishes: [
+      dish("Bruschetta", "appetizer", ["vegan"]),
+      dish("Caprese Salad", "appetizer", ["vegetarian", "gluten-free"]),
+      dish("Garlic Knots", "appetizer", ["vegetarian"]),
+      dish("Margherita Pizza", "main", ["vegetarian"]),
+      dish("Pepperoni Pizza", "main"),
+      dish("BBQ Chicken Pizza", "main"),
+      dish("Caesar Salad", "side", ["vegetarian"]),
+      dish("Antipasto Platter", "side", ["gluten-free"]),
+      dish("Cannoli", "dessert", ["vegetarian"]),
+      dish("Gelato", "dessert", ["vegetarian", "gluten-free"]),
+      dish("Italian Soda", "drink", ["vegan", "gluten-free"]),
+      dish("Wine", "drink", ["vegan", "gluten-free"]),
     ],
   },
 ];
@@ -223,6 +251,7 @@ export function presetToFoods(preset: PotluckPreset): Food[] {
     title: d.title,
     type: d.type,
     claimedBy: null,
+    ...(d.attributes?.length ? { attributes: d.attributes } : {}),
   }));
 }
 
@@ -237,7 +266,7 @@ export function getUpcomingPresets(now: Date = new Date()): PotluckPreset[] {
 
   const scored = presets.map((p) => {
     if (!p.date) {
-      // Undated presets (Friendsgiving) get a neutral score — always eligible
+      // Undated presets get a neutral score — always eligible
       return { preset: p, daysUntil: LOOKAHEAD_DAYS / 2 };
     }
     const eventDate = new Date(p.date);
