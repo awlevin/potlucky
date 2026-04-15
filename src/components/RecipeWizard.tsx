@@ -237,7 +237,10 @@ export function RecipeWizard({
         }),
       });
 
-      if (!res.ok) throw new Error("API request failed");
+      if (!res.ok) {
+        const errBody = await res.text();
+        throw new Error(`API ${res.status}: ${errBody}`);
+      }
 
       const data = await res.json();
       setRecipes(data.recipes ?? []);
@@ -254,8 +257,10 @@ export function RecipeWizard({
         dishIds,
         generatedAt: new Date().toISOString(),
       });
-    } catch {
-      setError("Something went wrong generating recipes. Please try again.");
+    } catch (err) {
+      console.error("Recipe generation failed:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Something went wrong: ${msg}`);
       setStep("picking");
     }
   }, [myDishes, dishOptions, selections, servings, defaultServings, roomId, dishIds]);

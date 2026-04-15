@@ -33,8 +33,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (err) {
     console.error("Recipe API error:", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "Failed to generate recipes. Please try again." },
+      { error: `Recipe generation failed: ${message}` },
       { status: 500 }
     );
   }
