@@ -8,11 +8,12 @@ import { toaster } from "@/components/ui/toaster";
 interface ShoppingListProps {
   items: ShoppingItem[];
   roomId: string;
+  isLoading?: boolean;
 }
 
 type AisleGroup = { aisle: string; items: ShoppingItem[] };
 
-export function ShoppingList({ items, roomId }: ShoppingListProps) {
+export function ShoppingList({ items, roomId, isLoading = false }: ShoppingListProps) {
   const [copied, setCopied] = useState(false);
 
   // Load checked state from localStorage
@@ -118,6 +119,9 @@ export function ShoppingList({ items, roomId }: ShoppingListProps) {
       <div className="shopping-list-header">
         <h4 className="shopping-list-title">
           <span>🛒</span> Shopping List
+          {isLoading && (
+            <span className="shopping-list-loading">assembling…</span>
+          )}
         </h4>
         {checkedCount > 0 && (
           <span className="shopping-list-progress">

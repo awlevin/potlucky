@@ -8,10 +8,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    if (body.action === "generate-options") {
-      return await generateOptions(body);
-    } else if (body.action === "generate-recipes") {
-      return await generateRecipesStreaming(body);
+    if (body.action === "generate-options-dish") {
+      return await generateOptionsForDish(body);
+    } else if (body.action === "generate-recipe-dish") {
+      return await generateRecipeForDishStreaming(body);
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
@@ -38,13 +38,8 @@ interface UserInput {
   dietaryNote?: string;
 }
 
-async function generateOptions(body: {
-  dishes: DishInput[];
-  users: UserInput[];
-}) {
-  const { dishes, users } = body;
-
-  const dietaryContext = users
+function formatDietaryContext(users: UserInput[]): string {
+  const lines = users
     .filter((u) => u.dietaryRestrictions?.length || u.dietaryNote)
     .map((u) => {
       const parts: string[] = [];
@@ -52,34 +47,38 @@ async function generateOptions(body: {
         parts.push(u.dietaryRestrictions.join(", "));
       if (u.dietaryNote) parts.push(u.dietaryNote);
       return `${u.name}: ${parts.join(" — ")}`;
-    })
-    .join("\n");
+    });
+  return lines.length ? lines.join("\n") : "No specific dietary restrictions.";
+}
 
-  const dishList = dishes
-    .map(
-      (d) =>
-        `- "${d.title}" (category: ${d.type || "unspecified"}, serves ${d.servings}${d.attributes?.length ? `, dietary: ${d.attributes.join(", ")}` : ""})`
-    )
-    .join("\n");
+async function generateOptionsForDish(body: {
+  dish: DishInput;
+  users: UserInput[];
+}) {
+  const { dish, users } = body;
+
+  const dietaryContext = formatDietaryContext(users);
+
+  const dishLine = `"${dish.title}" (category: ${dish.type || "unspecified"}, serves ${dish.servings}${dish.attributes?.length ? `, dietary: ${dish.attributes.join(", ")}` : ""})`;
 
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 2048,
+    max_tokens: 1024,
     messages: [
       {
         role: "user",
-        content: `You are a friendly potluck cooking assistant. Generate 3 recipe variations for each dish below.
+        content: `You are a friendly potluck cooking assistant. Generate 3 recipe variations for the following dish.
 
-For each dish provide exactly 3 options:
+Provide exactly 3 options in order:
 1. "Quick & Easy" — minimal prep, budget-friendly
 2. "Balanced" — moderate effort, reliable crowd-pleaser
 3. "Impressive" — more effort, standout quality
 
-Dishes:
-${dishList}
+Dish:
+- ${dishLine}
 
 Group dietary info:
-${dietaryContext || "No specific dietary restrictions."}
+${dietaryContext}
 
 IMPORTANT:
 - Each recipe MUST respect the dish's dietary attributes (e.g. if marked vegetarian, all 3 options must be vegetarian)
@@ -88,15 +87,10 @@ IMPORTANT:
 
 Return valid JSON matching this schema:
 {
-  "dishes": [
-    {
-      "originalTitle": "exact title from above",
-      "options": [
-        { "name": "Specific Recipe Name", "prepTime": "20 min", "cost": 12.50, "description": "One appetizing sentence." },
-        { "name": "Another Recipe", "prepTime": "35 min", "cost": 18.00, "description": "One appetizing sentence." },
-        { "name": "Fancy Recipe", "prepTime": "50 min", "cost": 28.00, "description": "One appetizing sentence." }
-      ]
-    }
+  "options": [
+    { "name": "Specific Recipe Name", "prepTime": "20 min", "cost": 12.50, "description": "One appetizing sentence." },
+    { "name": "Another Recipe", "prepTime": "35 min", "cost": 18.00, "description": "One appetizing sentence." },
+    { "name": "Fancy Recipe", "prepTime": "50 min", "cost": 28.00, "description": "One appetizing sentence." }
   ]
 }`,
       },
@@ -107,66 +101,61 @@ Return valid JSON matching this schema:
 
   const text =
     message.content[0].type === "text" ? message.content[0].text : "";
-  // Prepend the "{" we prefilled since the model continues from there
   const json = JSON.parse("{" + text);
 
   return NextResponse.json(json);
 }
 
 /**
- * Stream recipe generation to avoid Vercel's 10s function timeout.
- * Tokens are forwarded as they arrive, keeping the connection alive.
- * Client accumulates the full text and parses JSON when the stream ends.
+ * Stream a single dish's recipe + per-dish shopping items (aisle-tagged).
+ * Streaming keeps the connection alive past Vercel's 10s default.
+ * Client aggregates shopping items across dishes.
  */
-async function generateRecipesStreaming(body: {
-  selections: { dishTitle: string; recipeName: string; servings: number }[];
+async function generateRecipeForDishStreaming(body: {
+  dishTitle: string;
+  recipeName: string;
+  servings: number;
+  dietaryAttributes?: string[];
+  users?: UserInput[];
 }) {
-  const { selections } = body;
+  const { dishTitle, recipeName, servings, dietaryAttributes, users } = body;
 
-  const selectionList = selections
-    .map(
-      (s) =>
-        `- "${s.recipeName}" for the dish "${s.dishTitle}" (serves ${s.servings})`
-    )
-    .join("\n");
+  const dietaryContext = users ? formatDietaryContext(users) : "";
+  const dishConstraints = dietaryAttributes?.length
+    ? `\nDietary constraints for this dish: ${dietaryAttributes.join(", ")}`
+    : "";
 
   const stream = client.messages.stream({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 16384,
+    max_tokens: 4096,
     messages: [
       {
         role: "user",
-        content: `You are a friendly potluck cooking assistant. Generate detailed recipes and a consolidated shopping list.
+        content: `You are a friendly potluck cooking assistant. Generate a detailed recipe and aisle-tagged shopping items for ONE dish.
 
-Selected recipes:
-${selectionList}
+Recipe: "${recipeName}" for the dish "${dishTitle}" (serves ${servings})${dishConstraints}
 
-For each recipe provide:
+${dietaryContext ? `Group dietary info:\n${dietaryContext}\n` : ""}
+Provide:
 - Full ingredient list with precise quantities (scaled to the serving count)
 - Clear, numbered step-by-step instructions (keep each step to 1-2 sentences)
 - One helpful tip
-
-Then consolidate ALL ingredients across all recipes into a single shopping list:
-- Group by grocery store aisle (e.g. "Produce", "Dairy & Eggs", "Meat & Seafood", "Pantry", "Bakery", "Frozen", "Spices & Seasonings", "Other")
-- Merge duplicate ingredients across recipes and combine their quantities
-- Use common grocery store section names
+- Shopping items mirroring the ingredient list, each tagged with a grocery aisle (e.g. "Produce", "Dairy & Eggs", "Meat & Seafood", "Pantry", "Bakery", "Frozen", "Spices & Seasonings", "Other")
 
 Return valid JSON matching this schema:
 {
-  "recipes": [
-    {
-      "dishTitle": "original dish title",
-      "recipeName": "recipe name",
-      "servings": 8,
-      "prepTime": "30 min",
-      "ingredients": [
-        { "item": "orzo pasta", "quantity": "1 lb" }
-      ],
-      "steps": ["Step 1 instruction...", "Step 2 instruction..."],
-      "tips": "A helpful cooking tip"
-    }
-  ],
-  "shoppingList": [
+  "recipe": {
+    "dishTitle": "${dishTitle}",
+    "recipeName": "${recipeName}",
+    "servings": ${servings},
+    "prepTime": "30 min",
+    "ingredients": [
+      { "item": "orzo pasta", "quantity": "1 lb" }
+    ],
+    "steps": ["Step 1 instruction...", "Step 2 instruction..."],
+    "tips": "A helpful cooking tip"
+  },
+  "shoppingItems": [
     { "item": "orzo pasta", "quantity": "1 lb", "aisle": "Pantry" }
   ]
 }`,
@@ -180,7 +169,6 @@ Return valid JSON matching this schema:
   const readable = new ReadableStream({
     async start(controller) {
       try {
-        // Send the prefilled "{" that the model continues from
         controller.enqueue(encoder.encode("{"));
         for await (const event of stream) {
           if (
@@ -192,7 +180,6 @@ Return valid JSON matching this schema:
         }
         controller.close();
       } catch (err) {
-        // Send error as text so client can detect it
         const msg = err instanceof Error ? err.message : String(err);
         controller.enqueue(encoder.encode(`\n__ERROR__:${msg}`));
         controller.close();
