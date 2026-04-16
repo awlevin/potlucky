@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Food,
@@ -10,16 +10,12 @@ import {
   ShoppingItem,
   RecipeCache,
 } from "@/types";
-import { RecipeOptionPicker } from "./RecipeOptionPicker";
-import { RecipeDetail } from "./RecipeDetail";
+import { DishRow } from "./DishRow";
 import { ShoppingList } from "./ShoppingList";
+import { aggregateShoppingItems } from "@/lib/shoppingList";
+import { readStreamToString, parseJsonLoose } from "@/lib/streamJson";
 
-type WizardStep =
-  | "idle"
-  | "loading-options"
-  | "picking"
-  | "loading-recipes"
-  | "done";
+type Phase = "idle" | "picking" | "cooking";
 
 interface RecipeWizardProps {
   myDishes: Food[];
@@ -28,34 +24,39 @@ interface RecipeWizardProps {
   roomId: string;
 }
 
-const loadingPhrases = [
-  "Flipping through our cookbook...",
-  "Prepping ingredients...",
-  "Simmering ideas...",
-  "Taste-testing options...",
-  "Plating suggestions...",
-];
-
 function getCacheKey(roomId: string) {
   return `potlucky-recipes-${roomId}`;
 }
 
-function loadCache(roomId: string, currentDishIds: string[]): RecipeCache | null {
+function loadCache(
+  roomId: string,
+  currentDishIds: string[]
+): RecipeCache | null {
   try {
     const raw = localStorage.getItem(getCacheKey(roomId));
     if (!raw) return null;
-    const cache: RecipeCache = JSON.parse(raw);
+    const cache = JSON.parse(raw) as Partial<RecipeCache>;
 
     // Invalidate if dishes changed
     const sorted = [...currentDishIds].sort().join(",");
-    const cachedSorted = [...cache.dishIds].sort().join(",");
+    const cachedSorted = [...(cache.dishIds ?? [])].sort().join(",");
     if (sorted !== cachedSorted) return null;
 
     // Invalidate after 24 hours
+    if (!cache.generatedAt) return null;
     const age = Date.now() - new Date(cache.generatedAt).getTime();
     if (age > 24 * 60 * 60 * 1000) return null;
 
-    return cache;
+    // Migrate older caches that don't have recipesByDish — drop recipes, keep options
+    return {
+      options: cache.options ?? {},
+      selections: cache.selections ?? {},
+      servings: cache.servings ?? {},
+      recipesByDish: cache.recipesByDish ?? {},
+      shoppingItemsByDish: cache.shoppingItemsByDish ?? {},
+      dishIds: cache.dishIds ?? [],
+      generatedAt: cache.generatedAt,
+    };
   } catch {
     return null;
   }
@@ -69,7 +70,10 @@ function saveCache(roomId: string, cache: RecipeCache) {
   }
 }
 
-function computeEligibility(dish: Food, users: User[]): { eligible: User[]; ineligible: User[] } {
+function computeEligibility(
+  dish: Food,
+  users: User[]
+): { eligible: User[]; ineligible: User[] } {
   const eligible: User[] = [];
   const ineligible: User[] = [];
   for (const u of users) {
@@ -90,36 +94,52 @@ export function RecipeWizard({
   currUser,
   roomId,
 }: RecipeWizardProps) {
-  const dishIds = useMemo(
-    () => myDishes.map((d) => d.id),
-    [myDishes]
+  const dishIds = useMemo(() => myDishes.map((d) => d.id), [myDishes]);
+
+  const cached = useMemo(
+    () => loadCache(roomId, dishIds),
+    [roomId, dishIds]
   );
 
-  // Try to restore from cache
-  const cached = useMemo(() => loadCache(roomId, dishIds), [roomId, dishIds]);
-
-  const [step, setStep] = useState<WizardStep>(() => {
-    if (cached?.recipes?.length) return "done";
-    if (cached?.options && Object.keys(cached.options).length) return "picking";
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (!cached) return "idle";
+    const allRecipesCached = dishIds.every((id) => cached.recipesByDish[id]);
+    if (allRecipesCached && dishIds.length > 0) return "cooking";
+    if (Object.keys(cached.options).length) return "picking";
     return "idle";
   });
 
   const [dishOptions, setDishOptions] = useState<Record<string, RecipeOption[]>>(
     () => cached?.options ?? {}
   );
+  const [dishOptionsError, setDishOptionsError] = useState<Record<string, string>>({});
   const [selections, setSelections] = useState<Record<string, number>>(
     () => cached?.selections ?? {}
   );
-  const [recipes, setRecipes] = useState<RecipeResult[]>(
-    () => cached?.recipes ?? []
+  const [dishRecipes, setDishRecipes] = useState<Record<string, RecipeResult>>(
+    () => cached?.recipesByDish ?? {}
   );
-  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(
-    () => cached?.shoppingList ?? []
+  const [dishShoppingItems, setDishShoppingItems] = useState<Record<string, ShoppingItem[]>>(
+    () => cached?.shoppingItemsByDish ?? {}
   );
-  const [error, setError] = useState<string | null>(null);
-  const [loadingPhrase, setLoadingPhrase] = useState(loadingPhrases[0]);
+  const [dishRecipeError, setDishRecipeError] = useState<Record<string, string>>({});
 
-  // Derive servings from eligible users — no manual override needed
+  // Track current ref of state for async callbacks that persist cache
+  const stateRef = useRef({
+    dishOptions,
+    selections,
+    dishRecipes,
+    dishShoppingItems,
+  });
+  useEffect(() => {
+    stateRef.current = {
+      dishOptions,
+      selections,
+      dishRecipes,
+      dishShoppingItems,
+    };
+  }, [dishOptions, selections, dishRecipes, dishShoppingItems]);
+
   const eligibilityMap = useMemo(() => {
     const map: Record<string, { eligible: User[]; ineligible: User[] }> = {};
     for (const dish of myDishes) {
@@ -136,167 +156,167 @@ export function RecipeWizard({
     return map;
   }, [myDishes, eligibilityMap]);
 
-  // Rotate loading phrases
-  useEffect(() => {
-    if (step !== "loading-options" && step !== "loading-recipes") return;
-    const interval = setInterval(() => {
-      setLoadingPhrase((prev) => {
-        const idx = loadingPhrases.indexOf(prev);
-        return loadingPhrases[(idx + 1) % loadingPhrases.length];
-      });
-    }, 2200);
-    return () => clearInterval(interval);
-  }, [step]);
+  const shoppingList = useMemo(
+    () => aggregateShoppingItems(dishShoppingItems, dishIds),
+    [dishShoppingItems, dishIds]
+  );
 
   const allSelected = myDishes.every((d) => d.id in selections);
+  const anyOptionsLoading = phase === "picking" && myDishes.some(
+    (d) => !dishOptions[d.id] && !dishOptionsError[d.id]
+  );
+  const anyRecipeLoading = phase === "cooking" && myDishes.some(
+    (d) => !dishRecipes[d.id] && !dishRecipeError[d.id]
+  );
+  const allRecipesReady = phase === "cooking" && myDishes.every((d) => dishRecipes[d.id]);
 
-  const handleGenerateOptions = useCallback(async () => {
-    setStep("loading-options");
-    setError(null);
-    setLoadingPhrase(loadingPhrases[0]);
+  const persist = useCallback(() => {
+    const { dishOptions: o, selections: s, dishRecipes: r, dishShoppingItems: si } = stateRef.current;
+    saveCache(roomId, {
+      options: o,
+      selections: s,
+      servings,
+      recipesByDish: r,
+      shoppingItemsByDish: si,
+      dishIds,
+      generatedAt: new Date().toISOString(),
+    });
+  }, [roomId, servings, dishIds]);
 
-    try {
-      const res = await fetch("/api/recipes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "generate-options",
-          dishes: myDishes.map((d) => ({
-            title: d.title,
-            type: d.type,
-            servings: servings[d.id],
-            attributes: d.attributes,
-          })),
-          users: users.map((u) => ({
-            name: u.name,
-            dietaryRestrictions: u.dietaryRestrictions,
-            dietaryNote: u.dietaryNote,
-          })),
-        }),
+  const fetchOptionsForDish = useCallback(
+    async (dish: Food) => {
+      setDishOptionsError((prev) => {
+        if (!prev[dish.id]) return prev;
+        const next = { ...prev };
+        delete next[dish.id];
+        return next;
       });
-
-      if (!res.ok) throw new Error("API request failed");
-
-      const data = await res.json();
-      const optionsMap: Record<string, RecipeOption[]> = {};
-
-      // Match returned dishes to our dish IDs by title
-      for (const dish of myDishes) {
-        const match = data.dishes?.find(
-          (d: { originalTitle: string }) =>
-            d.originalTitle.toLowerCase() === dish.title.toLowerCase()
-        );
-        if (match) {
-          optionsMap[dish.id] = match.options;
-        }
-      }
-
-      setDishOptions(optionsMap);
-      setSelections({});
-      setStep("picking");
-
-      // Cache the options
-      saveCache(roomId, {
-        options: optionsMap,
-        selections: {},
-        servings,
-        recipes: [],
-        shoppingList: [],
-        dishIds,
-        generatedAt: new Date().toISOString(),
-      });
-    } catch {
-      setError("Something went wrong generating recipe options. Please try again.");
-      setStep("idle");
-    }
-  }, [myDishes, users, servings, roomId, dishIds]);
-
-  const handleGenerateRecipes = useCallback(async () => {
-    setStep("loading-recipes");
-    setError(null);
-    setLoadingPhrase(loadingPhrases[2]);
-
-    try {
-      const selectionsList = myDishes.map((dish) => {
-        const option = dishOptions[dish.id]?.[selections[dish.id]];
-        return {
-          dishTitle: dish.title,
-          recipeName: option?.name ?? dish.title,
-          servings: servings[dish.id],
-        };
-      });
-
-      const res = await fetch("/api/recipes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "generate-recipes",
-          selections: selectionsList,
-        }),
-      });
-
-      if (!res.ok) {
-        const errBody = await res.text();
-        throw new Error(`API ${res.status}: ${errBody}`);
-      }
-
-      // Read streamed response (avoids Vercel function timeout)
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let fullText = "";
-
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        fullText += decoder.decode(value, { stream: true });
-      }
-
-      // Check for streamed error marker
-      if (fullText.includes("__ERROR__:")) {
-        const errMsg = fullText.split("__ERROR__:").pop() ?? "Unknown error";
-        throw new Error(errMsg);
-      }
-
-      // Parse JSON from accumulated text
-      let data: { recipes?: RecipeResult[]; shoppingList?: ShoppingItem[] };
       try {
-        data = JSON.parse(fullText.trim());
-      } catch {
-        const start = fullText.indexOf("{");
-        const end = fullText.lastIndexOf("}");
-        if (start === -1 || end <= start) throw new Error("Invalid response from recipe API");
-        data = JSON.parse(fullText.slice(start, end + 1));
+        const res = await fetch("/api/recipes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "generate-options-dish",
+            dish: {
+              title: dish.title,
+              type: dish.type,
+              servings: servings[dish.id],
+              attributes: dish.attributes,
+            },
+            users: users.map((u) => ({
+              name: u.name,
+              dietaryRestrictions: u.dietaryRestrictions,
+              dietaryNote: u.dietaryNote,
+            })),
+          }),
+        });
+        if (!res.ok) throw new Error(`API ${res.status}`);
+        const data = (await res.json()) as { options?: RecipeOption[] };
+        const options = data.options;
+        if (!options?.length) throw new Error("No options returned");
+        setDishOptions((prev) => ({ ...prev, [dish.id]: options }));
+        // Persist on next tick so state ref is up-to-date
+        setTimeout(persist, 0);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setDishOptionsError((prev) => ({ ...prev, [dish.id]: msg }));
       }
+    },
+    [servings, users, persist]
+  );
 
-      setRecipes(data.recipes ?? []);
-      setShoppingList(data.shoppingList ?? []);
-      setStep("done");
-
-      // Cache everything
-      saveCache(roomId, {
-        options: dishOptions,
-        selections,
-        servings,
-        recipes: data.recipes ?? [],
-        shoppingList: data.shoppingList ?? [],
-        dishIds,
-        generatedAt: new Date().toISOString(),
+  const fetchRecipeForDish = useCallback(
+    async (dish: Food, recipeName: string) => {
+      setDishRecipeError((prev) => {
+        if (!prev[dish.id]) return prev;
+        const next = { ...prev };
+        delete next[dish.id];
+        return next;
       });
-    } catch (err) {
-      console.error("Recipe generation failed:", err);
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(`Something went wrong: ${msg}`);
-      setStep("picking");
+      try {
+        const res = await fetch("/api/recipes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "generate-recipe-dish",
+            dishTitle: dish.title,
+            recipeName,
+            servings: servings[dish.id],
+            dietaryAttributes: dish.attributes,
+            users: users.map((u) => ({
+              name: u.name,
+              dietaryRestrictions: u.dietaryRestrictions,
+              dietaryNote: u.dietaryNote,
+            })),
+          }),
+        });
+        if (!res.ok) {
+          const body = await res.text();
+          throw new Error(`API ${res.status}: ${body}`);
+        }
+        const fullText = await readStreamToString(res);
+        const data = parseJsonLoose<{
+          recipe?: RecipeResult;
+          shoppingItems?: ShoppingItem[];
+        }>(fullText);
+        if (!data.recipe) throw new Error("Missing recipe in response");
+        setDishRecipes((prev) => ({ ...prev, [dish.id]: data.recipe! }));
+        setDishShoppingItems((prev) => ({
+          ...prev,
+          [dish.id]: data.shoppingItems ?? [],
+        }));
+        setTimeout(persist, 0);
+      } catch (err) {
+        console.error("Recipe generation failed for", dish.title, err);
+        const msg = err instanceof Error ? err.message : String(err);
+        setDishRecipeError((prev) => ({ ...prev, [dish.id]: msg }));
+      }
+    },
+    [servings, users, persist]
+  );
+
+  const handleStart = useCallback(() => {
+    setPhase("picking");
+    setDishOptionsError({});
+    setSelections({});
+    setDishOptions({});
+    for (const dish of myDishes) {
+      void fetchOptionsForDish(dish);
     }
-  }, [myDishes, dishOptions, selections, servings, roomId, dishIds]);
+  }, [myDishes, fetchOptionsForDish]);
+
+  const handleCook = useCallback(() => {
+    setPhase("cooking");
+    setDishRecipeError({});
+    setDishRecipes({});
+    setDishShoppingItems({});
+    for (const dish of myDishes) {
+      const idx = selections[dish.id];
+      const option = dishOptions[dish.id]?.[idx];
+      const recipeName = option?.name ?? dish.title;
+      void fetchRecipeForDish(dish, recipeName);
+    }
+  }, [myDishes, selections, dishOptions, fetchRecipeForDish]);
+
+  const handleSelect = useCallback(
+    (dishId: string, idx: number) => {
+      setSelections((prev) => {
+        const next = { ...prev, [dishId]: idx };
+        return next;
+      });
+      setTimeout(persist, 0);
+    },
+    [persist]
+  );
 
   const handleReset = useCallback(() => {
-    setStep("idle");
+    setPhase("idle");
     setDishOptions({});
+    setDishOptionsError({});
     setSelections({});
-    setRecipes([]);
-    setShoppingList([]);
-    setError(null);
+    setDishRecipes({});
+    setDishShoppingItems({});
+    setDishRecipeError({});
     localStorage.removeItem(getCacheKey(roomId));
   }, [roomId]);
 
@@ -304,20 +324,16 @@ export function RecipeWizard({
 
   return (
     <div className="recipe-wizard">
-      <AnimatePresence mode="wait">
-        {/* ── Idle: Entry Banner ── */}
-        {step === "idle" && (
+      <AnimatePresence mode="wait" initial={false}>
+        {phase === "idle" ? (
           <motion.div
             key="banner"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.35 }}
+            transition={{ duration: 0.3 }}
           >
-            <button
-              className="recipe-banner"
-              onClick={handleGenerateOptions}
-            >
+            <button className="recipe-banner" onClick={handleStart}>
               <div className="recipe-banner-visual">
                 <span className="recipe-banner-emoji">👩‍🍳</span>
               </div>
@@ -325,166 +341,89 @@ export function RecipeWizard({
                 <span className="recipe-banner-title">Ready to cook?</span>
                 <span className="recipe-banner-subtitle">
                   Get recipes & a shopping list for your{" "}
-                  {myDishes.length === 1
-                    ? "dish"
-                    : `${myDishes.length} dishes`}
+                  {myDishes.length === 1 ? "dish" : `${myDishes.length} dishes`}
                 </span>
               </div>
               <span className="recipe-banner-arrow">→</span>
             </button>
-            {error && (
-              <p className="recipe-error">{error}</p>
-            )}
           </motion.div>
-        )}
-
-        {/* ── Loading Options ── */}
-        {step === "loading-options" && (
+        ) : (
           <motion.div
-            key="loading-options"
-            className="recipe-loading"
+            key="wizard"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-          >
-            <div className="recipe-loading-icon">
-              <span className="recipe-loading-spoon">🥄</span>
-            </div>
-            <motion.p
-              key={loadingPhrase}
-              className="recipe-loading-text"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-            >
-              {loadingPhrase}
-            </motion.p>
-          </motion.div>
-        )}
-
-        {/* ── Picking: Recipe Options ── */}
-        {step === "picking" && (
-          <motion.div
-            key="picking"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.25 }}
           >
             <div className="recipe-picker-header">
               <h3 className="section-label">
                 <span style={{ fontSize: "1.125rem" }}>📖</span>
-                Pick a recipe for each dish
+                {phase === "picking" ? "Pick a recipe for each dish" : "Your recipes"}
+                {phase === "picking" && anyOptionsLoading && (
+                  <span className="recipe-header-status">generating options…</span>
+                )}
+                {phase === "cooking" && anyRecipeLoading && (
+                  <span className="recipe-header-status">cooking up details…</span>
+                )}
               </h3>
-              <button
-                className="btn-ghost recipe-reset-link"
-                onClick={handleReset}
-              >
+              <button className="btn-ghost recipe-reset-link" onClick={handleReset}>
                 Start over
               </button>
             </div>
 
-            {myDishes.map((dish, i) => (
-              <RecipeOptionPicker
-                key={dish.id}
-                dishTitle={dish.title}
-                dishIndex={i}
-                options={dishOptions[dish.id] ?? []}
-                selectedIdx={selections[dish.id] ?? null}
-                eligibleUsers={eligibilityMap[dish.id]?.eligible ?? []}
-                ineligibleUsers={eligibilityMap[dish.id]?.ineligible ?? []}
-                onSelect={(idx) => {
-                  const next = { ...selections, [dish.id]: idx };
-                  setSelections(next);
-                  // Update cache with selection
-                  saveCache(roomId, {
-                    options: dishOptions,
-                    selections: next,
-                    servings,
-                    recipes: [],
-                    shoppingList: [],
-                    dishIds,
-                    generatedAt: new Date().toISOString(),
-                  });
-                }}
-              />
-            ))}
+            <div className="recipe-dish-list">
+              {myDishes.map((dish, i) => (
+                <DishRow
+                  key={dish.id}
+                  dishTitle={dish.title}
+                  dishIndex={i}
+                  eligibleUsers={eligibilityMap[dish.id]?.eligible ?? []}
+                  ineligibleUsers={eligibilityMap[dish.id]?.ineligible ?? []}
+                  phase={phase}
+                  options={dishOptions[dish.id]}
+                  optionsError={dishOptionsError[dish.id]}
+                  onRetryOptions={() => fetchOptionsForDish(dish)}
+                  selectedIdx={selections[dish.id] ?? null}
+                  onSelect={(idx) => handleSelect(dish.id, idx)}
+                  recipe={dishRecipes[dish.id]}
+                  recipeError={dishRecipeError[dish.id]}
+                  onRetryRecipe={() => {
+                    const idx = selections[dish.id];
+                    const option = dishOptions[dish.id]?.[idx];
+                    fetchRecipeForDish(dish, option?.name ?? dish.title);
+                  }}
+                />
+              ))}
+            </div>
 
-            <AnimatePresence>
-              {allSelected && (
-                <motion.div
-                  className="recipe-generate-cta"
-                  initial={{ opacity: 0, y: 16, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: "auto" }}
-                  exit={{ opacity: 0, y: 16, height: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                >
-                  <button
-                    className="btn btn-lg recipe-generate-btn"
-                    onClick={handleGenerateRecipes}
+            {phase === "picking" && (
+              <AnimatePresence>
+                {allSelected && !anyOptionsLoading && (
+                  <motion.div
+                    key="cta"
+                    className="recipe-generate-cta"
+                    initial={{ opacity: 0, y: 16, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: 16, height: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   >
-                    Get my recipes & shopping list
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    <button
+                      className="btn btn-lg recipe-generate-btn"
+                      onClick={handleCook}
+                    >
+                      Get my recipes & shopping list
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            )}
 
-            {error && <p className="recipe-error">{error}</p>}
-          </motion.div>
-        )}
-
-        {/* ── Loading Recipes ── */}
-        {step === "loading-recipes" && (
-          <motion.div
-            key="loading-recipes"
-            className="recipe-loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="recipe-loading-icon">
-              <span className="recipe-loading-spoon">📝</span>
-            </div>
-            <motion.p
-              key={loadingPhrase}
-              className="recipe-loading-text"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-            >
-              {loadingPhrase}
-            </motion.p>
-          </motion.div>
-        )}
-
-        {/* ── Done: Recipes + Shopping List ── */}
-        {step === "done" && (
-          <motion.div
-            key="done"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="recipe-picker-header">
-              <h3 className="section-label">
-                <span style={{ fontSize: "1.125rem" }}>📖</span>
-                Your recipes
-              </h3>
-              <button
-                className="btn-ghost recipe-reset-link"
-                onClick={handleReset}
-              >
-                Start over
-              </button>
-            </div>
-
-            {recipes.map((recipe, i) => (
-              <RecipeDetail key={i} recipe={recipe} index={i} />
-            ))}
-
-            {shoppingList.length > 0 && (
-              <ShoppingList items={shoppingList} roomId={roomId} />
+            {phase === "cooking" && (shoppingList.length > 0 || allRecipesReady) && (
+              <ShoppingList
+                items={shoppingList}
+                roomId={roomId}
+                isLoading={anyRecipeLoading}
+              />
             )}
           </motion.div>
         )}

@@ -63,8 +63,8 @@ export type RecipeCache = {
   options: Record<string, RecipeOption[]>; // dishId -> 3 options
   selections: Record<string, number>; // dishId -> selected option index
   servings: Record<string, number>; // dishId -> user-adjusted servings
-  recipes: RecipeResult[];
-  shoppingList: ShoppingItem[];
+  recipesByDish: Record<string, RecipeResult>; // dishId -> full recipe
+  shoppingItemsByDish: Record<string, ShoppingItem[]>; // dishId -> aisle-tagged items
   dishIds: string[]; // to invalidate when dishes change
   generatedAt: string;
 };
