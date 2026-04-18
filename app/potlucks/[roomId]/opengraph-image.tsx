@@ -14,10 +14,11 @@ async function loadGoogleFont(family: string, weight: number): Promise<ArrayBuff
         "User-Agent":
           "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
+      signal: AbortSignal.timeout(4000),
     }).then((r) => r.text());
     const match = css.match(/src:\s*url\((.+?)\)\s*format\(['"](?:woff2|truetype|opentype)['"]\)/);
     if (!match) return null;
-    return await fetch(match[1]).then((r) => r.arrayBuffer());
+    return await fetch(match[1], { signal: AbortSignal.timeout(4000) }).then((r) => r.arrayBuffer());
   } catch {
     return null;
   }
