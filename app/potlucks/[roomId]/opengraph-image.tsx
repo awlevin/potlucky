@@ -31,9 +31,50 @@ async function loadGoogleFont(family: string, weight: number): Promise<ArrayBuff
   }
 }
 
+function FallbackCard() {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#FFFCF5",
+        fontFamily: "Georgia, serif",
+      }}
+    >
+      <div style={{ display: "flex", fontSize: 100 }}>🍲</div>
+      <div
+        style={{
+          display: "flex",
+          marginTop: 20,
+          fontSize: 64,
+          color: "#292524",
+          fontWeight: 700,
+        }}
+      >
+        Potlucky
+      </div>
+      <div style={{ display: "flex", marginTop: 12, fontSize: 28, color: "#57534E" }}>
+        Tap to join the potluck
+      </div>
+    </div>
+  );
+}
+
 export default async function Image({ params }: { params: { roomId: string } }) {
+  try {
+    return await renderCard(params.roomId);
+  } catch {
+    return new ImageResponse(<FallbackCard />, { ...size });
+  }
+}
+
+async function renderCard(roomId: string) {
   const [room, frauncesSemi, frauncesBold] = await Promise.all([
-    fetchRoomRest(params.roomId),
+    fetchRoomRest(roomId),
     loadGoogleFont("Fraunces", 600),
     loadGoogleFont("Fraunces", 700),
   ]);
@@ -88,9 +129,10 @@ export default async function Image({ params }: { params: { roomId: string } }) 
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ fontSize: 34, marginRight: 12 }}>🍲</div>
+            <div style={{ display: "flex", fontSize: 34, marginRight: 12 }}>🍲</div>
             <div
               style={{
+                display: "flex",
                 fontSize: 22,
                 letterSpacing: 3,
                 color: "#E8A817",
