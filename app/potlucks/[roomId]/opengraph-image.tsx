@@ -53,7 +53,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
           display: "flex",
           flexDirection: "column",
           backgroundColor: "#FFFCF5",
-          padding: 56,
+          padding: "44px 56px",
           fontFamily: "Georgia, serif",
         }}
       >
@@ -131,7 +131,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
                     return (
                       <div
                         key={g.key}
-                        style={{ display: "flex", flexDirection: "column", marginBottom: 18 }}
+                        style={{ display: "flex", flexDirection: "column", marginBottom: 14 }}
                       >
                         <div style={{ display: "flex", alignItems: "center" }}>
                           <div style={{ display: "flex", fontSize: 26, marginRight: 10 }}>
