@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { fetchRoomRest } from "@/lib/firebase/rest";
 
 export const runtime = "edge";
 export const alt = "Potlucky menu";
@@ -12,57 +13,6 @@ const CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: "dessert", label: "Desserts", emoji: "🍰" },
   { key: "drink", label: "Drinks", emoji: "🥤" },
 ];
-
-type FirestoreVal = {
-  stringValue?: string;
-  integerValue?: string;
-  doubleValue?: number;
-  booleanValue?: boolean;
-  nullValue?: null;
-  arrayValue?: { values?: FirestoreVal[] };
-  mapValue?: { fields?: Record<string, FirestoreVal> };
-};
-
-function unwrap(v: FirestoreVal): unknown {
-  if (v == null) return v;
-  if ("stringValue" in v) return v.stringValue;
-  if ("integerValue" in v) return Number(v.integerValue);
-  if ("doubleValue" in v) return v.doubleValue;
-  if ("booleanValue" in v) return v.booleanValue;
-  if ("nullValue" in v) return null;
-  if ("arrayValue" in v) return (v.arrayValue?.values || []).map(unwrap);
-  if ("mapValue" in v) {
-    const out: Record<string, unknown> = {};
-    for (const [k, val] of Object.entries(v.mapValue?.fields || {})) out[k] = unwrap(val);
-    return out;
-  }
-  return null;
-}
-
-type Room = {
-  name?: string;
-  date?: string;
-  location?: string;
-  foods?: { title?: string; type?: string }[];
-  users?: { name?: string }[];
-};
-
-async function fetchRoom(roomId: string): Promise<Room | null> {
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  if (!projectId) return null;
-  try {
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/rooms/${encodeURIComponent(roomId)}`;
-    const res = await fetch(url, { next: { revalidate: 60 } });
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!data?.fields) return null;
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(data.fields)) out[k] = unwrap(v as FirestoreVal);
-    return out as Room;
-  } catch {
-    return null;
-  }
-}
 
 async function loadGoogleFont(family: string, weight: number): Promise<ArrayBuffer | null> {
   try {
@@ -83,16 +33,20 @@ async function loadGoogleFont(family: string, weight: number): Promise<ArrayBuff
 
 export default async function Image({ params }: { params: { roomId: string } }) {
   const [room, frauncesSemi, frauncesBold] = await Promise.all([
-    fetchRoom(params.roomId),
+    fetchRoomRest(params.roomId),
     loadGoogleFont("Fraunces", 600),
     loadGoogleFont("Fraunces", 700),
   ]);
 
-  const title = (room?.name?.trim() || "Potluck Menu").slice(0, 60);
+  const title = (room?.name?.trim() || "Potluck Menu").slice(0, 80);
   const date = room?.date?.trim();
   const location = room?.location?.trim();
   const foods = room?.foods || [];
   const users = room?.users || [];
+
+  // Scale title to width budget (~1088px after padding) assuming Fraunces bold
+  // avg char width ≈ 0.52 × fontSize. Clamp to a readable range.
+  const titleFontSize = Math.max(44, Math.min(88, Math.floor(2100 / Math.max(title.length, 8))));
 
   const grouped = CATEGORIES.map((c) => ({
     ...c,
@@ -157,12 +111,16 @@ export default async function Image({ params }: { params: { roomId: string } }) 
         <div style={{ marginTop: 28, display: "flex", flexDirection: "column" }}>
           <div
             style={{
-              fontSize: title.length > 30 ? 64 : 80,
+              fontSize: titleFontSize,
               lineHeight: 1.05,
               color: "#292524",
               fontWeight: 700,
               letterSpacing: -1,
-              display: "flex",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              maxWidth: 1088,
             }}
           >
             {title}
