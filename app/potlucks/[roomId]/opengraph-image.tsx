@@ -98,7 +98,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
           />
         </div>
 
-        <div style={{ display: "flex", flex: 1, marginTop: 36 }}>
+        <div style={{ display: "flex", flex: 1, marginTop: 28, overflow: "hidden" }}>
           {grouped.length === 0 ? (
             <div
               style={{
@@ -113,7 +113,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
               Menu in progress — come add a dish!
             </div>
           ) : (
-            <div style={{ display: "flex", flex: 1 }}>
+            <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
               {[left, right].map((col, ci) => (
                 <div
                   key={ci}
@@ -122,24 +122,25 @@ export default async function Image({ params }: { params: { roomId: string } }) 
                     flexDirection: "column",
                     flex: 1,
                     marginRight: ci === 0 ? 48 : 0,
+                    overflow: "hidden",
                   }}
                 >
                   {col.map((g) => {
-                    const preview = g.items.slice(0, 3);
+                    const preview = g.items.slice(0, 2);
                     const extra = g.items.length - preview.length;
                     return (
                       <div
                         key={g.key}
-                        style={{ display: "flex", flexDirection: "column", marginBottom: 26 }}
+                        style={{ display: "flex", flexDirection: "column", marginBottom: 18 }}
                       >
                         <div style={{ display: "flex", alignItems: "center" }}>
-                          <div style={{ display: "flex", fontSize: 28, marginRight: 10 }}>
+                          <div style={{ display: "flex", fontSize: 26, marginRight: 10 }}>
                             {g.emoji}
                           </div>
                           <div
                             style={{
                               display: "flex",
-                              fontSize: 24,
+                              fontSize: 22,
                               fontWeight: 600,
                               color: "#292524",
                               marginRight: 8,
@@ -147,17 +148,17 @@ export default async function Image({ params }: { params: { roomId: string } }) 
                           >
                             {g.label}
                           </div>
-                          <div style={{ display: "flex", fontSize: 20, color: "#A8A29E" }}>
+                          <div style={{ display: "flex", fontSize: 18, color: "#A8A29E" }}>
                             · {g.items.length}
                           </div>
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", marginTop: 6 }}>
+                        <div style={{ display: "flex", flexDirection: "column", marginTop: 4 }}>
                           {preview.map((f, i) => (
                             <div
                               key={i}
                               style={{
                                 display: "flex",
-                                fontSize: 24,
+                                fontSize: 22,
                                 color: "#292524",
                                 marginTop: 2,
                               }}
@@ -169,9 +170,9 @@ export default async function Image({ params }: { params: { roomId: string } }) 
                             <div
                               style={{
                                 display: "flex",
-                                fontSize: 20,
+                                fontSize: 18,
                                 color: "#A8A29E",
-                                marginTop: 4,
+                                marginTop: 2,
                               }}
                             >
                               + {extra} more
