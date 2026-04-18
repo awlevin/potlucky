@@ -6,6 +6,16 @@ export const alt = "Potlucky menu";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+async function loadFontTTF(url: string): Promise<ArrayBuffer | null> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    return await res.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
 const CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: "appetizer", label: "Appetizers", emoji: "🥗" },
   { key: "main", label: "Mains", emoji: "🍖" },
@@ -15,7 +25,12 @@ const CATEGORIES: { key: string; label: string; emoji: string }[] = [
 ];
 
 export default async function Image({ params }: { params: { roomId: string } }) {
-  const room = await fetchRoomRest(params.roomId).catch(() => null);
+  const [room, frauncesBold] = await Promise.all([
+    fetchRoomRest(params.roomId).catch(() => null),
+    loadFontTTF(
+      "https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.16/files/fraunces-latin-700-normal.woff"
+    ),
+  ]);
 
   const title = (room?.name?.trim() || "Potluck Menu").slice(0, 80);
   const date = room?.date?.trim();
@@ -54,7 +69,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
           flexDirection: "column",
           backgroundColor: "#FFFCF5",
           padding: "44px 56px",
-          fontFamily: "Georgia, serif",
+          fontFamily: frauncesBold ? "Fraunces, Georgia, serif" : "Georgia, serif",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -212,6 +227,11 @@ export default async function Image({ params }: { params: { roomId: string } }) 
         </div>
       </div>
     ),
-    { ...size }
+    {
+      ...size,
+      fonts: frauncesBold
+        ? [{ name: "Fraunces", data: frauncesBold, weight: 700, style: "normal" }]
+        : undefined,
+    }
   );
 }
