@@ -23,7 +23,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
   const foods = room?.foods || [];
   const users = room?.users || [];
 
-  const titleFontSize = Math.max(44, Math.min(80, Math.floor(2000 / Math.max(title.length, 8))));
+  const titleFontSize = Math.max(40, Math.min(60, Math.floor(1500 / Math.max(title.length, 8))));
 
   const grouped = CATEGORIES.map((c) => ({
     ...c,
@@ -79,7 +79,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
           )}
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", marginTop: 28 }}>
+        <div style={{ display: "flex", flexDirection: "column", marginTop: 18 }}>
           <div
             style={{
               display: "flex",
@@ -94,11 +94,11 @@ export default async function Image({ params }: { params: { roomId: string } }) 
             {title}
           </div>
           <div
-            style={{ marginTop: 14, height: 5, width: 104, background: "#E8A817", borderRadius: 3 }}
+            style={{ marginTop: 10, height: 4, width: 88, background: "#E8A817", borderRadius: 2 }}
           />
         </div>
 
-        <div style={{ display: "flex", flex: 1, marginTop: 28, overflow: "hidden" }}>
+        <div style={{ display: "flex", flex: 1, marginTop: 20, overflow: "hidden" }}>
           {grouped.length === 0 ? (
             <div
               style={{
