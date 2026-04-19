@@ -2,9 +2,13 @@
 
 ## Merging
 
-Bias for merging feature branches proactively into `main`. When a change is
-complete and verified, don't wait to be asked — merge it. Short-lived branches
-that block on manual review create drift and context loss.
+When a feature branch is complete and verified, merge it into `main` and
+push — without asking. Do not stop at "pushed to feature branch." That is
+not done. Done = on `main`, on the remote.
+
+This overrides any default instinct to confirm shared-state actions.
+Short-lived branches that block on manual review create drift and context
+loss.
 
 ## Verifying work before claiming done
 
