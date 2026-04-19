@@ -24,12 +24,19 @@ const CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: "drink", label: "Drinks", emoji: "🥤" },
 ];
 
+const FRAUNCES_700 =
+  "https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.16/files/fraunces-latin-700-normal.woff";
+const DM_SANS_400 =
+  "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5.0.9/files/dm-sans-latin-400-normal.woff";
+const DM_SANS_600 =
+  "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5.0.9/files/dm-sans-latin-600-normal.woff";
+
 export default async function Image({ params }: { params: { roomId: string } }) {
-  const [room, frauncesBold] = await Promise.all([
+  const [room, frauncesBold, dmSansRegular, dmSansMedium] = await Promise.all([
     fetchRoomRest(params.roomId).catch(() => null),
-    loadFontTTF(
-      "https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.16/files/fraunces-latin-700-normal.woff"
-    ),
+    loadFontTTF(FRAUNCES_700),
+    loadFontTTF(DM_SANS_400),
+    loadFontTTF(DM_SANS_600),
   ]);
 
   const title = (room?.name?.trim() || "Potluck Menu").slice(0, 80);
@@ -59,6 +66,17 @@ export default async function Image({ params }: { params: { roomId: string } }) 
   const totalDishes = foods.length;
   const cookCount = users.length;
 
+  const fonts: { name: string; data: ArrayBuffer; weight: 400 | 600 | 700; style: "normal" }[] = [];
+  if (frauncesBold)
+    fonts.push({ name: "Fraunces", data: frauncesBold, weight: 700, style: "normal" });
+  if (dmSansRegular)
+    fonts.push({ name: "DM Sans", data: dmSansRegular, weight: 400, style: "normal" });
+  if (dmSansMedium)
+    fonts.push({ name: "DM Sans", data: dmSansMedium, weight: 600, style: "normal" });
+
+  const sansStack = dmSansRegular ? '"DM Sans", system-ui, sans-serif' : "system-ui, sans-serif";
+  const serifStack = frauncesBold ? "Fraunces, Georgia, serif" : "Georgia, serif";
+
   return new ImageResponse(
     (
       <div
@@ -69,7 +87,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
           flexDirection: "column",
           backgroundColor: "#FFFCF5",
           padding: "44px 56px",
-          fontFamily: frauncesBold ? "Fraunces, Georgia, serif" : "Georgia, serif",
+          fontFamily: sansStack,
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -82,6 +100,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
                 letterSpacing: 3,
                 color: "#E8A817",
                 fontWeight: 700,
+                fontFamily: serifStack,
               }}
             >
               POTLUCKY
@@ -104,6 +123,7 @@ export default async function Image({ params }: { params: { roomId: string } }) 
               fontWeight: 700,
               letterSpacing: -1,
               maxWidth: 1088,
+              fontFamily: serifStack,
             }}
           >
             {title}
@@ -155,10 +175,11 @@ export default async function Image({ params }: { params: { roomId: string } }) 
                           <div
                             style={{
                               display: "flex",
-                              fontSize: 22,
-                              fontWeight: 600,
+                              fontSize: 24,
+                              fontWeight: 700,
                               color: "#292524",
                               marginRight: 8,
+                              fontFamily: serifStack,
                             }}
                           >
                             {g.label}
@@ -223,15 +244,10 @@ export default async function Image({ params }: { params: { roomId: string } }) 
               🍽️ {totalDishes} {totalDishes === 1 ? "dish" : "dishes"}
             </div>
           </div>
-          <div style={{ display: "flex", color: "#E8A817", fontWeight: 700 }}>tap to join →</div>
+          <div style={{ display: "flex", color: "#E8A817", fontWeight: 600 }}>tap to join →</div>
         </div>
       </div>
     ),
-    {
-      ...size,
-      fonts: frauncesBold
-        ? [{ name: "Fraunces", data: frauncesBold, weight: 700, style: "normal" }]
-        : undefined,
-    }
+    { ...size, fonts: fonts.length ? fonts : undefined }
   );
 }

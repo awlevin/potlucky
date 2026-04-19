@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Editable,
   EditableValueChangeDetails,
@@ -58,8 +58,25 @@ export function EventHeader({
   const [showGuestInput, setShowGuestInput] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [canShare, setCanShare] = useState(false);
   const guestInputRef = useRef<HTMLInputElement>(null);
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  useEffect(() => {
+    setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
+  }, []);
+
+  const handleNativeShare = async () => {
+    try {
+      await navigator.share({
+        title: data.name || "Potluck",
+        text: `Join ${data.name || "our potluck"} on Potlucky`,
+        url: shareUrl,
+      });
+    } catch {
+      // user cancelled — ignore
+    }
+  };
 
   const changeRoomName = (details: EditableValueChangeDetails) => {
     addData({ name: details.value });
@@ -356,6 +373,14 @@ export function EventHeader({
                 transition={{ delay: 0.15, duration: 0.25 }}
               >
                 <span className="share-url">{shareUrl}</span>
+                {canShare && (
+                  <button
+                    className="btn btn-sm share-copy-btn"
+                    onClick={handleNativeShare}
+                  >
+                    <LuShare2 /> Share
+                  </button>
+                )}
                 <button
                   className={`btn btn-sm share-copy-btn${copied ? " share-copied" : ""}`}
                   onClick={handleCopyLink}
