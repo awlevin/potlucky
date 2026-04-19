@@ -38,3 +38,9 @@ If a verification step is genuinely impossible in the current environment,
 call that out explicitly — don't paper over it. "Tests pass and types check,
 but I couldn't exercise the UI from this sandbox" is fine. "Done" when you
 didn't actually run the thing is not.
+
+Exception: trivial changes don't need the full verification ritual. Removing
+a single element, deleting dead code, a one-line copy tweak, renaming an
+unused variable — use judgement. If the change is small enough that reading
+the diff is enough to be confident, skip the dev-server dance. Save the
+heavy verification for changes that can actually break something.

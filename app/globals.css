@@ -1418,23 +1418,10 @@ body {
 .share-url-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   width: 100%;
   max-width: 360px;
-}
-.share-url {
-  flex: 1;
-  font-size: 11px;
-  color: var(--color-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  background: var(--color-muted);
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
-  border: 1px solid var(--color-border-subtle);
-  min-width: 0;
 }
 .share-copy-btn {
   flex-shrink: 0;

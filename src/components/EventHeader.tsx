@@ -438,7 +438,6 @@ export function EventHeader({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.25 }}
               >
-                <span className="share-url">{shareUrl}</span>
                 {canShare && (
                   <button
                     className="btn btn-sm share-copy-btn"
