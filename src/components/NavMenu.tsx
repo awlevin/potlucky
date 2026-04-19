@@ -259,6 +259,10 @@ function EmptyState({
             )}
           </div>
           <UpcomingChip upcoming={upcoming} upcomingDays={upcomingDays} />
+          <Link href="/ideas" className="nav-menu-see-more" role="menuitem">
+            See more ideas
+            <span aria-hidden="true">→</span>
+          </Link>
         </motion.div>
       )}
     </>
@@ -339,6 +343,10 @@ function PopulatedState({
             )}
           </div>
           <UpcomingChip upcoming={upcoming} upcomingDays={upcomingDays} />
+          <Link href="/ideas" className="nav-menu-see-more" role="menuitem">
+            See more ideas
+            <span aria-hidden="true">→</span>
+          </Link>
         </motion.div>
       )}
     </>
