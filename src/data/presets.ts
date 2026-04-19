@@ -7,12 +7,22 @@ export interface PresetDish {
   attributes?: DietaryRestriction[];
 }
 
+export interface PresetMarketing {
+  slug: string;
+  headline: string;
+  subheadline: string;
+  metaTitle: string;
+  metaDescription: string;
+  keywords: string[];
+}
+
 export interface PotluckPreset {
   id: string;
   name: string;
   emoji: string;
   date?: string;
   dishes: PresetDish[];
+  marketing?: PresetMarketing;
 }
 
 function dish(
@@ -29,6 +39,14 @@ export const presets: PotluckPreset[] = [
     name: "Cinco de Mayo Fiesta",
     emoji: "🇲🇽",
     date: "May 5, 2026",
+    marketing: {
+      slug: "cinco-de-mayo-potluck",
+      headline: "Cinco de Mayo Potluck Planner",
+      subheadline: "Plan a festive Cinco de Mayo potluck in seconds. Share a curated menu of tacos, guac, margaritas and more — then let friends claim dishes with one tap.",
+      metaTitle: "Cinco de Mayo Potluck Planner — Free Sign-Up Sheet & Menu Ideas",
+      metaDescription: "Free Cinco de Mayo potluck sign-up sheet. 12 curated dishes (tacos, guac, enchiladas, margaritas) with dietary tags. Share a link, claim dishes, no accounts needed.",
+      keywords: ["cinco de mayo potluck", "cinco de mayo menu", "taco party sign up", "cinco de mayo food ideas"],
+    },
     dishes: [
       dish("Guacamole & Chips", "appetizer", ["vegan", "gluten-free"]),
       dish("Queso Fundido", "appetizer", ["vegetarian"]),
@@ -49,6 +67,14 @@ export const presets: PotluckPreset[] = [
     name: "Mother's Day Brunch",
     emoji: "💐",
     date: "May 10, 2026",
+    marketing: {
+      slug: "mothers-day-brunch-potluck",
+      headline: "Mother's Day Brunch Potluck Planner",
+      subheadline: "A lovely Mother's Day brunch, organized in a minute. Hand-picked menu of quiche, parfaits, mimosas, and more — everyone signs up for what they'll bring.",
+      metaTitle: "Mother's Day Brunch Potluck Sign-Up — Free Planner & Menu",
+      metaDescription: "Free Mother's Day brunch potluck sign-up sheet. 11 curated brunch dishes (quiche, eggs benedict, mimosas) with dietary tags. Share a link and claim dishes instantly.",
+      keywords: ["mother's day brunch potluck", "mother's day brunch ideas", "brunch sign up sheet", "mother's day menu"],
+    },
     dishes: [
       dish("Fruit & Yogurt Parfaits", "appetizer", ["vegetarian", "gluten-free"]),
       dish("Smoked Salmon Crostini", "appetizer"),
@@ -68,6 +94,14 @@ export const presets: PotluckPreset[] = [
     name: "Memorial Day Cookout",
     emoji: "🇺🇸",
     date: "May 25, 2026",
+    marketing: {
+      slug: "memorial-day-cookout-potluck",
+      headline: "Memorial Day Cookout Potluck Planner",
+      subheadline: "Kick off summer with a ready-made Memorial Day cookout menu. Share a link, claim dishes, and show up hungry — no spreadsheets required.",
+      metaTitle: "Memorial Day Cookout Potluck Sign-Up — Free Planner & Menu",
+      metaDescription: "Free Memorial Day cookout potluck sign-up. 12 classic BBQ dishes (burgers, ribs, potato salad, apple pie) with dietary tags. One-click to share with friends.",
+      keywords: ["memorial day cookout potluck", "memorial day bbq ideas", "cookout sign up sheet", "summer potluck menu"],
+    },
     dishes: [
       dish("Spinach Artichoke Dip", "appetizer", ["vegetarian"]),
       dish("Pigs in a Blanket", "appetizer"),
@@ -88,6 +122,14 @@ export const presets: PotluckPreset[] = [
     name: "4th of July BBQ",
     emoji: "🎆",
     date: "July 4, 2026",
+    marketing: {
+      slug: "4th-of-july-bbq-potluck",
+      headline: "4th of July BBQ Potluck Planner",
+      subheadline: "Celebrate Independence Day with the easiest BBQ potluck ever. Pre-built menu of hot dogs, sliders, mac & cheese, and red-white-and-blue desserts.",
+      metaTitle: "4th of July BBQ Potluck Sign-Up — Free Planner & Menu Ideas",
+      metaDescription: "Free 4th of July BBQ potluck sign-up sheet. 12 crowd-favorite dishes (hot dogs, pulled pork, mac & cheese, trifle) with dietary tags. Share, claim, feast.",
+      keywords: ["4th of july potluck", "july 4th bbq ideas", "independence day menu", "fourth of july potluck sign up"],
+    },
     dishes: [
       dish("Caprese Skewers", "appetizer", ["vegetarian", "gluten-free"]),
       dish("Buffalo Chicken Dip", "appetizer"),
@@ -108,6 +150,14 @@ export const presets: PotluckPreset[] = [
     name: "Halloween Party",
     emoji: "🎃",
     date: "October 31, 2026",
+    marketing: {
+      slug: "halloween-potluck",
+      headline: "Halloween Party Potluck Planner",
+      subheadline: "Throw a spooky potluck with zero stress. Curated menu of mummy dogs, spider web dip, ghost cookies, and witch's brew punch — share and sign up in seconds.",
+      metaTitle: "Halloween Potluck Sign-Up — Free Planner, Spooky Menu Ideas",
+      metaDescription: "Free Halloween party potluck sign-up sheet. 12 festive dishes (mummy dogs, spider web dip, candy apples, witch's brew) with dietary tags. Share and claim with one click.",
+      keywords: ["halloween potluck", "halloween party food", "spooky potluck menu", "halloween sign up sheet"],
+    },
     dishes: [
       dish("Mummy Jalapeño Poppers", "appetizer"),
       dish("Spider Web Dip", "appetizer", ["vegetarian"]),
@@ -128,6 +178,14 @@ export const presets: PotluckPreset[] = [
     name: "Thanksgiving Feast",
     emoji: "🦃",
     date: "November 26, 2026",
+    marketing: {
+      slug: "thanksgiving-potluck",
+      headline: "Thanksgiving Potluck Planner",
+      subheadline: "The easiest way to organize a Thanksgiving feast with family and friends. A full menu of turkey, sides, and pies — everyone signs up for what they'll bring.",
+      metaTitle: "Thanksgiving Potluck Sign-Up Sheet — Free Planner & Menu",
+      metaDescription: "Free Thanksgiving potluck sign-up sheet. 14 classic dishes (turkey, stuffing, mashed potatoes, pies) with dietary tags. Share a link and claim dishes — no accounts.",
+      keywords: ["thanksgiving potluck", "thanksgiving potluck sign up sheet", "thanksgiving menu planner", "thanksgiving dinner sign up"],
+    },
     dishes: [
       dish("Cheese & Crackers", "appetizer", ["vegetarian"]),
       dish("Butternut Squash Soup", "appetizer", ["vegetarian", "gluten-free"]),
@@ -149,6 +207,14 @@ export const presets: PotluckPreset[] = [
     id: "friendsgiving",
     name: "Friendsgiving",
     emoji: "🤗",
+    marketing: {
+      slug: "friendsgiving-potluck",
+      headline: "Friendsgiving Potluck Planner",
+      subheadline: "Friendsgiving, sorted. A crowd-pleasing menu of comfort food — lasagna, mac & cheese, tiramisu — ready to share. Everyone picks a dish, you host the feast.",
+      metaTitle: "Friendsgiving Potluck Sign-Up — Free Planner & Food List",
+      metaDescription: "Free Friendsgiving potluck sign-up sheet. 12 crowd-pleaser dishes (lasagna, mac & cheese, tiramisu) with dietary tags. Share a link, claim dishes, no accounts.",
+      keywords: ["friendsgiving potluck", "friendsgiving food list", "friendsgiving sign up", "friendsgiving menu ideas"],
+    },
     dishes: [
       dish("Bruschetta", "appetizer", ["vegan"]),
       dish("Hummus & Pita", "appetizer", ["vegan"]),
@@ -169,6 +235,14 @@ export const presets: PotluckPreset[] = [
     name: "Christmas Dinner",
     emoji: "🎄",
     date: "December 25, 2026",
+    marketing: {
+      slug: "christmas-dinner-potluck",
+      headline: "Christmas Dinner Potluck Planner",
+      subheadline: "Host a Christmas dinner without the stress. A festive menu of prime rib, scalloped potatoes, yule log, and mulled wine — ready for everyone to sign up.",
+      metaTitle: "Christmas Dinner Potluck Sign-Up — Free Planner & Menu Ideas",
+      metaDescription: "Free Christmas dinner potluck sign-up sheet. 12 holiday dishes (prime rib, scalloped potatoes, yule log, eggnog) with dietary tags. Share a link and claim dishes.",
+      keywords: ["christmas potluck", "christmas dinner sign up", "holiday potluck menu", "christmas dinner ideas"],
+    },
     dishes: [
       dish("Shrimp Cocktail", "appetizer", ["gluten-free", "dairy-free"]),
       dish("Brie & Cranberry Bites", "appetizer", ["vegetarian"]),
@@ -189,6 +263,14 @@ export const presets: PotluckPreset[] = [
     name: "Super Bowl Party",
     emoji: "🏈",
     date: "February 7, 2027",
+    marketing: {
+      slug: "super-bowl-potluck",
+      headline: "Super Bowl Party Potluck Planner",
+      subheadline: "Game-day food, zero coordination pain. Curated menu of wings, nachos, sliders, and 7-layer dip — share a link and everyone claims what they're bringing.",
+      metaTitle: "Super Bowl Potluck Sign-Up — Free Party Planner & Menu",
+      metaDescription: "Free Super Bowl potluck sign-up sheet. 12 game-day dishes (wings, nachos, sliders, chili) with dietary tags. Share a link, friends claim dishes, no app needed.",
+      keywords: ["super bowl potluck", "super bowl party food", "game day potluck sign up", "super bowl menu ideas"],
+    },
     dishes: [
       dish("Buffalo Wings", "appetizer", ["gluten-free", "dairy-free"]),
       dish("Nachos Supreme", "appetizer"),
@@ -208,6 +290,14 @@ export const presets: PotluckPreset[] = [
     id: "plant-based",
     name: "Plant-Based Feast",
     emoji: "🌱",
+    marketing: {
+      slug: "plant-based-potluck",
+      headline: "Plant-Based Potluck Planner",
+      subheadline: "A fully plant-based potluck menu that everyone can enjoy. Curated vegan dishes with dietary tags (gluten-free, nut-free) so nobody is left guessing.",
+      metaTitle: "Vegan Potluck Sign-Up — Plant-Based Menu Planner (Free)",
+      metaDescription: "Free vegan potluck sign-up sheet. 12 plant-based dishes (mushroom bolognese, chickpea curry, coconut panna cotta) with full dietary tags. Share, claim, eat.",
+      keywords: ["vegan potluck", "plant-based potluck menu", "vegan potluck ideas", "plant-based dishes to share"],
+    },
     dishes: [
       dish("Stuffed Grape Leaves", "appetizer", ["vegan", "gluten-free"]),
       dish("White Bean & Roasted Garlic Dip", "appetizer", ["vegan", "gluten-free", "nut-free"]),
@@ -227,6 +317,14 @@ export const presets: PotluckPreset[] = [
     id: "pizza-night",
     name: "Pizza Night",
     emoji: "🍕",
+    marketing: {
+      slug: "pizza-night-potluck",
+      headline: "Pizza Night Potluck Planner",
+      subheadline: "Host an easy pizza night potluck. Pre-built menu of margherita, pepperoni, BBQ chicken, antipasto, cannoli, and more — everyone picks what they bring.",
+      metaTitle: "Pizza Night Potluck Sign-Up — Free Menu & Planner",
+      metaDescription: "Free pizza night potluck sign-up sheet. 12 Italian favorites (3 pizzas, bruschetta, caprese, cannoli) with dietary tags. Share, claim, buon appetito.",
+      keywords: ["pizza night potluck", "pizza party sign up", "italian potluck menu", "pizza potluck ideas"],
+    },
     dishes: [
       dish("Bruschetta", "appetizer", ["vegan"]),
       dish("Caprese Salad", "appetizer", ["vegetarian", "gluten-free"]),
@@ -253,6 +351,16 @@ export function presetToFoods(preset: PotluckPreset): Food[] {
     claimedBy: null,
     ...(d.attributes?.length ? { attributes: d.attributes } : {}),
   }));
+}
+
+/** Get a preset by its marketing slug. Returns undefined if not found. */
+export function getPresetBySlug(slug: string): PotluckPreset | undefined {
+  return presets.find((p) => p.marketing?.slug === slug);
+}
+
+/** All presets that have marketing metadata (i.e. have a landing page). */
+export function getMarketablePresets(): PotluckPreset[] {
+  return presets.filter((p) => p.marketing);
 }
 
 /**

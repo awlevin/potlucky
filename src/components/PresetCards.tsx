@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import { PotluckPreset } from "@/data/presets";
 
@@ -77,6 +78,24 @@ export function PresetCards({ presets, onSelect, loading }: PresetCardsProps) {
             />
           ))}
         </div>
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: "20px",
+            fontSize: "0.875rem",
+          }}
+        >
+          <Link
+            href="/ideas"
+            style={{
+              color: "var(--color-text-muted)",
+              textDecoration: "underline",
+              textUnderlineOffset: "2px",
+            }}
+          >
+            Browse all potluck ideas →
+          </Link>
+        </p>
       </div>
     </div>
   );

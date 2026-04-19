@@ -3,6 +3,7 @@ import { Fraunces, DM_Sans } from "next/font/google";
 import { Providers } from "./providers";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -18,12 +19,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ||
-      (process.env.VERCEL_PROJECT_PRODUCTION_URL
-        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-        : "http://localhost:3000")
-  ),
+  metadataBase: new URL(SITE_URL),
   title: "Potlucky — The Friendliest Way to Plan a Potluck",
   description: "Organize your potluck in seconds. Add friends, claim dishes, and feast together.",
 };
