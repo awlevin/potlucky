@@ -1,7 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { ColorModeButton } from "@/components/ui/color-mode"
+import dynamic from "next/dynamic"
+
+// NavMenu depends on useLocalStorage (client-only) — render only after hydration.
+// The placeholder reserves the trigger's footprint to avoid layout shift.
+const NavMenu = dynamic(() => import("@/components/NavMenu").then((m) => m.NavMenu), {
+  ssr: false,
+  loading: () => <div className="nav-menu-placeholder" aria-hidden="true" />,
+})
 
 export function Navbar() {
   return (
@@ -28,7 +35,7 @@ export function Navbar() {
         >
           🍲 Potlucky
         </Link>
-        <ColorModeButton />
+        <NavMenu />
       </div>
     </nav>
   )
