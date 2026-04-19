@@ -726,6 +726,45 @@ body {
   text-align: center;
 }
 
+/* Native date picker on touch devices — the button shows a pretty label,
+   the real <input type="date"> is layered transparently on top so tapping
+   anywhere in the field opens the OS-native picker. */
+.event-header-native-date {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.event-header-native-date-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  /* Hide the native text/indicator — we only want the OS picker UI */
+  font-size: 16px; /* prevents iOS zoom-on-focus */
+}
+
+.event-header-native-date-input::-webkit-date-and-time-value {
+  opacity: 0;
+}
+.event-header-native-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
 /* event-header-footer removed — guests + share now in event-header-guests */
 
 /* ---------- Editable (Chakra component overrides) ---------- */

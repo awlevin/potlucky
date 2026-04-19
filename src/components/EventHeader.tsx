@@ -11,7 +11,32 @@ import { toaster } from "@/components/ui/toaster";
 import { DietaryBadges } from "@/components/IdentityGate";
 import { UserList } from "@/components/UserList";
 import { handleEnterKeyPress } from "@/utils/misc";
+import { useIsTouchDevice } from "@/hooks/useIsTouchDevice";
 import { AnimatePresence, motion } from "framer-motion";
+
+function toIsoDate(value?: string): string {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  const y = parsed.getFullYear();
+  const m = String(parsed.getMonth() + 1).padStart(2, "0");
+  const d = String(parsed.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function formatPickedDate(iso: string): string {
+  if (!iso) return "";
+  // Parse as local date to avoid timezone shift from the YYYY-MM-DD -> UTC default.
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 const DIETARY_OPTIONS: { key: DietaryRestriction; label: string; emoji: string }[] = [
   { key: "vegetarian", label: "Vegetarian", emoji: "🌱" },
@@ -46,9 +71,11 @@ export function EventHeader({
   setUserInput,
   addUser,
 }: EventHeaderProps) {
+  const isTouchDevice = useIsTouchDevice();
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [dateInput, setDateInput] = useState(data.date || "");
+  const nativeDateRef = useRef<HTMLInputElement>(null);
   const [locationInput, setLocationInput] = useState(data.location || "");
   const [editingDiet, setEditingDiet] = useState(false);
   const [selectedRestrictions, setSelectedRestrictions] = useState<DietaryRestriction[]>(
@@ -99,6 +126,27 @@ export function EventHeader({
   const saveDate = () => {
     addData({ date: dateInput.trim() });
     setIsEditingDate(false);
+  };
+
+  const handleNativeDatePick = (iso: string) => {
+    const formatted = formatPickedDate(iso);
+    addData({ date: formatted });
+  };
+
+  const openNativePicker = () => {
+    const el = nativeDateRef.current;
+    if (!el) return;
+    // showPicker is the modern way; fall back to focus+click for older browsers.
+    if (typeof (el as any).showPicker === "function") {
+      try {
+        (el as any).showPicker();
+        return;
+      } catch {
+        // fall through
+      }
+    }
+    el.focus();
+    el.click();
   };
 
   const saveLocation = () => {
@@ -223,7 +271,25 @@ export function EventHeader({
       <div className="event-header-details">
         <div className="event-header-field">
           <span className="event-header-icon">📅</span>
-          {isEditingDate ? (
+          {isTouchDevice ? (
+            <div className="event-header-native-date">
+              <button
+                type="button"
+                className={`event-header-value${!data.date ? " event-header-placeholder" : ""}`}
+                onClick={openNativePicker}
+              >
+                {data.date || "When?"}
+              </button>
+              <input
+                ref={nativeDateRef}
+                type="date"
+                className="event-header-native-date-input"
+                value={toIsoDate(data.date)}
+                onChange={(e) => handleNativeDatePick(e.target.value)}
+                aria-label="Pick a date"
+              />
+            </div>
+          ) : isEditingDate ? (
             <input
               className="input event-header-input"
               placeholder="When? (e.g., Saturday at 6pm)"
