@@ -27,8 +27,49 @@ export const metadata: Metadata = {
 export default function IdeasHubPage() {
   const marketable = getMarketablePresets();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/ideas`,
+        url: `${SITE_URL}/ideas`,
+        name: "Potluck Ideas & Themes — Free Sign-Up Sheet Templates | Potlucky",
+        isPartOf: { "@id": `${SITE_URL}#website` },
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}#website`,
+        url: SITE_URL,
+        name: "Potlucky",
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Ideas", item: `${SITE_URL}/ideas` },
+        ],
+      },
+      {
+        "@type": "ItemList",
+        name: "Potluck ideas",
+        numberOfItems: marketable.length,
+        itemListElement: marketable.map((preset, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: preset.name,
+          url: `${SITE_URL}/ideas/${preset.marketing!.slug}`,
+        })),
+      },
+    ],
+  };
+
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="hero ideas-hero">
         <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
           <h1 className="hero-heading" style={{ textAlign: "center", marginBottom: "12px" }}>
