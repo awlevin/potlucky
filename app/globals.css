@@ -502,18 +502,6 @@ body {
 }
 
 /* ---------- Responsive Grids ---------- */
-.steps-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-@media (min-width: 768px) {
-  .steps-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-  }
-}
-
 .prev-potlucks-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -621,29 +609,396 @@ body {
   opacity: 1;
 }
 
-/* ---------- Step card ---------- */
-.step-card {
-  text-align: center;
-  padding: 32px;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  height: 100%;
+/* ===================================================================
+   How It Works — Editorial cookbook chapter
+   =================================================================== */
+
+.how-section {
+  position: relative;
+  padding: 96px 16px 96px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 50%,
+      rgba(232, 168, 23, 0.045) 0%,
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      var(--color-canvas) 0%,
+      var(--color-recipe-cream) 28%,
+      var(--color-recipe-cream) 72%,
+      var(--color-canvas) 100%
+    );
+}
+.dark .how-section {
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 50%,
+      rgba(232, 168, 23, 0.06) 0%,
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      var(--color-canvas) 0%,
+      var(--color-surface) 28%,
+      var(--color-surface) 72%,
+      var(--color-canvas) 100%
+    );
 }
 
-.step-number {
-  display: inline-flex;
+/* Decorative dotted rules at top + bottom */
+.how-rule {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, 86%);
+  height: 1px;
+  background-image: radial-gradient(
+    circle,
+    var(--color-recipe-warm) 1px,
+    transparent 1.2px
+  );
+  background-size: 10px 1px;
+  background-repeat: repeat-x;
+  opacity: 0.35;
+}
+.how-rule-top { top: 0; }
+.how-rule-bottom { bottom: 0; }
+
+.how-container {
+  position: relative;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+/* ---------- Eyebrow ---------- */
+.how-eyebrow {
+  display: flex;
   align-items: center;
   justify-content: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  color: var(--color-recipe-warm);
+}
+.how-eyebrow-mark {
   width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: var(--color-brand);
-  color: #292524;
-  font-size: 14px;
-  font-weight: 700;
-  margin: 0 auto 12px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+/* ---------- Heading ---------- */
+.how-heading {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-align: center;
+  color: var(--color-text);
+  margin: 0 0 12px;
+}
+.how-heading em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--color-recipe-warm);
+}
+
+/* ---------- Subheading ---------- */
+.how-subheading {
+  text-align: center;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin: 0 0 64px;
+  letter-spacing: 0.005em;
+}
+
+/* ---------- Steps ---------- */
+.how-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  position: relative;
+}
+@media (min-width: 768px) {
+  .how-steps {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 28px;
+  }
+}
+
+.how-step {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Dotted connector trail between steps */
+.how-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  background-image: radial-gradient(
+    circle,
+    var(--color-recipe-warm) 1.5px,
+    transparent 1.7px
+  );
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Mobile: vertical trail below each card */
+@media (max-width: 767px) {
+  .how-step:not(:last-child)::after {
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 24px;
+    background-size: 6px 8px;
+    background-repeat: repeat-y;
+    background-position: center;
+  }
+}
+
+/* Desktop: horizontal trail to the right of each card */
+@media (min-width: 768px) {
+  .how-step:not(:last-child)::after {
+    top: 50%;
+    right: -28px;
+    width: 28px;
+    height: 6px;
+    transform: translateY(-50%);
+    background-size: 9px 6px;
+    background-repeat: repeat-x;
+    background-position: center;
+  }
+}
+
+/* ---------- Card ---------- */
+.how-step-card {
+  position: relative;
+  flex: 1;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px 28px;
+  text-align: center;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 1px 2px rgba(92, 61, 46, 0.04),
+    0 16px 32px -20px rgba(199, 91, 57, 0.22);
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  isolation: isolate;
+}
+
+.dark .how-step-card {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 16px 32px -20px rgba(0, 0, 0, 0.5);
+}
+
+/* Decorative inner dashed frame */
+.how-step-card::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px dashed var(--color-border);
+  border-radius: 11px;
+  pointer-events: none;
+  opacity: 0.6;
+  z-index: 0;
+}
+
+/* Subtle paper noise */
+.how-step-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  border-radius: var(--radius-lg);
+  z-index: 0;
+}
+.dark .how-step-card::after {
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+}
+
+.how-step-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-recipe-warm);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 2px 4px rgba(92, 61, 46, 0.06),
+    0 24px 48px -20px rgba(199, 91, 57, 0.32);
+}
+
+/* ---------- Big watermark numeral ---------- */
+.how-step-bignum {
+  position: absolute;
+  top: 6px;
+  right: 18px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 5rem;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--color-recipe-warm);
+  opacity: 0.16;
+  user-select: none;
+  pointer-events: none;
+  z-index: 1;
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dark .how-step-bignum { opacity: 0.22; }
+
+.how-step-card:hover .how-step-bignum {
+  opacity: 0.32;
+  transform: scale(1.08) rotate(-2deg);
+}
+.dark .how-step-card:hover .how-step-bignum { opacity: 0.4; }
+
+/* ---------- Wax-seal emoji badge ---------- */
+.how-step-seal {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  margin: 12px auto 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      rgba(255, 255, 255, 0.8) 0%,
+      transparent 55%
+    ),
+    var(--color-recipe-warm-light);
+  border-radius: 50%;
+  border: 1.5px dashed var(--color-recipe-warm);
+  z-index: 2;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dark .how-step-seal {
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      rgba(255, 255, 255, 0.06) 0%,
+      transparent 55%
+    ),
+    var(--color-recipe-warm-light);
+}
+
+/* Subtle ring around the seal */
+.how-step-seal::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid var(--color-recipe-warm);
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.how-step-seal-emoji {
+  font-size: 2.25rem;
+  line-height: 1;
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(92, 61, 46, 0.15));
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.how-step-card:hover .how-step-seal {
+  transform: rotate(-6deg);
+}
+.how-step-card:hover .how-step-seal-emoji {
+  transform: rotate(6deg) scale(1.06);
+}
+
+/* ---------- Step eyebrow (Step One/Two/Three) ---------- */
+.how-step-eyebrow {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  z-index: 2;
+}
+.how-step-eyebrow em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--color-recipe-warm);
+  letter-spacing: 0.18em;
+}
+
+/* ---------- Step title ---------- */
+.how-step-title {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: 1.35rem;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: var(--color-text);
+  margin: 0 0 14px;
+  z-index: 2;
+}
+
+/* ---------- Decorative dot divider ---------- */
+.how-step-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  z-index: 2;
+}
+.how-step-divider span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-recipe-warm);
+  opacity: 0.55;
+}
+.how-step-divider span:nth-child(2) { opacity: 0.85; }
+
+/* ---------- Description ---------- */
+.how-step-desc {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  max-width: 26ch;
+  margin: 0 auto;
+  z-index: 2;
+  position: relative;
 }
 
 /* ---------- Footer ---------- */

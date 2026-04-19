@@ -6,24 +6,21 @@ import { motion, useInView } from "framer-motion";
 const steps = [
   {
     emoji: "📝",
-    number: "1",
     title: "Start a Potluck",
     description:
-      "Create a potluck in one click. Give it a fun name or keep the random one!",
+      "Create a potluck in one click. Give it a fun name or keep the random one.",
   },
   {
     emoji: "👯",
-    number: "2",
-    title: "Share & Claim Dishes",
+    title: "Share & Claim",
     description:
-      "Share the link with friends. Everyone picks what they're bringing.",
+      "Send the link to friends. Everyone picks the dish they're bringing.",
   },
   {
     emoji: "🍽️",
-    number: "3",
     title: "Enjoy the Feast",
     description:
-      "Show up hungry. Every dish is accounted for — no duplicate salads!",
+      "Show up hungry. Every dish is accounted for — no duplicate salads.",
   },
 ];
 
@@ -35,76 +32,93 @@ function StepCard({
   index: number;
 }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-20px" });
+  const isInView = useInView(ref, { once: true, margin: "-40px" });
 
   return (
-    <motion.div
+    <motion.li
       ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-      transition={{ duration: 0.5, delay: index * 0.15 }}
-      style={{ opacity: isInView ? undefined : 0 }}
+      className="how-step"
+      initial={{ opacity: 0, y: 24 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+      transition={{
+        duration: 0.6,
+        delay: index * 0.18,
+        ease: [0.25, 0.1, 0.25, 1],
+      }}
     >
-      <div className="step-card">
-        <div style={{ fontSize: "2.5rem", marginBottom: "12px" }}>
-          {step.emoji}
+      <article className="how-step-card">
+        <span className="how-step-bignum" aria-hidden="true">
+          {index + 1}
+        </span>
+
+        <div className="how-step-seal" aria-hidden="true">
+          <span className="how-step-seal-emoji">{step.emoji}</span>
         </div>
-        <div className="step-number">
-          {step.number}
+
+        <div className="how-step-eyebrow">
+          Step <em>{["One", "Two", "Three"][index]}</em>
         </div>
-        <p
-          style={{
-            fontFamily: "var(--font-fraunces), Georgia, serif",
-            fontWeight: 500,
-            fontSize: "1.125rem",
-            marginBottom: "8px",
-            color: "var(--color-text)",
-          }}
-        >
-          {step.title}
-        </p>
-        <p
-          style={{
-            fontSize: "0.875rem",
-            color: "var(--color-text-secondary)",
-            lineHeight: 1.6,
-          }}
-        >
-          {step.description}
-        </p>
-      </div>
-    </motion.div>
+
+        <h3 className="how-step-title">{step.title}</h3>
+
+        <div className="how-step-divider" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+
+        <p className="how-step-desc">{step.description}</p>
+      </article>
+    </motion.li>
   );
 }
 
 export default function HowItWorks() {
   return (
-    <div style={{ padding: "64px 16px" }}>
-      <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
-        <h2
-          className="display-heading"
-          style={{
-            textAlign: "center",
-            fontSize: "1.5rem",
-            marginBottom: "12px",
-          }}
+    <section className="how-section">
+      <div className="how-rule how-rule-top" aria-hidden="true" />
+
+      <div className="how-container">
+        <motion.div
+          className="how-eyebrow"
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5 }}
         >
-          How It Works
-        </h2>
-        <div
-          style={{
-            width: "48px",
-            height: "2px",
-            background: "var(--color-brand)",
-            margin: "4px auto 40px",
-          }}
-        />
-        <div className="steps-grid">
+          <span className="how-eyebrow-mark" />
+          <span>The Ritual</span>
+          <span className="how-eyebrow-mark" />
+        </motion.div>
+
+        <motion.h2
+          className="how-heading"
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          How it <em>works</em>
+        </motion.h2>
+
+        <motion.p
+          className="how-subheading"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.6, delay: 0.25 }}
+        >
+          Three steps. One feast. Zero spreadsheets.
+        </motion.p>
+
+        <ol className="how-steps">
           {steps.map((step, index) => (
-            <StepCard key={step.number} step={step} index={index} />
+            <StepCard key={step.title} step={step} index={index} />
           ))}
-        </div>
+        </ol>
       </div>
-    </div>
+
+      <div className="how-rule how-rule-bottom" aria-hidden="true" />
+    </section>
   );
 }
