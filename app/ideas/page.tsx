@@ -29,28 +29,19 @@ export default function IdeasHubPage() {
 
   return (
     <main>
-      <section className="hero" style={{ padding: "64px 16px 48px" }}>
+      <section className="hero ideas-hero">
         <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
-          <h1 className="hero-heading" style={{ textAlign: "center", marginBottom: "16px" }}>
+          <h1 className="hero-heading" style={{ textAlign: "center", marginBottom: "12px" }}>
             Potluck Ideas for Every Occasion
           </h1>
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: "1.125rem",
-              color: "var(--color-text-secondary)",
-              maxWidth: "36rem",
-              margin: "0 auto",
-              lineHeight: 1.5,
-            }}
-          >
+          <p className="ideas-hero-sub">
             Free sign-up sheets, hand-picked menus, and one-click setup for
             every holiday and theme. No accounts, no spreadsheets.
           </p>
         </div>
       </section>
 
-      <section style={{ padding: "0 16px 64px" }}>
+      <section style={{ padding: "0 16px 48px" }}>
         <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
           <div className="preset-cards-grid">
             {marketable.map((preset) => (
@@ -63,8 +54,10 @@ export default function IdeasHubPage() {
                 <span className="preset-card-emoji">{preset.emoji}</span>
                 <span className="preset-card-name">{preset.name}</span>
                 <span className="preset-card-meta">
-                  {preset.dishes.length} dishes
-                  {preset.date ? ` · ${preset.date}` : ""}
+                  <span>{preset.dishes.length} dishes</span>
+                  {preset.date ? (
+                    <span className="preset-card-meta-date">{preset.date}</span>
+                  ) : null}
                 </span>
                 <span className="preset-card-arrow">→</span>
               </Link>

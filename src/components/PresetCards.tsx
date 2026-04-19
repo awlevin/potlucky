@@ -42,8 +42,10 @@ function PresetCard({
         <span className="preset-card-emoji">{preset.emoji}</span>
         <span className="preset-card-name">{preset.name}</span>
         <span className="preset-card-meta">
-          {preset.dishes.length} dishes
-          {preset.date ? ` · ${preset.date}` : ""}
+          <span>{preset.dishes.length} dishes</span>
+          {preset.date ? (
+            <span className="preset-card-meta-date">{preset.date}</span>
+          ) : null}
         </span>
         <span className="preset-card-arrow">→</span>
       </button>
