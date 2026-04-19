@@ -71,7 +71,7 @@ export function HeroSection({ onStart, loading }: HeroSectionProps) {
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           <h1 className="hero-heading">
-            Every great meal starts with great friends.
+            Great meals start with great friends
           </h1>
         </motion.div>
 
