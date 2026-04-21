@@ -32,3 +32,25 @@ title and description into account.
   college party).
 - Audit every place we call the model for suggestions and make sure the
   event title and description are both in the prompt context.
+
+## Host concept — where it can grow later
+
+The initial host feature ships with a quiet mark, share/OG byline, entry
+modal variants, and a host tag. Once hosts exist as a concept, these become
+obvious next moves:
+
+- **Nudge / reminder authorship.** "Aaron sent a reminder to bring your
+  dishes tomorrow" reads social; a generic system reminder reads like spam.
+  Route any future notification copy through the host's name.
+- **Location defaults.** Remember the host's address from a previous room
+  and pre-fill the location field the first time they set it on a new one.
+- **Host-only "close the menu."** Let the host flip the room into a locked
+  state that greys out new claims and shows an "it's all set — see you
+  there ✦" empty-action state.
+- **RSVPs without friction.** Guests who don't want to bring a dish can
+  still mark "coming." Hosts care about headcount — surface it to them.
+- **Clone past menus.** "Throw another one like last spring's" — let hosts
+  duplicate their own past rooms, in the same spirit as the preset cards.
+- **Host note at top of room.** One optional line from the host ("bring a
+  bottle, park on Elm") that renders under the title, in the OG image, and
+  in the share text. Tiny surface, outsized warmth.
