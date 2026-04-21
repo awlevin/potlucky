@@ -11,6 +11,7 @@ interface UserItemProps {
   claimUser: (id: string) => void;
   removeUser: (id: string) => void;
   isSelectedUser: boolean;
+  isHost?: boolean;
 }
 
 const UserItem = ({
@@ -18,6 +19,7 @@ const UserItem = ({
   claimUser,
   removeUser,
   isSelectedUser,
+  isHost,
 }: UserItemProps) => {
   const [isClicked, setIsClicked] = useState(false);
 
@@ -95,6 +97,7 @@ const UserItem = ({
         >
           {user.name}
         </span>
+        {isHost && <span className="host-mark">host</span>}
         <DietaryBadges
           restrictions={user.dietaryRestrictions}
           note={user.dietaryNote}

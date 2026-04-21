@@ -7,17 +7,20 @@ import { Food } from "@/types";
 
 interface PresetPickerProps {
   onApply: (foods: Food[], name?: string, date?: string) => void;
+  hostName?: string;
+  viewerIsHost?: boolean;
 }
 
-export function PresetPicker({ onApply }: PresetPickerProps) {
+export function PresetPicker({ onApply, hostName, viewerIsHost }: PresetPickerProps) {
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed) {
-    return (
-      <div className="empty-state">
-        No dishes yet. Add something delicious!
-      </div>
-    );
+    const copy = viewerIsHost
+      ? "Nothing on the menu yet — start things off with a dish."
+      : hostName
+        ? `Nothing on the menu yet — be the first to bring something for ${hostName}'s potluck.`
+        : "No dishes yet. Add something delicious!";
+    return <div className="empty-state">{copy}</div>;
   }
 
   const handleSelect = (preset: PotluckPreset) => {

@@ -36,6 +36,7 @@ export const UserList = ({
               claimUser={claimUser}
               isSelectedUser={currUser?.id === user.id}
               removeUser={removeUser}
+              isHost={data?.hostIds?.includes(user.id)}
             />
           </motion.div>
         ))}

@@ -32,6 +32,7 @@ export interface IRoomObj {
   location?: string;
   users: User[];
   foods: Food[];
+  hostIds?: string[]; // user IDs for the room's host(s); first joiner is auto-assigned
 }
 
 /* ---------- Recipe & Shopping List Feature ---------- */

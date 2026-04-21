@@ -71,7 +71,8 @@ export function useUsers({ data, addData, roomId }: UseUsersProps) {
     [roomId]
   );
 
-  // Create a new user, add to room, and set as identity
+  // Create a new user, add to room, and set as identity.
+  // First joiner becomes the host automatically.
   const createAndSelectIdentity = useCallback(
     async (
       name: string,
@@ -84,9 +85,14 @@ export function useUsers({ data, addData, roomId }: UseUsersProps) {
         ...(dietaryRestrictions?.length ? { dietaryRestrictions } : {}),
         ...(dietaryNote ? { dietaryNote } : {}),
       };
+      const isFirstJoiner = !data?.users?.length;
+      const existingHostIds = data?.hostIds ?? [];
       await addData({
         ...data,
         users: [...(data?.users || []), newUser],
+        ...(isFirstJoiner && !existingHostIds.length
+          ? { hostIds: [newUser.id] }
+          : {}),
       });
       setCurrUser(newUser);
       saveIdentity(roomId, { id: newUser.id, name: newUser.name });
@@ -128,9 +134,24 @@ export function useUsers({ data, addData, roomId }: UseUsersProps) {
       clearIdentity(roomId);
       setIdentityResolved(false);
     }
+    const remainingUsers = data?.users?.filter((u) => u.id !== id) ?? [];
+    const existingHostIds = data?.hostIds ?? [];
+    let nextHostIds: string[] | undefined;
+    if (existingHostIds.length) {
+      const filteredHosts = existingHostIds.filter((hid) => hid !== id);
+      if (filteredHosts.length) {
+        nextHostIds = filteredHosts;
+      } else if (remainingUsers.length) {
+        // Host left and no co-hosts — promote the earliest-joined remaining user.
+        nextHostIds = [remainingUsers[0].id];
+      } else {
+        nextHostIds = [];
+      }
+    }
     await addData({
       ...data,
-      users: data?.users?.filter((u) => u.id !== id),
+      users: remainingUsers,
+      ...(nextHostIds !== undefined ? { hostIds: nextHostIds } : {}),
       foods: data?.foods?.map((food) => {
         if (Array.isArray(food.claimedBy)) {
           const filtered = food.claimedBy.filter((uid) => uid !== id);
@@ -146,12 +167,15 @@ export function useUsers({ data, addData, roomId }: UseUsersProps) {
 
   const addUser = async () => {
     setUserInput("");
+    const newUser = { id: nanoid(5), name: userInput } as User;
+    const isFirstJoiner = !data?.users?.length;
+    const existingHostIds = data?.hostIds ?? [];
     await addData({
       ...data,
-      users: [
-        ...(data?.users || []),
-        { id: nanoid(5), name: userInput } as User,
-      ],
+      users: [...(data?.users || []), newUser],
+      ...(isFirstJoiner && !existingHostIds.length
+        ? { hostIds: [newUser.id] }
+        : {}),
     });
   };
 

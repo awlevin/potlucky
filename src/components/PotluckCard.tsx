@@ -109,9 +109,25 @@ export function PotluckCard({ room, onNavigate, onRemove }: PotluckCardProps) {
           fontSize: "0.875rem",
           color: "var(--color-text-muted)",
           marginTop: "4px",
+          display: "flex",
+          alignItems: "baseline",
+          gap: "6px",
+          flexWrap: "wrap",
         }}
       >
-        {formatRelativeDate(room.lastVisited)}
+        {room.hostName && (
+          <span
+            style={{
+              fontFamily: "var(--font-fraunces), Georgia, serif",
+              fontStyle: "italic",
+              color: "#8A5F0A",
+            }}
+          >
+            hosted by {room.hostName}
+          </span>
+        )}
+        {room.hostName && <span aria-hidden="true">·</span>}
+        <span>{formatRelativeDate(room.lastVisited)}</span>
       </p>
     </div>
   )

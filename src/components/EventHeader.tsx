@@ -13,6 +13,11 @@ import { UserList } from "@/components/UserList";
 import { handleEnterKeyPress } from "@/utils/misc";
 import { useIsTouchDevice } from "@/hooks/useIsTouchDevice";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  getHostUsers,
+  formatHostsByline,
+  formatHostsPossessive,
+} from "@/utils/hosts";
 
 function toIsoDate(value?: string): string {
   if (!value) return "";
@@ -93,11 +98,27 @@ export function EventHeader({
     setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
   }, []);
 
+  const hosts = getHostUsers(data.users, data.hostIds);
+  const hostsByline = formatHostsByline(hosts);
+  const hostsPossessive = formatHostsPossessive(hosts);
+  const viewerIsHost = Boolean(currUser && hosts.some((h) => h.id === currUser.id));
+  const soloHostIsViewer = viewerIsHost && hosts.length === 1;
+
   const handleNativeShare = async () => {
+    const title = data.name
+      ? data.name
+      : hostsByline
+        ? `${hostsPossessive} potluck`
+        : "Potluck";
+    const text = viewerIsHost
+      ? "You're throwing a potluck — share the link with your guests."
+      : hostsByline
+        ? `${hostsByline} is throwing a potluck — come bring a dish 🍲`
+        : `Join ${data.name || "our potluck"} on Potlucky`;
     try {
       await navigator.share({
-        title: data.name || "Potluck",
-        text: `Join ${data.name || "our potluck"} on Potlucky`,
+        title,
+        text,
         url: shareUrl,
       });
     } catch {
@@ -184,6 +205,7 @@ export function EventHeader({
           <span>
             You&apos;re{" "}
             <strong>{currUser.name}</strong>
+            {viewerIsHost && <span className="host-mark">host</span>}
             <DietaryBadges
               restrictions={currUser.dietaryRestrictions}
               note={currUser.dietaryNote}
@@ -265,6 +287,14 @@ export function EventHeader({
           />
           <Editable.Control />
         </Editable.Root>
+        {hostsByline && (
+          <div className="event-host-sub">
+            <span aria-hidden="true" style={{ fontStyle: "normal" }}>✦</span>{" "}
+            {soloHostIsViewer
+              ? "you're hosting"
+              : `hosted by ${hostsByline}`}
+          </div>
+        )}
       </div>
 
       {/* Date and Location row */}
@@ -409,7 +439,11 @@ export function EventHeader({
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
           >
             <div className="share-panel-inner">
-              <p className="share-panel-label">Scan to join</p>
+              <p className="share-panel-label">
+                {hostsPossessive
+                  ? `Invite friends to ${hostsPossessive} potluck`
+                  : "Scan to join"}
+              </p>
 
               <motion.div
                 className="share-qr-frame"

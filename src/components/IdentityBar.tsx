@@ -15,11 +15,12 @@ const DIETARY_OPTIONS: { key: DietaryRestriction; label: string; emoji: string }
 
 interface IdentityBarProps {
   user: User;
+  isHost?: boolean;
   onSwitch: () => void;
   onUpdateDietary?: (restrictions: DietaryRestriction[], note?: string) => void;
 }
 
-export function IdentityBar({ user, onSwitch, onUpdateDietary }: IdentityBarProps) {
+export function IdentityBar({ user, isHost, onSwitch, onUpdateDietary }: IdentityBarProps) {
   const [editing, setEditing] = useState(false);
   const [selectedRestrictions, setSelectedRestrictions] = useState<DietaryRestriction[]>(
     user.dietaryRestrictions || []
@@ -48,7 +49,8 @@ export function IdentityBar({ user, onSwitch, onUpdateDietary }: IdentityBarProp
       <div className="identity-bar-main">
         <span style={{ fontSize: "0.875rem" }}>
           You&apos;re{" "}
-          <strong style={{ fontWeight: 600 }}>{user.name}</strong>{" "}
+          <strong style={{ fontWeight: 600 }}>{user.name}</strong>
+          {isHost && <span className="host-mark">host</span>}{" "}
           <DietaryBadges
             restrictions={user.dietaryRestrictions}
             note={user.dietaryNote}

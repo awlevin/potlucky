@@ -26,15 +26,18 @@ const CATEGORIES: { key: string; label: string; emoji: string }[] = [
 
 const FRAUNCES_700 =
   "https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.16/files/fraunces-latin-700-normal.woff";
+const FRAUNCES_500_ITALIC =
+  "https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.16/files/fraunces-latin-500-italic.woff";
 const DM_SANS_400 =
   "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5.0.9/files/dm-sans-latin-400-normal.woff";
 const DM_SANS_600 =
   "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5.0.9/files/dm-sans-latin-600-normal.woff";
 
 export default async function Image({ params }: { params: { roomId: string } }) {
-  const [room, frauncesBold, dmSansRegular, dmSansMedium] = await Promise.all([
+  const [room, frauncesBold, frauncesItalic, dmSansRegular, dmSansMedium] = await Promise.all([
     fetchRoomRest(params.roomId).catch(() => null),
     loadFontTTF(FRAUNCES_700),
+    loadFontTTF(FRAUNCES_500_ITALIC),
     loadFontTTF(DM_SANS_400),
     loadFontTTF(DM_SANS_600),
   ]);
@@ -44,6 +47,32 @@ export default async function Image({ params }: { params: { roomId: string } }) 
   const location = room?.location?.trim();
   const foods = room?.foods || [];
   const users = room?.users || [];
+  const hostIds = room?.hostIds || [];
+
+  // Resolve host names, then build a byline like "by Aaron" / "by Aaron & Sam" /
+  // "by Aaron, Sam & Priya" / "by Aaron + 2" (4+ hosts). Guard: if the title
+  // already contains a host's first name (case-insensitive), skip the byline
+  // so we don't stamp "by Aaron" under "Aaron's Birthday."
+  const hostNames = hostIds
+    .map((id) => users.find((u) => u?.id === id)?.name)
+    .filter((n): n is string => Boolean(n && n.trim()));
+  const titleLower = title.toLowerCase();
+  const titleAlreadyNamesHost = hostNames.some((n) => {
+    const first = n.trim().split(/\s+/)[0]?.toLowerCase();
+    return first && titleLower.includes(first);
+  });
+  let hostByline = "";
+  if (hostNames.length && !titleAlreadyNamesHost) {
+    if (hostNames.length >= 4) {
+      hostByline = `by ${hostNames[0]} + ${hostNames.length - 1}`;
+    } else if (hostNames.length === 1) {
+      hostByline = `by ${hostNames[0]}`;
+    } else if (hostNames.length === 2) {
+      hostByline = `by ${hostNames[0]} & ${hostNames[1]}`;
+    } else {
+      hostByline = `by ${hostNames.slice(0, -1).join(", ")} & ${hostNames[hostNames.length - 1]}`;
+    }
+  }
 
   const titleFontSize = Math.max(40, Math.min(60, Math.floor(1500 / Math.max(title.length, 8))));
 
@@ -66,9 +95,16 @@ export default async function Image({ params }: { params: { roomId: string } }) 
   const totalDishes = foods.length;
   const cookCount = users.length;
 
-  const fonts: { name: string; data: ArrayBuffer; weight: 400 | 600 | 700; style: "normal" }[] = [];
+  const fonts: {
+    name: string;
+    data: ArrayBuffer;
+    weight: 400 | 500 | 600 | 700;
+    style: "normal" | "italic";
+  }[] = [];
   if (frauncesBold)
     fonts.push({ name: "Fraunces", data: frauncesBold, weight: 700, style: "normal" });
+  if (frauncesItalic)
+    fonts.push({ name: "Fraunces", data: frauncesItalic, weight: 500, style: "italic" });
   if (dmSansRegular)
     fonts.push({ name: "DM Sans", data: dmSansRegular, weight: 400, style: "normal" });
   if (dmSansMedium)
@@ -128,8 +164,30 @@ export default async function Image({ params }: { params: { roomId: string } }) 
           >
             {title}
           </div>
+          {hostByline && (
+            <div
+              style={{
+                display: "flex",
+                marginTop: 10,
+                fontSize: 28,
+                color: "#8A5F0A",
+                fontFamily: serifStack,
+                fontStyle: "italic",
+                fontWeight: 500,
+                letterSpacing: 0.2,
+              }}
+            >
+              {hostByline}
+            </div>
+          )}
           <div
-            style={{ marginTop: 10, height: 4, width: 88, background: "#E8A817", borderRadius: 2 }}
+            style={{
+              marginTop: hostByline ? 12 : 10,
+              height: 4,
+              width: 88,
+              background: "#E8A817",
+              borderRadius: 2,
+            }}
           />
         </div>
 
