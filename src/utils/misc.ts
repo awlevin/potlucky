@@ -4,6 +4,7 @@ export interface IPrevRoom {
   name: string;
   id: string;
   lastVisited?: string;
+  hostName?: string;
 }
 
 function handleKeyPress<T = Element>(f: () => void, key: string){

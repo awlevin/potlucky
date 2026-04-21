@@ -5505,3 +5505,69 @@ body {
   color: var(--color-brand-hover);
 }
 
+/* ---------- Host concept — quiet marks ---------- */
+.host-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 0.78em;
+  line-height: 1;
+  color: #8A5F0A;
+  letter-spacing: 0.02em;
+  vertical-align: baseline;
+  margin-left: 4px;
+}
+.host-mark::before {
+  content: "✦";
+  font-style: normal;
+  font-size: 0.9em;
+  color: var(--color-brand);
+}
+.dark .host-mark {
+  color: var(--color-brand);
+}
+
+.event-host-sub {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 14px;
+  color: #8A5F0A;
+  margin-top: 2px;
+  letter-spacing: 0.01em;
+}
+.event-host-sub span[aria-hidden="true"] {
+  color: var(--color-brand);
+  margin-right: 2px;
+}
+.dark .event-host-sub {
+  color: var(--color-brand);
+}
+
+.host-farewell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--color-brand-light);
+  border: 1px solid rgba(232, 168, 23, 0.35);
+  color: #8A5F0A;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+.host-farewell span[aria-hidden="true"] {
+  color: var(--color-brand);
+  font-style: normal;
+}
+.dark .host-farewell {
+  color: var(--color-brand);
+  background: rgba(232, 168, 23, 0.12);
+  border-color: rgba(232, 168, 23, 0.3);
+}
+

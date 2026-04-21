@@ -29,7 +29,8 @@ export type RestRoom = {
   date?: string;
   location?: string;
   foods?: { title?: string; type?: string }[];
-  users?: { name?: string }[];
+  users?: { id?: string; name?: string }[];
+  hostIds?: string[];
 };
 
 export async function fetchRoomRest(roomId: string): Promise<RestRoom | null> {

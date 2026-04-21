@@ -15,6 +15,7 @@ import { SummaryPanel } from "@/components/SummaryPanel";
 import { DishSuggestion } from "@/components/DishSuggestion";
 import { PresetPicker } from "@/components/PresetPicker";
 import { RecipeWizard } from "@/components/RecipeWizard";
+import { getHostUsers, formatHostsByline } from "@/utils/hosts";
 import {
   PostEventUploadPrompt,
   type ClaimedDish,
@@ -93,17 +94,33 @@ export default function Room() {
   // Show identity gate if data loaded but identity not yet resolved
   const showIdentityGate = !loadingRoom && data && !identityResolved;
 
+  const hosts = getHostUsers(data?.users, data?.hostIds);
+  const primaryHostName = hosts[0]?.name;
+  const viewerIsHost = Boolean(
+    currUser && hosts.some((h) => h.id === currUser.id)
+  );
+  const eventHasPassed = data?.date
+    ? new Date(data.date).getTime() < Date.now()
+    : false;
+  const showFarewell = Boolean(eventHasPassed && hosts.length > 0);
+
   return (
     <main>
       <SetPrevRooms
         ready={!!data}
         roomId={roomId}
         roomName={data?.name || ""}
+        hostName={
+          data?.hostIds?.length && data?.users?.length
+            ? data.users.find((u) => u.id === data.hostIds?.[0])?.name
+            : undefined
+        }
       />
 
       {showIdentityGate && (
         <IdentityGate
           users={data?.users || []}
+          hostIds={data?.hostIds}
           onSelectExisting={selectIdentity}
           onCreateNew={createAndSelectIdentity}
         />
@@ -132,6 +149,15 @@ export default function Room() {
           </div>
         ) : (
           <>
+            {showFarewell && (
+              <div className="host-farewell">
+                <span aria-hidden="true">✦</span>
+                <span>
+                  Thanks for hosting, {formatHostsByline(hosts)}. 🍲
+                </span>
+              </div>
+            )}
+
             {/* Event Header — identity + event details + guests consolidated */}
             {data && (
               <EventHeader
@@ -170,6 +196,8 @@ export default function Room() {
                     if (date && !data?.date) updates.date = date;
                     addData(updates);
                   }}
+                  hostName={primaryHostName}
+                  viewerIsHost={viewerIsHost}
                 />
               )}
 

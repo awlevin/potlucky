@@ -43,6 +43,7 @@ export function DietaryBadges({
 
 interface IdentityGateProps {
   users: User[];
+  hostIds?: string[];
   onSelectExisting: (user: User) => void;
   onCreateNew: (
     name: string,
@@ -53,10 +54,15 @@ interface IdentityGateProps {
 
 export function IdentityGate({
   users,
+  hostIds,
   onSelectExisting,
   onCreateNew,
 }: IdentityGateProps) {
-  const [showNewInput, setShowNewInput] = useState(false);
+  const isEmptyRoom = users.length === 0;
+  // Empty room → jump straight to the name input, since there's no one else
+  // to pick from. Populated room → keep the "I'm one of these people" list
+  // and reveal the input only when someone picks "I'm someone new".
+  const [showNewInput, setShowNewInput] = useState(isEmptyRoom);
   const [newName, setNewName] = useState("");
   const [step, setStep] = useState<"name" | "dietary">("name");
   const [selectedRestrictions, setSelectedRestrictions] = useState<DietaryRestriction[]>([]);
@@ -123,7 +129,7 @@ export function IdentityGate({
                   color: "var(--color-text)",
                 }}
               >
-                Who are you?
+                {isEmptyRoom ? "Let's get you set up." : "Who are you?"}
               </h2>
               <p
                 style={{
@@ -133,7 +139,9 @@ export function IdentityGate({
                   marginBottom: "1.5rem",
                 }}
               >
-                Pick your name so we know who&apos;s bringing what.
+                {isEmptyRoom
+                  ? "Your name goes on the invite. Friends will see who's hosting when they join."
+                  : "Pick your name so we know who's bringing what."}
               </p>
 
               {users.length > 0 && (
@@ -169,6 +177,9 @@ export function IdentityGate({
                           style={{ cursor: "pointer" }}
                         >
                           {user.name}
+                          {hostIds?.includes(user.id) && (
+                            <span className="host-mark">host</span>
+                          )}
                           <DietaryBadges
                             restrictions={user.dietaryRestrictions}
                             note={user.dietaryNote}
