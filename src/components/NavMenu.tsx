@@ -193,6 +193,10 @@ export function NavMenu() {
                   <LuMoon className="rail-icon rail-moon" aria-hidden="true" />
                   <span className="rail-knob" aria-hidden="true" />
                 </button>
+                <Link href="/gallery" className="nav-menu-cta" role="menuitem">
+                  <span aria-hidden="true" style={{ fontSize: 13, lineHeight: 1 }}>📚</span>
+                  The Archive
+                </Link>
                 <Link href="/" className="nav-menu-cta" role="menuitem">
                   <span className="nav-menu-plus" aria-hidden="true">+</span>
                   Start a potluck
@@ -258,7 +262,7 @@ function EmptyState({
               </span>
             )}
           </div>
-          <UpcomingChip upcoming={upcoming} upcomingDays={upcomingDays} />
+          <UpcomingChip upcoming={upcoming} />
           <Link href="/ideas" className="nav-menu-see-more" role="menuitem">
             See more ideas
             <span aria-hidden="true">→</span>
@@ -342,7 +346,7 @@ function PopulatedState({
               </span>
             )}
           </div>
-          <UpcomingChip upcoming={upcoming} upcomingDays={upcomingDays} />
+          <UpcomingChip upcoming={upcoming} />
           <Link href="/ideas" className="nav-menu-see-more" role="menuitem">
             See more ideas
             <span aria-hidden="true">→</span>
@@ -353,13 +357,7 @@ function PopulatedState({
   )
 }
 
-function UpcomingChip({
-  upcoming,
-  upcomingDays,
-}: {
-  upcoming: PotluckPreset
-  upcomingDays: number | null
-}) {
+function UpcomingChip({ upcoming }: { upcoming: PotluckPreset }) {
   const slug = upcoming.marketing?.slug
   if (!slug) return null
   return (

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, DM_Sans } from "next/font/google";
+import { Fraunces, DM_Sans, Caveat } from "next/font/google";
 import { Providers } from "./providers";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -18,6 +18,15 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+// Handwritten accent used in the Dish Gallery — polaroid captions,
+// bringer bylines, margin notes. Keep subset minimal.
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-caveat",
+  display: "swap",
+  weight: ["400", "600"],
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Potlucky — The Friendliest Way to Plan a Potluck",
@@ -30,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${dmSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${fraunces.variable} ${dmSans.variable} ${caveat.variable}`} suppressHydrationWarning>
       <body>
         <Providers>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>

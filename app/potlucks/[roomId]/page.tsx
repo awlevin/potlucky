@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Food } from "@/types";
 import dynamic from "next/dynamic";
@@ -15,6 +15,10 @@ import { SummaryPanel } from "@/components/SummaryPanel";
 import { DishSuggestion } from "@/components/DishSuggestion";
 import { PresetPicker } from "@/components/PresetPicker";
 import { RecipeWizard } from "@/components/RecipeWizard";
+import {
+  PostEventUploadPrompt,
+  type ClaimedDish,
+} from "@/components/gallery/PostEventUploadPrompt";
 import { IRoomObj } from "@/types";
 
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
@@ -46,6 +50,7 @@ function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
+  const searchParams = useSearchParams();
   const {
     data,
     loading: loadingRoom,
@@ -286,6 +291,39 @@ export default function Room() {
                   roomId={roomId}
                 />
               ) : null;
+            })()}
+
+            {/* Post-event photo upload prompt. Shown once the event has
+                passed, or on demand via ?post=1 for preview / dogfooding. */}
+            {(() => {
+              if (!data || !currUser) return null;
+              const forcePreview = searchParams?.get("post") === "1";
+              const hasPassed = data.date
+                ? new Date(data.date).getTime() < Date.now()
+                : false;
+              if (!forcePreview && !hasPassed) return null;
+
+              const claimed: ClaimedDish[] = (data.foods || [])
+                .filter((f) => {
+                  const cs = Array.isArray(f.claimedBy)
+                    ? f.claimedBy
+                    : f.claimedBy
+                      ? [f.claimedBy]
+                      : [];
+                  return cs.includes(currUser.id);
+                })
+                .map((f) => ({ id: f.id, title: f.title }));
+
+              if (claimed.length === 0) return null;
+
+              return (
+                <PostEventUploadPrompt
+                  potluckName={data.name || "this potluck"}
+                  eventDate={data.date ?? new Date().toISOString()}
+                  claimedDishes={claimed}
+                  userName={currUser.name}
+                />
+              );
             })()}
 
             {/* Summary Panel — after menu */}
