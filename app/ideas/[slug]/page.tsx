@@ -10,6 +10,14 @@ import {
 import { SITE_URL } from "@/lib/site";
 import HowItWorks from "@/components/HowItWorks";
 import { StartPotluckCTA } from "@/components/StartPotluckCTA";
+import {
+  DishPhotoStrip,
+  DishPhotoBadge,
+} from "@/components/gallery/DishPhotoStrip";
+import {
+  fuzzyMatchDishName,
+  galleryDishes,
+} from "@/data/dishGallery";
 
 interface PageProps {
   params: { slug: string };
@@ -223,18 +231,53 @@ export default function IdeaLandingPage({ params }: PageProps) {
                   <span className="menu-group-label">{group.label}</span>
                   <span className="menu-group-count">{group.dishes.length}</span>
                 </div>
-                {group.dishes.map((d, i) => (
-                  <div key={`${group.type}-${i}`} className="menu-row menu-row-unclaimed">
-                    <div className="menu-dish-info">
-                      <div className="menu-dish-name">{d.title}</div>
-                      {d.attributes && d.attributes.length > 0 && (
-                        <div className="menu-dish-note">
-                          {d.attributes.join(" · ")}
+                {group.dishes.map((d, i) => {
+                  // Try to match this preset dish to a real gallery dish
+                  // for this theme. If we find one, inline its photos.
+                  const match = galleryDishes.find(
+                    (gd) =>
+                      gd.themeSlugs.includes(preset.marketing!.slug) &&
+                      fuzzyMatchDishName(gd.name, d.title),
+                  );
+                  const photos = match?.photos ?? [];
+                  const hasPhotos = photos.length > 0;
+
+                  return (
+                    <div
+                      key={`${group.type}-${i}`}
+                      className={`menu-row menu-row-unclaimed ${hasPhotos ? "menu-row-with-photos" : ""}`}
+                    >
+                      <div className="menu-dish-info">
+                        <div className="menu-dish-name">
+                          {match ? (
+                            <Link
+                              href={`/gallery/${match.slug}`}
+                              style={{
+                                color: "inherit",
+                                textDecoration: "none",
+                                borderBottom: "1px dotted var(--color-text-muted)",
+                                paddingBottom: "1px",
+                              }}
+                            >
+                              {d.title}
+                            </Link>
+                          ) : (
+                            d.title
+                          )}
+                          {hasPhotos && <DishPhotoBadge count={photos.length} />}
                         </div>
+                        {d.attributes && d.attributes.length > 0 && (
+                          <div className="menu-dish-note">
+                            {d.attributes.join(" · ")}
+                          </div>
+                        )}
+                      </div>
+                      {hasPhotos && (
+                        <DishPhotoStrip dish={match} photos={photos} />
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ))}
           </div>
