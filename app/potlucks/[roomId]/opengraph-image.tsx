@@ -44,7 +44,6 @@ export default async function Image({ params }: { params: { roomId: string } }) 
 
   const title = (room?.name?.trim() || "Potluck Menu").slice(0, 80);
   const date = room?.date?.trim();
-  const location = room?.location?.trim();
   const foods = room?.foods || [];
   const users = room?.users || [];
   const hostIds = room?.hostIds || [];
@@ -142,9 +141,9 @@ export default async function Image({ params }: { params: { roomId: string } }) 
               POTLUCKY
             </div>
           </div>
-          {(date || location) && (
+          {date && (
             <div style={{ display: "flex", fontSize: 22, color: "#57534E" }}>
-              {[date, location].filter(Boolean).join("  ·  ")}
+              {date}
             </div>
           )}
         </div>
