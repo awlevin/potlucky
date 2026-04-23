@@ -41,3 +41,7 @@ next-env.d.ts
 
 # private
 .private/
+
+# supabase CLI artifacts
+supabase/.temp/
+supabase/.branches/
