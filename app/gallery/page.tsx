@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { GalleryIndex } from "@/components/gallery/GalleryIndex";
+import { featureFlags } from "@/lib/featureFlags";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -18,5 +20,6 @@ export const metadata: Metadata = {
 };
 
 export default function GalleryPage() {
+  if (!featureFlags.dishGallery) notFound();
   return <GalleryIndex />;
 }

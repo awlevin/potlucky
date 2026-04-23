@@ -7,6 +7,7 @@ import { useLocalStorage } from "@uidotdev/usehooks"
 import { AnimatePresence, motion } from "framer-motion"
 import { LuMoon, LuSun } from "react-icons/lu"
 import { useColorMode } from "@/components/ui/color-mode"
+import { featureFlags } from "@/lib/featureFlags"
 import { IPrevRoom } from "@/utils/misc"
 import { getUpcomingPresets, PotluckPreset } from "@/data/presets"
 
@@ -193,10 +194,12 @@ export function NavMenu() {
                   <LuMoon className="rail-icon rail-moon" aria-hidden="true" />
                   <span className="rail-knob" aria-hidden="true" />
                 </button>
-                <Link href="/gallery" className="nav-menu-cta" role="menuitem">
-                  <span aria-hidden="true" style={{ fontSize: 13, lineHeight: 1 }}>📚</span>
-                  The Archive
-                </Link>
+                {featureFlags.dishGallery && (
+                  <Link href="/gallery" className="nav-menu-cta" role="menuitem">
+                    <span aria-hidden="true" style={{ fontSize: 13, lineHeight: 1 }}>📚</span>
+                    The Archive
+                  </Link>
+                )}
                 <Link href="/" className="nav-menu-cta" role="menuitem">
                   <span className="nav-menu-plus" aria-hidden="true">+</span>
                   Start a potluck

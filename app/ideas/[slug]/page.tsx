@@ -7,6 +7,7 @@ import {
   PotluckPreset,
   PresetDish,
 } from "@/data/presets";
+import { featureFlags } from "@/lib/featureFlags";
 import { SITE_URL } from "@/lib/site";
 import HowItWorks from "@/components/HowItWorks";
 import { StartPotluckCTA } from "@/components/StartPotluckCTA";
@@ -234,11 +235,13 @@ export default function IdeaLandingPage({ params }: PageProps) {
                 {group.dishes.map((d, i) => {
                   // Try to match this preset dish to a real gallery dish
                   // for this theme. If we find one, inline its photos.
-                  const match = galleryDishes.find(
-                    (gd) =>
-                      gd.themeSlugs.includes(preset.marketing!.slug) &&
-                      fuzzyMatchDishName(gd.name, d.title),
-                  );
+                  const match = featureFlags.dishGallery
+                    ? galleryDishes.find(
+                        (gd) =>
+                          gd.themeSlugs.includes(preset.marketing!.slug) &&
+                          fuzzyMatchDishName(gd.name, d.title),
+                      )
+                    : undefined;
                   const photos = match?.photos ?? [];
                   const hasPhotos = photos.length > 0;
 
