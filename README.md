@@ -41,6 +41,13 @@ You'll want a `.env.local` with:
   room state)
 - `ANTHROPIC_API_KEY` — for the dish suggestions and recipe wizard
 
+Feature flags (all default off — set to `1` to enable):
+
+- `NEXT_PUBLIC_FEATURE_DISH_GALLERY` — the Dish Gallery / recipe-archive
+  feature: `/gallery` + `/gallery/[slug]`, the NavMenu Archive link,
+  dish-photo strips on `/ideas/[slug]`, and the post-event upload prompt
+  on `/potlucks/[roomId]`.
+
 ## 🧰 Under the hood
 
 - [Next.js 14](https://nextjs.org/) (App Router) + TypeScript

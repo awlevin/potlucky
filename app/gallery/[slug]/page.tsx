@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DishDetail } from "@/components/gallery/DishDetail";
 import { galleryDishes, getDishBySlug } from "@/data/dishGallery";
 import { presets } from "@/data/presets";
+import { featureFlags } from "@/lib/featureFlags";
 import { SITE_URL } from "@/lib/site";
 
 interface PageProps {
@@ -10,6 +11,7 @@ interface PageProps {
 }
 
 export function generateStaticParams() {
+  if (!featureFlags.dishGallery) return [];
   return galleryDishes.map(({ slug }) => ({ slug }));
 }
 
@@ -67,6 +69,7 @@ function buildThemeLookup(): Record<string, { name: string; emoji: string }> {
 }
 
 export default function DishPage({ params }: PageProps) {
+  if (!featureFlags.dishGallery) notFound();
   const dish = getDishBySlug(params.slug);
   if (!dish) notFound();
 

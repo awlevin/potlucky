@@ -20,6 +20,7 @@ import {
   PostEventUploadPrompt,
   type ClaimedDish,
 } from "@/components/gallery/PostEventUploadPrompt";
+import { featureFlags } from "@/lib/featureFlags";
 import { IRoomObj } from "@/types";
 
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
@@ -324,6 +325,7 @@ export default function Room() {
             {/* Post-event photo upload prompt. Shown once the event has
                 passed, or on demand via ?post=1 for preview / dogfooding. */}
             {(() => {
+              if (!featureFlags.dishGallery) return null;
               if (!data || !currUser) return null;
               const forcePreview = searchParams?.get("post") === "1";
               const hasPassed = data.date
