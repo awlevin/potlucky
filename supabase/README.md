@@ -14,7 +14,7 @@ This project uses Supabase for the database, auth, and realtime data sync.
 | File | Purpose |
 |------|---------|
 | `20260423045335_core_schema.sql` | Tables: `rooms`, `room_members`, `foods`. |
-| `20260423XXXXXX_rls.sql` (later) | RLS policies + `rooms_public` view. |
+| `20260423045606_rls_and_realtime.sql` | RLS policies, `rooms_public` view, realtime publication. |
 
 ### Applying migrations
 
