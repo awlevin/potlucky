@@ -36,7 +36,7 @@ export default function TermsPage() {
           provide. You&apos;re responsible for the security of the phone
           number and device you use to sign in. If you think your account
           has been compromised, email us at{" "}
-          <a href="mailto:hello@potlucky.com">hello@potlucky.com</a>.
+          <a href="mailto:aaron@potlucky.com">aaron@potlucky.com</a>.
         </p>
       </section>
 
@@ -130,7 +130,7 @@ export default function TermsPage() {
         <h2>Termination</h2>
         <p>
           You can stop using Potlucky at any time. Email{" "}
-          <a href="mailto:hello@potlucky.com">hello@potlucky.com</a> to
+          <a href="mailto:aaron@potlucky.com">aaron@potlucky.com</a> to
           request deletion of your account. We may suspend or terminate
           your access if you violate these Terms.
         </p>
@@ -160,7 +160,7 @@ export default function TermsPage() {
         <h2>Contact</h2>
         <p>
           Questions about these Terms? Email{" "}
-          <a href="mailto:hello@potlucky.com">hello@potlucky.com</a>.
+          <a href="mailto:aaron@potlucky.com">aaron@potlucky.com</a>.
         </p>
       </section>
     </>

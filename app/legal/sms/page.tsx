@@ -58,7 +58,7 @@ export default function SmsTermsPage() {
         </p>
         <p>
           Reply <strong>HELP</strong> for help, or email{" "}
-          <a href="mailto:hello@potlucky.com">hello@potlucky.com</a>.
+          <a href="mailto:aaron@potlucky.com">aaron@potlucky.com</a>.
         </p>
       </section>
 
@@ -85,7 +85,7 @@ export default function SmsTermsPage() {
           See our <a href="/legal/privacy">Privacy Policy</a> for details on
           how your phone number is stored and used. For any questions about
           our SMS program, contact{" "}
-          <a href="mailto:hello@potlucky.com">hello@potlucky.com</a>.
+          <a href="mailto:aaron@potlucky.com">aaron@potlucky.com</a>.
         </p>
       </section>
     </>
