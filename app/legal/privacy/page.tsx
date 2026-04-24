@@ -118,7 +118,7 @@ export default function PrivacyPolicyPage() {
           names, and membership records. Potluck events you hosted may
           persist with your display name removed if other guests are still
           active in them. You can request deletion at any time by emailing{" "}
-          <a href="mailto:hello@potlucky.com">hello@potlucky.com</a>.
+          <a href="mailto:aaron@potlucky.com">aaron@potlucky.com</a>.
         </p>
       </section>
 
@@ -127,7 +127,7 @@ export default function PrivacyPolicyPage() {
         <p>
           You can request access to, correction of, or deletion of your
           personal information at any time by emailing{" "}
-          <a href="mailto:hello@potlucky.com">hello@potlucky.com</a>. If you
+          <a href="mailto:aaron@potlucky.com">aaron@potlucky.com</a>. If you
           are in a jurisdiction with specific data rights (e.g., GDPR,
           CCPA), we&apos;ll honor those rights.
         </p>
@@ -155,7 +155,7 @@ export default function PrivacyPolicyPage() {
         <h2>Contact</h2>
         <p>
           Questions or concerns? Email{" "}
-          <a href="mailto:hello@potlucky.com">hello@potlucky.com</a>.
+          <a href="mailto:aaron@potlucky.com">aaron@potlucky.com</a>.
         </p>
       </section>
     </>
