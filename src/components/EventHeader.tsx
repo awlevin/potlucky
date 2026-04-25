@@ -268,13 +268,15 @@ export function EventHeader({
         )}
       </AnimatePresence>
 
-      {/* Event name */}
-      <div style={{ textAlign: "center", marginBottom: "8px" }}>
+      {/* Event name — de-emphasized when still using auto-generated id */}
+      <div
+        className={`event-header-name${!data.name ? " event-header-name-untitled" : ""}`}
+      >
         <Editable.Root
           defaultValue={data.name || data.id}
           textAlign="center"
-          fontSize="2xl"
-          fontWeight="600"
+          fontSize={data.name ? "2xl" : "md"}
+          fontWeight={data.name ? "600" : "500"}
           onValueCommit={changeRoomName}
         >
           <Editable.Preview
