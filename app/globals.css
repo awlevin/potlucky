@@ -2298,6 +2298,19 @@ body {
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
+/* Eyebrow row carries the dish title + eligibility chip so the outer dish-header
+   doesn't have to duplicate them above the card. */
+.recipe-detail-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 18px 0;
+  background: var(--color-recipe-cream);
+}
+.recipe-detail-eyebrow + .recipe-detail-header {
+  padding-top: 6px;
+}
 .recipe-detail-header {
   display: flex;
   align-items: center;
