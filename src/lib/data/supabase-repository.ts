@@ -216,6 +216,35 @@ export class SupabaseRoomRepository implements RoomRepository {
   async joinRoom(roomId: string, input: JoinRoomInput): Promise<RoomMember> {
     const userId = await this.currentUserId();
 
+    // Idempotency: if this user is already a member (e.g. user clicked
+    // Join twice), update display_name/color but DO NOT touch is_host.
+    // The original upsert logic re-evaluated `count(hosts) == 0` on every
+    // call, which demoted the user the second time around.
+    const { data: existing, error: existingErr } = await this.supabase
+      .from("room_members")
+      .select("*")
+      .eq("room_id", roomId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existingErr) throw existingErr;
+
+    if (existing) {
+      const { data, error } = await this.supabase
+        .from("room_members")
+        .update({
+          display_name: input.displayName,
+          color: input.color,
+          last_active: new Date().toISOString(),
+        })
+        .eq("room_id", roomId)
+        .eq("user_id", userId)
+        .select()
+        .single();
+      if (error) throw error;
+      return mapMember(data);
+    }
+
+    // First-joiner-becomes-host: only set when nobody else holds it.
     const { count, error: countErr } = await this.supabase
       .from("room_members")
       .select("*", { count: "exact", head: true })
@@ -226,16 +255,13 @@ export class SupabaseRoomRepository implements RoomRepository {
 
     const { data, error } = await this.supabase
       .from("room_members")
-      .upsert(
-        {
-          room_id: roomId,
-          user_id: userId,
-          display_name: input.displayName,
-          color: input.color,
-          is_host: isHost,
-        },
-        { onConflict: "room_id,user_id", ignoreDuplicates: false }
-      )
+      .insert({
+        room_id: roomId,
+        user_id: userId,
+        display_name: input.displayName,
+        color: input.color,
+        is_host: isHost,
+      })
       .select()
       .single();
     if (error) throw error;
