@@ -1800,6 +1800,16 @@ export function presetDietarySummary(preset: PotluckPreset): {
 }
 
 /**
+ * Evergreen presets — generic potluck themes that work any time of year.
+ * Excludes date-bound categories (holiday, seasonal, sports) so the empty-state
+ * picker doesn't surface out-of-season suggestions like Valentine's Day in April.
+ */
+export function getEvergreenPresets(): PotluckPreset[] {
+  const dateBound: PresetCategory[] = ["holiday", "seasonal", "sports"];
+  return presets.filter((p) => !p.categories.some((c) => dateBound.includes(c)));
+}
+
+/**
  * Return presets relevant to the current date — upcoming holidays
  * within the next ~90 days, plus undated/evergreen ones.
  * Falls back to all presets if fewer than 3 are upcoming.

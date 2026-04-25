@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { presets, presetToFoods, PotluckPreset } from "@/data/presets";
+import { getEvergreenPresets, presetToFoods, PotluckPreset } from "@/data/presets";
 import { Food } from "@/types";
 
 interface PresetPickerProps {
@@ -13,6 +13,7 @@ interface PresetPickerProps {
 
 export function PresetPicker({ onApply, hostName, viewerIsHost }: PresetPickerProps) {
   const [dismissed, setDismissed] = useState(false);
+  const evergreenPresets = useMemo(() => getEvergreenPresets(), []);
 
   if (dismissed) {
     const copy = viewerIsHost
@@ -45,7 +46,7 @@ export function PresetPicker({ onApply, hostName, viewerIsHost }: PresetPickerPr
       </div>
       <div className="preset-picker-grid">
         <AnimatePresence>
-          {presets.map((preset, i) => (
+          {evergreenPresets.map((preset, i) => (
             <motion.button
               key={preset.id}
               initial={{ opacity: 0, scale: 0.95 }}
