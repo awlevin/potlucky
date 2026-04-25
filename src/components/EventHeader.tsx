@@ -287,12 +287,10 @@ export function EventHeader({
           />
           <Editable.Control />
         </Editable.Root>
-        {hostsByline && (
+        {hostsByline && !soloHostIsViewer && (
           <div className="event-host-sub">
             <span aria-hidden="true" style={{ fontStyle: "normal" }}>✦</span>{" "}
-            {soloHostIsViewer
-              ? "you're hosting"
-              : `hosted by ${hostsByline}`}
+            hosted by {hostsByline}
           </div>
         )}
       </div>
