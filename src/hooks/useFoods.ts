@@ -55,6 +55,20 @@ export function useFoods({
     });
   };
 
+  const updateFood = async (id: string, patch: Partial<Pick<Food, "type" | "attributes" | "notes" | "title">>) => {
+    const next = modifyItemById(data?.foods || [], id, (food) => {
+      const merged: Food = { ...food, ...patch };
+      if (Array.isArray(merged.attributes) && merged.attributes.length === 0) {
+        delete merged.attributes;
+      }
+      if (typeof merged.notes === "string" && merged.notes.trim() === "") {
+        delete merged.notes;
+      }
+      return merged;
+    });
+    await addData({ ...data, foods: next });
+  };
+
   const claimFood = (id: string) => {
     if (!currUser) {
       toaster.create({
@@ -98,6 +112,7 @@ export function useFoods({
     addFood,
     addFoodDirect,
     removeFood,
+    updateFood,
     claimFood,
   };
 } 
