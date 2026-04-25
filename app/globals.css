@@ -358,28 +358,191 @@ body {
   color: var(--color-border);
 }
 
+/* ---------- Menu Edit Mode ---------- */
+.menu-edit-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+.menu-edit-toggle {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.menu-edit-toggle:hover {
+  color: var(--color-text);
+  background: var(--color-muted);
+}
+.menu-edit-toggle-active {
+  color: var(--color-brand);
+  border-color: var(--color-brand);
+  background: var(--color-brand-light);
+}
+.menu-edit-toggle-active:hover {
+  color: var(--color-brand-hover);
+  background: var(--color-brand-light);
+}
+
+.menu-row-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.menu-row-wrapper:not(:last-child) .row-editor {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.menu-row-edit {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.menu-row-edit:hover {
+  background: var(--color-muted);
+}
+.menu-row-expanded {
+  background: var(--color-muted);
+}
+
+.menu-row-chevron {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  transition: transform 0.18s ease-out, color 0.15s;
+  transform: rotate(0deg);
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+  margin-right: 2px;
+}
+.menu-row-chevron-open {
+  transform: rotate(90deg);
+  color: var(--color-brand);
+}
+
 .menu-delete {
-  opacity: 0;
-  transition: opacity 0.15s;
+  display: none;
+  transition: color 0.15s, background 0.15s;
   background: transparent;
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: 8px;
   font-size: 14px;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  -webkit-tap-highlight-color: transparent;
 }
-.menu-row:hover .menu-delete {
-  opacity: 1;
+.menu-list-editing .menu-delete {
+  display: inline-flex;
 }
 .menu-delete:hover {
   color: var(--color-warm);
   background: var(--color-warm-light);
 }
 .menu-delete-confirm {
-  opacity: 1;
-  color: var(--color-warm);
+  color: #fff;
+  background: var(--color-warm);
+  padding: 6px 12px;
+  border-radius: 999px;
+  animation: delete-pulse 0.4s ease-out;
+}
+.menu-delete-confirm:hover {
+  background: var(--color-warm);
+  color: #fff;
+  filter: brightness(1.05);
+}
+.menu-delete-confirm-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+@keyframes delete-pulse {
+  0% { transform: scale(0.92); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* ---------- Inline Row Editor ---------- */
+.row-editor {
+  background: var(--color-muted);
+  padding: 0 14px;
+}
+.row-editor-inner {
+  padding: 12px 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px dashed var(--color-border-subtle);
+}
+.row-editor-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.row-editor-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  min-width: 56px;
+  padding-top: 6px;
+  flex-shrink: 0;
+}
+.row-editor-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.row-editor .note-input {
+  flex: 1;
+  background: var(--color-surface);
+}
+
+@media (max-width: 640px) {
+  .menu-row {
+    padding: 12px 14px;
+  }
+  .menu-list-editing .menu-row {
+    padding: 14px 14px;
+  }
+  .menu-delete {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 8px;
+  }
+  .menu-delete-confirm {
+    padding: 8px 14px;
+  }
+  .menu-row-chevron {
+    font-size: 22px;
+  }
+  .row-editor-section {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .row-editor-label {
+    padding-top: 0;
+    min-width: 0;
+  }
+  .row-editor .row-editor-pills .category-pill,
+  .row-editor .row-editor-pills .dietary-tag {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
 }
 
 /* ---------- Compact Guests ---------- */
