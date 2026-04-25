@@ -320,14 +320,49 @@ export function RecipeWizard({
     localStorage.removeItem(getCacheKey(roomId));
   }, [roomId]);
 
+  const wizardRef = useRef<HTMLDivElement | null>(null);
+  const bannerRef = useRef<HTMLDivElement | null>(null);
+  const [bannerVisible, setBannerVisible] = useState(true);
+
+  useEffect(() => {
+    if (phase !== "idle") {
+      setBannerVisible(true);
+      return;
+    }
+    const el = bannerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setBannerVisible(entry.isIntersecting),
+      { threshold: 0.4 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [phase]);
+
+  const handleStickyTap = useCallback(() => {
+    handleStart();
+    requestAnimationFrame(() => {
+      wizardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [handleStart]);
+
+  const stickyVisible = phase === "idle" && !bannerVisible;
+  // Reserve page bottom padding so the fixed CTA doesn't obscure content beneath it.
+  useEffect(() => {
+    if (!stickyVisible) return;
+    document.body.classList.add("has-recipe-sticky-cta");
+    return () => document.body.classList.remove("has-recipe-sticky-cta");
+  }, [stickyVisible]);
+
   if (!currUser || myDishes.length === 0) return null;
 
   return (
-    <div className="recipe-wizard">
+    <div className="recipe-wizard" ref={wizardRef}>
       <AnimatePresence mode="wait" initial={false}>
         {phase === "idle" ? (
           <motion.div
             key="banner"
+            ref={bannerRef}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -426,6 +461,32 @@ export function RecipeWizard({
               />
             )}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {stickyVisible && (
+          <motion.button
+            key="sticky-cta"
+            className="recipe-sticky-cta"
+            onClick={handleStickyTap}
+            initial={{ y: "120%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "120%", opacity: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 32 }}
+            aria-label="Get recipes and shopping list for your dishes"
+          >
+            <span className="recipe-sticky-cta-emoji" aria-hidden="true">👩‍🍳</span>
+            <span className="recipe-sticky-cta-content">
+              <span className="recipe-sticky-cta-title">Get recipes & shopping list</span>
+              <span className="recipe-sticky-cta-subtitle">
+                {myDishes.length === 1
+                  ? "for your dish"
+                  : `for your ${myDishes.length} dishes`}
+              </span>
+            </span>
+            <span className="recipe-sticky-cta-arrow" aria-hidden="true">→</span>
+          </motion.button>
         )}
       </AnimatePresence>
     </div>
