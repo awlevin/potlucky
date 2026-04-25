@@ -1764,6 +1764,10 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
 }
 @media (min-width: 480px) {
   .preset-picker-grid {
