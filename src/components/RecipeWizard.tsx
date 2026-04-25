@@ -14,6 +14,7 @@ import { DishRow } from "./DishRow";
 import { ShoppingList } from "./ShoppingList";
 import { aggregateShoppingItems } from "@/lib/shoppingList";
 import { readStreamToString, parseJsonLoose } from "@/lib/streamJson";
+import { pickRandomLoadingMessage } from "@/lib/loadingMessages";
 
 type Phase = "idle" | "picking" | "cooking";
 
@@ -108,6 +109,8 @@ export function RecipeWizard({
     if (Object.keys(cached.options).length) return "picking";
     return "idle";
   });
+
+  const [cookingHeaderMessage] = useState(pickRandomLoadingMessage);
 
   const [dishOptions, setDishOptions] = useState<Record<string, RecipeOption[]>>(
     () => cached?.options ?? {}
@@ -363,7 +366,7 @@ export function RecipeWizard({
                   <span className="recipe-header-status">generating options…</span>
                 )}
                 {phase === "cooking" && anyRecipeLoading && (
-                  <span className="recipe-header-status">cooking up details…</span>
+                  <span className="recipe-header-status">{cookingHeaderMessage}</span>
                 )}
               </h3>
               <button className="btn-ghost recipe-reset-link" onClick={handleReset}>

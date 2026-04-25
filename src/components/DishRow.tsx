@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecipeOption, RecipeResult, User } from "@/types";
+import { pickRandomLoadingMessage } from "@/lib/loadingMessages";
 import { RecipeDetail } from "./RecipeDetail";
 
 const tierLabels = ["Quick & Easy", "Balanced", "Impressive"];
@@ -193,6 +194,7 @@ function CookingPlaceholder({
   option: RecipeOption | undefined;
   selectedIdx: number | null;
 }) {
+  const [loadingMessage] = useState(pickRandomLoadingMessage);
   if (!option) {
     return (
       <div className="recipe-cooking-placeholder">
@@ -225,7 +227,7 @@ function CookingPlaceholder({
       <div className="recipe-cooking-name">{option.name}</div>
       <div className="recipe-cooking-status">
         <span className="recipe-cooking-spoon">🥄</span>
-        <span>Stirring in the details…</span>
+        <span>{loadingMessage}</span>
       </div>
       <div className="recipe-skeleton-block" />
     </motion.div>
