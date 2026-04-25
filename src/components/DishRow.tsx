@@ -250,6 +250,17 @@ export function DishRow({
   const selectedOption =
     selectedIdx !== null && options ? options[selectedIdx] : undefined;
 
+  const eligibilityNode = (
+    <EligibilityIndicator
+      eligibleUsers={eligibleUsers}
+      ineligibleUsers={ineligibleUsers}
+    />
+  );
+
+  // When a recipe is loaded, the recipe card carries the dish title in its eyebrow,
+  // so the outer dish-header would just duplicate it. Skip it then.
+  const recipeLoaded = phase === "cooking" && !!recipe;
+
   return (
     <motion.div
       layout
@@ -258,13 +269,12 @@ export function DishRow({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: dishIndex * 0.08, duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      <div className="recipe-dish-header">
-        <h4 className="recipe-dish-title">{dishTitle}</h4>
-        <EligibilityIndicator
-          eligibleUsers={eligibleUsers}
-          ineligibleUsers={ineligibleUsers}
-        />
-      </div>
+      {!recipeLoaded && (
+        <div className="recipe-dish-header">
+          <h4 className="recipe-dish-title">{dishTitle}</h4>
+          {eligibilityNode}
+        </div>
+      )}
 
       <AnimatePresence mode="wait" initial={false}>
         {phase === "picking" ? (
@@ -309,7 +319,7 @@ export function DishRow({
                 </button>
               </div>
             ) : recipe ? (
-              <RecipeDetail recipe={recipe} index={0} />
+              <RecipeDetail recipe={recipe} index={0} eligibility={eligibilityNode} />
             ) : (
               <CookingPlaceholder option={selectedOption} selectedIdx={selectedIdx} />
             )}
