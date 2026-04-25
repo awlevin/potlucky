@@ -195,8 +195,13 @@ body {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 18px;
   box-shadow: var(--shadow-sm);
+}
+@media (min-width: 480px) {
+  .card {
+    padding: 24px;
+  }
 }
 
 /* ---------- Empty State ---------- */
@@ -353,28 +358,191 @@ body {
   color: var(--color-border);
 }
 
+/* ---------- Menu Edit Mode ---------- */
+.menu-edit-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+.menu-edit-toggle {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.menu-edit-toggle:hover {
+  color: var(--color-text);
+  background: var(--color-muted);
+}
+.menu-edit-toggle-active {
+  color: var(--color-brand);
+  border-color: var(--color-brand);
+  background: var(--color-brand-light);
+}
+.menu-edit-toggle-active:hover {
+  color: var(--color-brand-hover);
+  background: var(--color-brand-light);
+}
+
+.menu-row-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.menu-row-wrapper:not(:last-child) .row-editor {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.menu-row-edit {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.menu-row-edit:hover {
+  background: var(--color-muted);
+}
+.menu-row-expanded {
+  background: var(--color-muted);
+}
+
+.menu-row-chevron {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  transition: transform 0.18s ease-out, color 0.15s;
+  transform: rotate(0deg);
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+  margin-right: 2px;
+}
+.menu-row-chevron-open {
+  transform: rotate(90deg);
+  color: var(--color-brand);
+}
+
 .menu-delete {
-  opacity: 0;
-  transition: opacity 0.15s;
+  display: none;
+  transition: color 0.15s, background 0.15s;
   background: transparent;
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: 8px;
   font-size: 14px;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  -webkit-tap-highlight-color: transparent;
 }
-.menu-row:hover .menu-delete {
-  opacity: 1;
+.menu-list-editing .menu-delete {
+  display: inline-flex;
 }
 .menu-delete:hover {
   color: var(--color-warm);
   background: var(--color-warm-light);
 }
 .menu-delete-confirm {
-  opacity: 1;
-  color: var(--color-warm);
+  color: #fff;
+  background: var(--color-warm);
+  padding: 6px 12px;
+  border-radius: 999px;
+  animation: delete-pulse 0.4s ease-out;
+}
+.menu-delete-confirm:hover {
+  background: var(--color-warm);
+  color: #fff;
+  filter: brightness(1.05);
+}
+.menu-delete-confirm-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+@keyframes delete-pulse {
+  0% { transform: scale(0.92); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* ---------- Inline Row Editor ---------- */
+.row-editor {
+  background: var(--color-muted);
+  padding: 0 14px;
+}
+.row-editor-inner {
+  padding: 12px 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px dashed var(--color-border-subtle);
+}
+.row-editor-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.row-editor-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  min-width: 56px;
+  padding-top: 6px;
+  flex-shrink: 0;
+}
+.row-editor-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.row-editor .note-input {
+  flex: 1;
+  background: var(--color-surface);
+}
+
+@media (max-width: 640px) {
+  .menu-row {
+    padding: 12px 14px;
+  }
+  .menu-list-editing .menu-row {
+    padding: 14px 14px;
+  }
+  .menu-delete {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 8px;
+  }
+  .menu-delete-confirm {
+    padding: 8px 14px;
+  }
+  .menu-row-chevron {
+    font-size: 22px;
+  }
+  .row-editor-section {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .row-editor-label {
+    padding-top: 0;
+    min-width: 0;
+  }
+  .row-editor .row-editor-pills .category-pill,
+  .row-editor .row-editor-pills .dietary-tag {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
 }
 
 /* ---------- Compact Guests ---------- */
@@ -498,7 +666,7 @@ body {
 .room-container {
   max-width: 640px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1.25rem 1rem 2rem;
 }
 @media (min-width: 640px) {
   .room-container {
@@ -1060,6 +1228,19 @@ body {
   text-align: center;
 }
 
+.event-header-name {
+  text-align: center;
+  margin-bottom: 8px;
+}
+.event-header-name-untitled {
+  opacity: 0.65;
+  letter-spacing: 0.01em;
+}
+.event-header-name-untitled :where(.chakra-editable__preview, [data-part="preview"]) {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
 .event-header-details {
   display: flex;
   flex-direction: column;
@@ -1109,46 +1290,294 @@ body {
   text-align: center;
 }
 
-/* Native date picker on touch devices — the button shows a pretty label,
-   the real <input type="date"> is layered transparently on top so tapping
-   anywhere in the field opens the OS-native picker. */
-.event-header-native-date {
+/* event-header-footer removed — guests + share now in event-header-guests */
+
+/* ---------- Date Picker ---------- */
+.datepicker {
   position: relative;
   display: inline-flex;
+}
+
+.datepicker-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  color: var(--color-text-secondary);
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.datepicker-trigger:hover {
+  background: var(--color-border-subtle);
+  color: var(--color-text);
+}
+.datepicker-trigger[data-empty="true"] {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.datepicker-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: 304px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 14px;
+  text-align: left;
+  transform-origin: top center;
+}
+@media (max-width: 480px) {
+  .datepicker-panel {
+    position: fixed;
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    transform: none;
+    transform-origin: bottom center;
+  }
+}
+
+.datepicker-header {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.event-header-native-date-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  border: 0;
-  padding: 0;
-  margin: 0;
+.datepicker-month {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+.datepicker-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
   background: transparent;
-  color: transparent;
+  color: var(--color-text-secondary);
+  border-radius: 8px;
   cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-  /* Hide the native text/indicator — we only want the OS picker UI */
-  font-size: 16px; /* prevents iOS zoom-on-focus */
+  font-size: 16px;
+  transition: all 0.15s;
+}
+.datepicker-nav:hover {
+  background: var(--color-border-subtle);
+  color: var(--color-text);
 }
 
-.event-header-native-date-input::-webkit-date-and-time-value {
-  opacity: 0;
+.datepicker-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
 }
-.event-header-native-date-input::-webkit-calendar-picker-indicator {
-  opacity: 0;
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
+.datepicker-weekday {
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 6px 0;
 }
 
-/* event-header-footer removed — guests + share now in event-header-guests */
+.datepicker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.datepicker-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.datepicker-day:hover {
+  background: var(--color-brand-light);
+  color: var(--color-text);
+}
+.datepicker-day[data-outside="true"] {
+  color: var(--color-text-muted);
+  opacity: 0.55;
+}
+.datepicker-day[data-today="true"] {
+  font-weight: 700;
+  color: var(--color-brand-hover);
+}
+.datepicker-day[data-selected="true"] {
+  background: var(--color-brand);
+  color: #292524;
+  font-weight: 600;
+}
+.datepicker-day[data-selected="true"]:hover {
+  background: var(--color-brand-hover);
+}
+
+.datepicker-time-row {
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 10px;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.datepicker-time-add {
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-secondary);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.datepicker-time-add:hover {
+  border-color: var(--color-brand);
+  background: var(--color-brand-light);
+  color: var(--color-text);
+}
+
+.datepicker-time-edit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  color: var(--color-text);
+}
+.datepicker-time-label {
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-right: 4px;
+}
+.datepicker-time-input {
+  width: 32px;
+  text-align: center;
+  background: var(--color-canvas);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 4px 0;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 14px; /* avoid iOS zoom-on-focus */
+  outline: none;
+  transition: border-color 0.15s;
+}
+.datepicker-time-input:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(232, 168, 23, 0.15);
+}
+.datepicker-time-colon {
+  color: var(--color-text-muted);
+}
+
+.datepicker-meridiem {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-left: 4px;
+}
+.datepicker-meridiem-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.datepicker-meridiem-btn[data-active="true"] {
+  background: var(--color-brand);
+  color: #292524;
+}
+
+.datepicker-time-remove {
+  margin-left: 4px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.datepicker-time-remove:hover {
+  background: var(--color-border-subtle);
+  color: var(--color-warm);
+}
+
+.datepicker-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 10px;
+  padding-top: 10px;
+}
+.datepicker-spacer {
+  flex: 1;
+}
+.datepicker-link {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.datepicker-link:hover {
+  background: var(--color-border-subtle);
+  color: var(--color-text);
+}
+.datepicker-link-danger {
+  color: var(--color-warm);
+}
+.datepicker-link-danger:hover {
+  background: var(--color-warm-light);
+}
+
+.datepicker-preview {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-style: italic;
+}
 
 /* ---------- Editable (Chakra component overrides) ---------- */
 [data-scope="editable"] [data-part="preview"] {
@@ -1749,8 +2178,57 @@ body {
 .preset-picker {
   border: 2px dashed var(--color-border);
   border-radius: var(--radius);
+  margin-bottom: 12px;
+  transition: padding 0.2s ease;
+}
+.preset-picker-collapsed {
+  padding: 4px;
+}
+.preset-picker-expanded {
   padding: 16px;
-  margin-bottom: 16px;
+}
+
+/* Collapsed trigger — single tap target that expands the grid */
+.preset-picker-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius) - 4px);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--color-text);
+  transition: background 0.15s ease;
+}
+.preset-picker-trigger:hover {
+  background: var(--color-border-subtle);
+}
+.preset-picker-trigger:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+.preset-picker-trigger-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+.preset-picker-trigger-emoji {
+  font-size: 16px;
+  line-height: 1;
+}
+.preset-picker-trigger-chevron {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  transform: translateY(-1px);
 }
 
 .preset-picker-header {
@@ -1764,6 +2242,10 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
 }
 @media (min-width: 480px) {
   .preset-picker-grid {
@@ -1908,6 +2390,81 @@ body {
   transform: translateX(3px);
 }
 
+/* ---------- Mobile Sticky CTA ---------- */
+/* Sticky bottom entry to the recipe wizard on mobile, shown when the in-flow banner is offscreen. */
+.recipe-sticky-cta {
+  display: none;
+}
+@media (max-width: 767px) {
+  .recipe-sticky-cta {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    width: 100%;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    border: none;
+    border-top: 1.5px solid var(--color-recipe-warm);
+    background: var(--color-recipe-warm-light);
+    box-shadow: 0 -8px 24px rgba(199, 91, 57, 0.18);
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .recipe-sticky-cta:active {
+    background: color-mix(in srgb, var(--color-recipe-warm-light) 88%, var(--color-recipe-warm));
+  }
+  .recipe-sticky-cta-emoji {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    font-size: 20px;
+    line-height: 1;
+  }
+  .recipe-sticky-cta-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .recipe-sticky-cta-title {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--color-recipe-brown);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .recipe-sticky-cta-subtitle {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.25;
+  }
+  .recipe-sticky-cta-arrow {
+    flex-shrink: 0;
+    font-size: 18px;
+    color: var(--color-recipe-warm);
+    font-weight: 600;
+  }
+  body.has-recipe-sticky-cta {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* ---------- Loading State ---------- */
 .recipe-loading {
   display: flex;
@@ -1962,13 +2519,16 @@ body {
 
 /* ---------- Dish Group ---------- */
 .recipe-dish-group {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
+}
+.recipe-dish-group:last-child {
+  margin-bottom: 0;
 }
 .recipe-dish-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   gap: 12px;
 }
 .recipe-dish-title {
@@ -2221,9 +2781,21 @@ body {
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  margin-bottom: 12px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+}
+/* Eyebrow row carries the dish title + eligibility chip so the outer dish-header
+   doesn't have to duplicate them above the card. */
+.recipe-detail-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 18px 0;
+  background: var(--color-recipe-cream);
+}
+.recipe-detail-eyebrow + .recipe-detail-header {
+  padding-top: 6px;
 }
 .recipe-detail-header {
   display: flex;

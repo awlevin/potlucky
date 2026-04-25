@@ -92,6 +92,7 @@ export default function Room() {
     addFood,
     addFoodDirect,
     removeFood,
+    updateFood,
     claimFood,
   } = useFoods({
     data,
@@ -215,6 +216,7 @@ export default function Room() {
                     foods={data.foods}
                     claimFood={claimFood}
                     removeFood={removeFood}
+                    updateFood={updateFood}
                     users={data?.users}
                     currUser={currUser}
                   />

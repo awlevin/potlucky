@@ -1,29 +1,34 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { LuTrash2 } from "react-icons/lu";
 import { Food, User } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 
-const ATTRIBUTE_BADGES: Record<NonNullable<Food["attributes"]>[number], { emoji: string; label: string }> = {
-  vegetarian: { emoji: "\u{1F331}", label: "Vegetarian" },
-  vegan: { emoji: "\u{1F33F}", label: "Vegan" },
-  "gluten-free": { emoji: "GF", label: "Gluten-free" },
-  "nut-free": { emoji: "\u{1F95C}\u2715", label: "Nut-free" },
-  "dairy-free": { emoji: "\u{1F95B}\u2715", label: "Dairy-free" },
+const ATTRIBUTE_BADGES: Record<NonNullable<Food["attributes"]>[number], { emoji: string; label: string; pillLabel: string }> = {
+  vegetarian: { emoji: "\u{1F331}", label: "Vegetarian", pillLabel: "🌱 Veg" },
+  vegan: { emoji: "\u{1F33F}", label: "Vegan", pillLabel: "🌿 Vegan" },
+  "gluten-free": { emoji: "GF", label: "Gluten-free", pillLabel: "GF" },
+  "nut-free": { emoji: "\u{1F95C}\u2715", label: "Nut-free", pillLabel: "🥜✕" },
+  "dairy-free": { emoji: "\u{1F95B}\u2715", label: "Dairy-free", pillLabel: "🥛✕" },
 };
 
-const CATEGORY_ORDER: { key: NonNullable<Food["type"]>; label: string; emoji: string }[] = [
-  { key: "appetizer", label: "Appetizers", emoji: "🥗" },
-  { key: "main", label: "Mains", emoji: "🍖" },
-  { key: "side", label: "Sides", emoji: "🥘" },
-  { key: "dessert", label: "Desserts", emoji: "🍰" },
-  { key: "drink", label: "Drinks", emoji: "🥤" },
+const CATEGORY_ORDER: { key: NonNullable<Food["type"]>; label: string; pillLabel: string; emoji: string }[] = [
+  { key: "appetizer", label: "Appetizers", pillLabel: "Appetizer", emoji: "🥗" },
+  { key: "main", label: "Mains", pillLabel: "Main", emoji: "🍖" },
+  { key: "side", label: "Sides", pillLabel: "Side", emoji: "🥘" },
+  { key: "dessert", label: "Desserts", pillLabel: "Dessert", emoji: "🍰" },
+  { key: "drink", label: "Drinks", pillLabel: "Drink", emoji: "🥤" },
 ];
 
 interface FoodListProps {
   foods: Food[];
   claimFood: (id: string) => void;
   removeFood: (id: string) => void;
+  updateFood?: (
+    id: string,
+    patch: Partial<Pick<Food, "type" | "attributes" | "notes" | "title">>
+  ) => void;
   users: User[] | undefined;
   currUser: User | undefined;
 }
@@ -32,9 +37,13 @@ export const FoodList = ({
   foods,
   claimFood,
   removeFood,
+  updateFood,
   users,
   currUser,
 }: FoodListProps) => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+
   // Group foods by category
   const grouped = CATEGORY_ORDER.map(({ key, label, emoji }) => ({
     key,
@@ -64,9 +73,27 @@ export const FoodList = ({
   const usedAttributes = new Set<string>();
   foods.forEach((f) => f.attributes?.forEach((a) => usedAttributes.add(a)));
 
+  const toggleEditMode = () => {
+    setIsEditMode((prev) => {
+      const next = !prev;
+      if (!next) setExpandedRowId(null);
+      return next;
+    });
+  };
+
   return (
     <div>
-      <div className="menu-list">
+      <div className={`menu-list ${isEditMode ? "menu-list-editing" : ""}`}>
+        <div className="menu-edit-toggle-row">
+          <button
+            type="button"
+            className={`menu-edit-toggle ${isEditMode ? "menu-edit-toggle-active" : ""}`}
+            onClick={toggleEditMode}
+            aria-pressed={isEditMode}
+          >
+            {isEditMode ? "Done" : "Edit"}
+          </button>
+        </div>
         {grouped.map((group) => (
           <div key={group.key} className="menu-group">
             <div className="menu-group-header">
@@ -98,9 +125,15 @@ export const FoodList = ({
                       food={food}
                       claimFood={claimFood}
                       removeFood={removeFood}
+                      updateFood={updateFood}
                       claimers={claimers}
                       isMine={isMine}
                       currUser={currUser}
+                      isEditMode={isEditMode}
+                      isExpanded={expandedRowId === food.id}
+                      onToggleExpand={() =>
+                        setExpandedRowId((curr) => (curr === food.id ? null : food.id))
+                      }
                     />
                   </motion.div>
                 );
@@ -130,36 +163,57 @@ interface MenuRowProps {
   food: Food;
   claimFood: (id: string) => void;
   removeFood: (id: string) => void;
+  updateFood?: (
+    id: string,
+    patch: Partial<Pick<Food, "type" | "attributes" | "notes" | "title">>
+  ) => void;
   claimers: User[];
   isMine: boolean;
   currUser: User | undefined;
+  isEditMode: boolean;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }
 
 const MenuRow = ({
   food,
   claimFood,
   removeFood,
+  updateFood,
   claimers,
   isMine,
   currUser,
+  isEditMode,
+  isExpanded,
+  onToggleExpand,
 }: MenuRowProps) => {
-  const [isClicked, setIsClicked] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   useEffect(() => {
-    if (isClicked) {
-      const timer = setTimeout(() => {
-        setIsClicked(false);
-      }, 2000);
+    if (!isEditMode) setIsConfirmingDelete(false);
+  }, [isEditMode]);
+
+  useEffect(() => {
+    if (isConfirmingDelete) {
+      const timer = setTimeout(() => setIsConfirmingDelete(false), 2200);
       return () => clearTimeout(timer);
     }
-  }, [isClicked]);
+  }, [isConfirmingDelete]);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isClicked) {
-      setIsClicked(true);
+    if (!isConfirmingDelete) {
+      setIsConfirmingDelete(true);
     } else {
       removeFood(food.id);
+    }
+  };
+
+  const handleRowActivate = () => {
+    if (isEditMode) {
+      onToggleExpand();
+    } else {
+      claimFood(food.id);
     }
   };
 
@@ -169,6 +223,8 @@ const MenuRow = ({
     "menu-row",
     isMine ? "menu-row-mine" : "",
     isUnclaimed ? "menu-row-unclaimed" : "",
+    isEditMode ? "menu-row-edit" : "",
+    isExpanded ? "menu-row-expanded" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -182,52 +238,210 @@ const MenuRow = ({
   claimerParts.sort((a, b) => (a.isYou ? -1 : b.isYou ? 1 : 0));
 
   return (
-    <div
-      className={rowClasses}
-      onClick={() => claimFood(food.id)}
-      role="button"
-      tabIndex={0}
-    >
-      <div className="menu-dish-info">
-        <div className="menu-dish-name">
-          {food.title}
-          {food.attributes?.map((attr) => (
-            <span key={attr} className="food-badge" title={ATTRIBUTE_BADGES[attr]?.label || attr}>
-              {ATTRIBUTE_BADGES[attr]?.emoji || attr}
-            </span>
-          ))}
+    <div className="menu-row-wrapper">
+      <div
+        className={rowClasses}
+        onClick={handleRowActivate}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleRowActivate();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isEditMode ? isExpanded : undefined}
+      >
+        <div className="menu-dish-info">
+          <div className="menu-dish-name">
+            {food.title}
+            {food.attributes?.map((attr) => (
+              <span key={attr} className="food-badge" title={ATTRIBUTE_BADGES[attr]?.label || attr}>
+                {ATTRIBUTE_BADGES[attr]?.emoji || attr}
+              </span>
+            ))}
+          </div>
+          {food.notes && (
+            <div className="menu-dish-note">{food.notes}</div>
+          )}
         </div>
-        {food.notes && (
-          <div className="menu-dish-note">{food.notes}</div>
+
+        {!isEditMode && (
+          isUnclaimed ? (
+            <span className="menu-claimer menu-claimer-none">&mdash;</span>
+          ) : (
+            <span className="menu-claimer">
+              {claimerParts.map((c, i) => (
+                <span key={c.name}>
+                  {i > 0 && <span className="menu-claimer-sep">, </span>}
+                  <span className={c.isYou ? "menu-claimer-you" : "menu-claimer-other"}>
+                    {c.isYou ? "you" : c.name}
+                  </span>
+                </span>
+              ))}
+            </span>
+          )
         )}
+
+        {isEditMode && (
+          <span className={`menu-row-chevron ${isExpanded ? "menu-row-chevron-open" : ""}`} aria-hidden="true">
+            ›
+          </span>
+        )}
+
+        <button
+          aria-label={
+            isConfirmingDelete ? `Confirm delete ${food.title}` : `Remove ${food.title}`
+          }
+          className={`menu-delete ${isConfirmingDelete ? "menu-delete-confirm" : ""}`}
+          onClick={handleDelete}
+          type="button"
+        >
+          {isConfirmingDelete ? (
+            <span className="menu-delete-confirm-label">Tap to delete</span>
+          ) : (
+            <LuTrash2 size={16} aria-hidden="true" />
+          )}
+        </button>
       </div>
 
-      {/* Claimers */}
-      {isUnclaimed ? (
-        <span className="menu-claimer menu-claimer-none">&mdash;</span>
-      ) : (
-        <span className="menu-claimer">
-          {claimerParts.map((c, i) => (
-            <span key={c.name}>
-              {i > 0 && <span className="menu-claimer-sep">, </span>}
-              <span className={c.isYou ? "menu-claimer-you" : "menu-claimer-other"}>
-                {c.isYou ? "you" : c.name}
-              </span>
-            </span>
-          ))}
-        </span>
-      )}
+      <AnimatePresence initial={false}>
+        {isEditMode && isExpanded && (
+          <motion.div
+            key="editor"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            style={{ overflow: "hidden" }}
+          >
+            <RowEditor
+              food={food}
+              onChange={(patch) => updateFood?.(food.id, patch)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
-      {/* Delete button */}
-      <button
-        aria-label={`Remove ${food.title}`}
-        className={`menu-delete ${isClicked ? "menu-delete-confirm" : ""}`}
-        onClick={handleDelete}
-        type="button"
-        title={isClicked ? "Click again to confirm" : `Remove ${food.title}`}
-      >
-        {isClicked ? "\u2713" : "\u00d7"}
-      </button>
+interface RowEditorProps {
+  food: Food;
+  onChange: (patch: Partial<Pick<Food, "type" | "attributes" | "notes" | "title">>) => void;
+}
+
+const RowEditor = ({ food, onChange }: RowEditorProps) => {
+  const [noteDraft, setNoteDraft] = useState(food.notes ?? "");
+  const noteCommitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Latest values for unmount flush (avoids stale closure)
+  const latestNote = useRef(noteDraft);
+  const latestSavedNote = useRef(food.notes ?? "");
+  const onChangeRef = useRef(onChange);
+
+  latestNote.current = noteDraft;
+  latestSavedNote.current = food.notes ?? "";
+  onChangeRef.current = onChange;
+
+  useEffect(() => {
+    setNoteDraft(food.notes ?? "");
+  }, [food.notes]);
+
+  useEffect(() => {
+    return () => {
+      if (noteCommitTimer.current) {
+        clearTimeout(noteCommitTimer.current);
+        noteCommitTimer.current = null;
+      }
+      if (latestNote.current !== latestSavedNote.current) {
+        onChangeRef.current({ notes: latestNote.current });
+      }
+    };
+  }, []);
+
+  const currentAttrs = food.attributes ?? [];
+
+  const toggleAttribute = (key: NonNullable<Food["attributes"]>[number]) => {
+    const next = currentAttrs.includes(key)
+      ? currentAttrs.filter((a) => a !== key)
+      : [...currentAttrs, key];
+    onChange({ attributes: next });
+  };
+
+  const setCategory = (key: NonNullable<Food["type"]>) => {
+    if (food.type === key) return;
+    onChange({ type: key });
+  };
+
+  const handleNoteChange = (value: string) => {
+    setNoteDraft(value);
+    if (noteCommitTimer.current) clearTimeout(noteCommitTimer.current);
+    noteCommitTimer.current = setTimeout(() => {
+      onChange({ notes: value });
+    }, 400);
+  };
+
+  const handleNoteBlur = () => {
+    if (noteCommitTimer.current) {
+      clearTimeout(noteCommitTimer.current);
+      noteCommitTimer.current = null;
+    }
+    if ((noteDraft ?? "") !== (food.notes ?? "")) {
+      onChange({ notes: noteDraft });
+    }
+  };
+
+  return (
+    <div className="row-editor" onClick={(e) => e.stopPropagation()}>
+      <div className="row-editor-inner">
+        <div className="row-editor-section">
+          <span className="row-editor-label">Category</span>
+          <div className="row-editor-pills">
+            {CATEGORY_ORDER.map(({ key, pillLabel }) => (
+              <button
+                key={key}
+                type="button"
+                className={`category-pill ${food.type === key ? "category-pill-selected" : ""}`}
+                onClick={() => setCategory(key)}
+              >
+                {pillLabel}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="row-editor-section">
+          <span className="row-editor-label">Tags</span>
+          <div className="row-editor-pills">
+            {Object.entries(ATTRIBUTE_BADGES).map(([key, { pillLabel }]) => {
+              const k = key as NonNullable<Food["attributes"]>[number];
+              const selected = currentAttrs.includes(k);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className={`dietary-tag ${selected ? "dietary-tag-selected" : ""}`}
+                  onClick={() => toggleAttribute(k)}
+                  aria-pressed={selected}
+                >
+                  {pillLabel}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="row-editor-section">
+          <span className="row-editor-label">Note</span>
+          <input
+            className="input note-input"
+            placeholder="e.g., Homemade, serves 8"
+            value={noteDraft}
+            onChange={(e) => handleNoteChange(e.target.value)}
+            onBlur={handleNoteBlur}
+          />
+        </div>
+      </div>
     </div>
   );
 };

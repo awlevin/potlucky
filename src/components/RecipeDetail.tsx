@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { RecipeResult } from "@/types";
 
 interface RecipeDetailProps {
   recipe: RecipeResult;
   index: number;
+  /** Optional eligibility indicator rendered in the card eyebrow. */
+  eligibility?: ReactNode;
 }
 
-export function RecipeDetail({ recipe, index }: RecipeDetailProps) {
+export function RecipeDetail({ recipe, index, eligibility }: RecipeDetailProps) {
   const [expanded, setExpanded] = useState(true);
 
   return (
@@ -23,13 +25,21 @@ export function RecipeDetail({ recipe, index }: RecipeDetailProps) {
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
     >
+      {eligibility && (
+        <div className="recipe-detail-eyebrow">
+          <span className="recipe-detail-dish-label">{recipe.dishTitle}</span>
+          {eligibility}
+        </div>
+      )}
       <button
         className="recipe-detail-header"
         onClick={() => setExpanded((prev) => !prev)}
         aria-expanded={expanded}
       >
         <div className="recipe-detail-header-left">
-          <span className="recipe-detail-dish-label">{recipe.dishTitle}</span>
+          {!eligibility && (
+            <span className="recipe-detail-dish-label">{recipe.dishTitle}</span>
+          )}
           <span className="recipe-detail-name">{recipe.recipeName}</span>
         </div>
         <div className="recipe-detail-header-right">

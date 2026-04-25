@@ -6,6 +6,7 @@ import {
   claimFoodAction,
   removeFoodAction,
   unclaimFoodAction,
+  updateFoodAction,
 } from "../../app/potlucks/[roomId]/actions";
 import { toaster } from "@/components/ui/toaster";
 import type { Food, IRoomObj } from "@/types";
@@ -62,6 +63,29 @@ export function useFoods({
     [roomId]
   );
 
+  const updateFood = useCallback(
+    async (
+      id: string,
+      patch: Partial<Pick<Food, "type" | "attributes" | "notes" | "title">>
+    ) => {
+      // Translate from the legacy Food shape (string|undefined) to the DAL
+      // shape (string|null). Empty notes / empty attributes collapse to
+      // null/[] so the UI doesn't carry stale "" strings around.
+      const dalPatch: Parameters<typeof updateFoodAction>[2] = {};
+      if (patch.title !== undefined) dalPatch.title = patch.title;
+      if (patch.type !== undefined) dalPatch.type = patch.type ?? null;
+      if (patch.notes !== undefined) {
+        const trimmed = patch.notes.trim();
+        dalPatch.notes = trimmed === "" ? null : trimmed;
+      }
+      if (patch.attributes !== undefined) {
+        dalPatch.attributes = Array.isArray(patch.attributes) ? patch.attributes : [];
+      }
+      await updateFoodAction(roomId, id, dalPatch);
+    },
+    [roomId]
+  );
+
   const claimFood = useCallback(
     async (id: string) => {
       if (!currUser) {
@@ -105,6 +129,7 @@ export function useFoods({
     addFood,
     addFoodDirect,
     removeFood,
+    updateFood,
     claimFood,
   };
 }
