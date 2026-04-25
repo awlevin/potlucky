@@ -8,6 +8,7 @@ import { LuShare2, LuCheck, LuX } from "react-icons/lu";
 import { QRCodeSVG } from "qrcode.react";
 import { IRoomObj, User, DietaryRestriction } from "@/types";
 import { toaster } from "@/components/ui/toaster";
+import { updateRoomMetadataAction } from "../../app/potlucks/[roomId]/actions";
 import { DietaryBadges } from "@/components/IdentityGate";
 import { UserList } from "@/components/UserList";
 import { handleEnterKeyPress } from "@/utils/misc";
@@ -53,7 +54,6 @@ const DIETARY_OPTIONS: { key: DietaryRestriction; label: string; emoji: string }
 
 interface EventHeaderProps {
   data: IRoomObj;
-  addData: (newData: Partial<IRoomObj>) => void;
   currUser?: User;
   identityResolved?: boolean;
   onSwitch?: () => void;
@@ -66,7 +66,6 @@ interface EventHeaderProps {
 
 export function EventHeader({
   data,
-  addData,
   currUser,
   identityResolved,
   onSwitch,
@@ -76,6 +75,17 @@ export function EventHeader({
   setUserInput,
   addUser,
 }: EventHeaderProps) {
+  const updateMeta = async (patch: { name?: string; date?: string; location?: string }) => {
+    try {
+      await updateRoomMetadataAction(data.id, patch);
+    } catch (err) {
+      toaster.create({
+        title: "Couldn't save",
+        description: err instanceof Error ? err.message : "Try signing in.",
+        type: "error",
+      });
+    }
+  };
   const isTouchDevice = useIsTouchDevice();
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
@@ -127,7 +137,7 @@ export function EventHeader({
   };
 
   const changeRoomName = (details: EditableValueChangeDetails) => {
-    addData({ name: details.value });
+    updateMeta({ name: details.value });
   };
 
   const handleCopyLink = async () => {
@@ -145,13 +155,13 @@ export function EventHeader({
   };
 
   const saveDate = () => {
-    addData({ date: dateInput.trim() });
+    updateMeta({ date: dateInput.trim() });
     setIsEditingDate(false);
   };
 
   const handleNativeDatePick = (iso: string) => {
     const formatted = formatPickedDate(iso);
-    addData({ date: formatted });
+    updateMeta({ date: formatted });
   };
 
   const openNativePicker = () => {
@@ -171,7 +181,7 @@ export function EventHeader({
   };
 
   const saveLocation = () => {
-    addData({ location: locationInput.trim() });
+    updateMeta({ location: locationInput.trim() });
     setIsEditingLocation(false);
   };
 

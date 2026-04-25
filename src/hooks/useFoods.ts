@@ -1,96 +1,103 @@
-import { useState } from "react";
-import { nanoid } from "nanoid";
-import { Food, IRoomObj } from "@/types";
-import { modifyItemById } from "@/utils/modifyItemById";
+"use client";
+
+import { useCallback, useState } from "react";
+import {
+  addFoodAction,
+  claimFoodAction,
+  removeFoodAction,
+  unclaimFoodAction,
+} from "../../app/potlucks/[roomId]/actions";
 import { toaster } from "@/components/ui/toaster";
+import type { Food, IRoomObj } from "@/types";
 
 interface UseFoodsProps {
   data: IRoomObj | null;
-  addData: (data: Partial<IRoomObj>) => Promise<void>;
   currUser: IRoomObj["users"][0] | undefined;
+  roomId: string;
   hasClaimedFoodBefore: boolean;
   setHasClaimedFoodBefore: (value: boolean) => void;
 }
 
 export function useFoods({
   data,
-  addData,
   currUser,
+  roomId,
   hasClaimedFoodBefore,
   setHasClaimedFoodBefore,
 }: UseFoodsProps) {
   const [foodInput, setFoodInput] = useState("");
 
-  const addFood = async (type?: Food["type"], attributes?: Food["attributes"], notes?: string) => {
-    setFoodInput("");
-    await addData({
-      ...data,
-      foods: [
-        ...(data?.foods || []),
-        {
-          id: nanoid(5),
-          title: foodInput,
-          ...(type ? { type } : {}),
-          ...(attributes && attributes.length > 0 ? { attributes } : {}),
-          ...(notes ? { notes } : {}),
-        } as Food,
-      ],
-    });
-  };
-
-  const addFoodDirect = async (title: string, type?: Food["type"]) => {
-    await addData({
-      ...data,
-      foods: [
-        ...(data?.foods || []),
-        { id: nanoid(5), title, ...(type ? { type } : {}) } as Food,
-      ],
-    });
-  };
-
-  const removeFood = async (id: string) => {
-    await addData({
-      ...data,
-      foods: data?.foods?.filter((food) => food.id !== id),
-    });
-  };
-
-  const claimFood = (id: string) => {
-    if (!currUser) {
-      toaster.create({
-        description: "Pick a user first!",
-        type: "error",
+  const addFood = useCallback(
+    async (
+      type?: Food["type"],
+      attributes?: Food["attributes"],
+      notes?: string
+    ) => {
+      const title = foodInput.trim();
+      if (!title) return;
+      setFoodInput("");
+      await addFoodAction(roomId, {
+        title,
+        type: type ?? null,
+        notes: notes ?? null,
+        attributes: attributes ?? [],
       });
-      return;
-    }
+    },
+    [foodInput, roomId]
+  );
 
-    const newFoods = modifyItemById(data?.foods || [], id, (food) => {
-      // Normalize claimedBy to array
-      const current = Array.isArray(food.claimedBy)
+  const addFoodDirect = useCallback(
+    async (title: string, type?: Food["type"]) => {
+      const t = title.trim();
+      if (!t) return;
+      await addFoodAction(roomId, { title: t, type: type ?? null });
+    },
+    [roomId]
+  );
+
+  const removeFood = useCallback(
+    async (id: string) => {
+      await removeFoodAction(roomId, id);
+    },
+    [roomId]
+  );
+
+  const claimFood = useCallback(
+    async (id: string) => {
+      if (!currUser) {
+        toaster.create({ description: "Sign in to claim a dish.", type: "error" });
+        return;
+      }
+      const food = data?.foods?.find((f) => f.id === id);
+      if (!food) return;
+
+      const claimers = Array.isArray(food.claimedBy)
         ? food.claimedBy
         : food.claimedBy
         ? [food.claimedBy]
         : [];
+      const alreadyMine = claimers.includes(currUser.id);
 
-      const alreadyClaimed = current.includes(currUser.id);
-      const updated = alreadyClaimed
-        ? current.filter((uid: string) => uid !== currUser.id)
-        : [...current, currUser.id];
+      // Single-claim semantics in Supabase: a dish can have at most one
+      // claimer. If someone else has it, do nothing (the FoodList button
+      // should be visually disabled).
+      if (claimers.length > 0 && !alreadyMine) {
+        toaster.create({
+          description: "Already claimed by someone else.",
+          type: "info",
+        });
+        return;
+      }
 
-      return {
-        ...food,
-        claimedBy: updated.length === 0 ? null : updated,
-      };
-    });
-
-    if (!hasClaimedFoodBefore) {
-      setHasClaimedFoodBefore(true);
-    }
-    addData({
-      ...data,
-      foods: newFoods,
-    });
-  };
+      if (alreadyMine) {
+        await unclaimFoodAction(roomId, id);
+      } else {
+        await claimFoodAction(roomId, id);
+        if (!hasClaimedFoodBefore) setHasClaimedFoodBefore(true);
+      }
+    },
+    [currUser, data?.foods, hasClaimedFoodBefore, setHasClaimedFoodBefore, roomId]
+  );
 
   return {
     foodInput,
@@ -100,4 +107,4 @@ export function useFoods({
     removeFood,
     claimFood,
   };
-} 
+}

@@ -86,6 +86,31 @@ export async function unclaimFoodAction(roomId: string, foodId: string) {
   revalidatePath(`/potlucks/${roomId}`);
 }
 
+// Convenience action: apply a preset (sets name/date if not already set,
+// inserts a batch of foods). Used by PresetPicker when an empty room
+// applies one of the canonical templates.
+export async function applyPresetAction(
+  roomId: string,
+  input: { foods?: AddFoodInput[]; name?: string; date?: string }
+) {
+  await requireUser();
+  const r = repo();
+  const meta: RoomMetadataPatch = {};
+  if (input.name !== undefined) meta.name = input.name;
+  if (input.date !== undefined) meta.date = input.date;
+  if (Object.keys(meta).length) await r.updateRoomMetadata(roomId, meta);
+  if (input.foods?.length) {
+    for (const food of input.foods) {
+      try {
+        await r.addFood(roomId, food);
+      } catch (err) {
+        console.error("[applyPresetAction] food insert failed", err);
+      }
+    }
+  }
+  revalidatePath(`/potlucks/${roomId}`);
+}
+
 const COLORS = [
   "#E8A817",
   "#4EA24E",

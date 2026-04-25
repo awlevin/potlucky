@@ -1,11 +1,13 @@
 "use client";
 import { useParams, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Food } from "@/types";
 import dynamic from "next/dynamic";
 import { useUsers } from "@/hooks/useUsers";
 import { useFoods } from "@/hooks/useFoods";
-import { useRealtimeData } from "@/lib/firebase/firestore/brains";
+import { useRoom } from "@/hooks/useRoom";
+import { publicRoomToLegacy } from "@/lib/data/legacy-shim";
+import { applyPresetAction } from "./actions";
 import { handleEnterKeyPress } from "@/utils/misc";
 import { ISetPrevRoomProps } from "@/components/SetPreviousRooms";
 import { FoodList } from "@/components/FoodList";
@@ -21,7 +23,6 @@ import {
   type ClaimedDish,
 } from "@/components/gallery/PostEventUploadPrompt";
 import { featureFlags } from "@/lib/featureFlags";
-import { IRoomObj } from "@/types";
 
 const SetPrevRooms = dynamic<ISetPrevRoomProps>(
   () =>
@@ -53,11 +54,8 @@ function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const searchParams = useSearchParams();
-  const {
-    data,
-    loading: loadingRoom,
-    updateData: addData,
-  } = useRealtimeData<IRoomObj>("rooms", roomId);
+  const { room, loading: loadingRoom } = useRoom(roomId);
+  const data = useMemo(() => (room ? publicRoomToLegacy(room) : null), [room]);
 
   const [hasClaimedFoodBefore, setHasClaimedFoodBefore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Food["type"]>("main");
@@ -75,7 +73,7 @@ export default function Room() {
     removeUser,
     addUser,
     updateDietary,
-  } = useUsers({ data, addData, roomId });
+  } = useUsers({ data, roomId });
 
   const {
     foodInput,
@@ -86,8 +84,8 @@ export default function Room() {
     claimFood,
   } = useFoods({
     data,
-    addData,
     currUser,
+    roomId,
     hasClaimedFoodBefore,
     setHasClaimedFoodBefore,
   });
@@ -163,7 +161,6 @@ export default function Room() {
             {data && (
               <EventHeader
                 data={data}
-                addData={addData}
                 currUser={currUser}
                 identityResolved={identityResolved}
                 onSwitch={switchIdentity}
@@ -192,10 +189,17 @@ export default function Room() {
               ) : (
                 <PresetPicker
                   onApply={(foods, name, date) => {
-                    const updates: Record<string, unknown> = { foods };
-                    if (name && !data?.name) updates.name = name;
-                    if (date && !data?.date) updates.date = date;
-                    addData(updates);
+                    const presetFoods = foods.map((f) => ({
+                      title: f.title,
+                      type: f.type ?? null,
+                      notes: f.notes ?? null,
+                      attributes: f.attributes ?? [],
+                    }));
+                    applyPresetAction(roomId, {
+                      foods: presetFoods,
+                      ...(name && !data?.name ? { name } : {}),
+                      ...(date && !data?.date ? { date } : {}),
+                    }).catch((err) => console.error("[applyPreset]", err));
                   }}
                   hostName={primaryHostName}
                   viewerIsHost={viewerIsHost}
