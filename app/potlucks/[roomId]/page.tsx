@@ -5,7 +5,9 @@ import { Food } from "@/types";
 import dynamic from "next/dynamic";
 import { useUsers } from "@/hooks/useUsers";
 import { useFoods } from "@/hooks/useFoods";
-import { useRoom } from "@/hooks/useRoom";
+import { useRoom, useRoomWithLocation } from "@/hooks/useRoom";
+import { useAuth } from "@/components/AuthProvider";
+import { AuthPrompt } from "@/components/AuthPrompt";
 import { publicRoomToLegacy } from "@/lib/data/legacy-shim";
 import { applyPresetAction } from "./actions";
 import { handleEnterKeyPress } from "@/utils/misc";
@@ -54,8 +56,17 @@ function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const searchParams = useSearchParams();
+  const { user, isLoading: authLoading } = useAuth();
   const { room, loading: loadingRoom } = useRoom(roomId);
-  const data = useMemo(() => (room ? publicRoomToLegacy(room) : null), [room]);
+  // The location-bearing fetch only succeeds for members; for non-members
+  // the public-view fetch (useRoom) already drives the UI.
+  const { room: memberRoom } = useRoomWithLocation(roomId);
+  const data = useMemo(() => {
+    if (!room) return null;
+    const legacy = publicRoomToLegacy(room);
+    if (memberRoom?.location) legacy.location = memberRoom.location;
+    return legacy;
+  }, [room, memberRoom]);
 
   const [hasClaimedFoodBefore, setHasClaimedFoodBefore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Food["type"]>("main");
@@ -116,13 +127,35 @@ export default function Room() {
         }
       />
 
-      {showIdentityGate && (
-        <IdentityGate
-          users={data?.users || []}
-          hostIds={data?.hostIds}
-          onSelectExisting={selectIdentity}
-          onCreateNew={createAndSelectIdentity}
-        />
+      {showIdentityGate && !authLoading && (
+        user ? (
+          // Signed in but not yet a member — show the existing gate but
+          // hide the legacy "I'm one of these people" picker (user always
+          // joins as themselves; selecting another user would be
+          // impersonation).
+          <IdentityGate
+            users={[]}
+            hostIds={data?.hostIds}
+            onSelectExisting={selectIdentity}
+            onCreateNew={createAndSelectIdentity}
+          />
+        ) : (
+          <div className="identity-overlay">
+            <div className="card identity-card" style={{ textAlign: "center", padding: "32px 28px" }}>
+              <h2 style={{ fontFamily: "var(--font-fraunces), Georgia, serif", fontWeight: 600, fontSize: "1.5rem", marginBottom: "8px" }}>
+                Sign in to join
+              </h2>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.95rem", marginBottom: "20px", lineHeight: 1.5 }}>
+                Drop your number to claim a dish, edit the menu, or see the address.
+              </p>
+              <AuthPrompt
+                message=""
+                next={`/potlucks/${roomId}`}
+                linkLabel="sign in →"
+              />
+            </div>
+          </div>
+        )
       )}
 
       <div className="room-container" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
