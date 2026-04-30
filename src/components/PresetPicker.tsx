@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getEvergreenPresets, presetToFoods, PotluckPreset } from "@/data/presets";
+import { pickEmptyMenuMessage } from "@/lib/emptyMenuMessages";
 import { Food } from "@/types";
 
 interface PresetPickerProps {
@@ -15,14 +16,16 @@ export function PresetPicker({ onApply, hostName, viewerIsHost }: PresetPickerPr
   const [dismissed, setDismissed] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const evergreenPresets = useMemo(() => getEvergreenPresets(), []);
+  // Pick once per render of this component so the copy doesn't reshuffle on
+  // every state change. Locked to whichever bucket matches at first mount;
+  // if hostName/viewerIsHost change later, the message stays put — that's
+  // the same behavior as the recipe loading messages elsewhere in the app.
+  const [emptyMessage] = useState(() =>
+    pickEmptyMenuMessage({ viewerIsHost, hostName }),
+  );
 
   if (dismissed) {
-    const copy = viewerIsHost
-      ? "Nothing on the menu yet — start things off with a dish."
-      : hostName
-        ? `Nothing on the menu yet — be the first to bring something for ${hostName}'s potluck.`
-        : "No dishes yet. Add something delicious!";
-    return <div className="empty-state">{copy}</div>;
+    return <div className="empty-state">{emptyMessage}</div>;
   }
 
   const handleSelect = (preset: PotluckPreset) => {
