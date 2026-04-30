@@ -1,10 +1,14 @@
 "use client"
 
+import { useState } from "react"
+import { pickRandomFooterTagline } from "@/lib/footerTaglines"
+
 export function Footer() {
+  const [tagline] = useState(pickRandomFooterTagline)
   return (
     <footer className="footer">
       <p className="footer-tagline">
-        Made with care for friends who feast together
+        {tagline}
       </p>
       <div className="footer-dot" />
       <p className="footer-copyright">
