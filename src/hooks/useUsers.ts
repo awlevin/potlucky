@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   joinRoomAction,
   leaveRoomAction,
@@ -21,10 +21,23 @@ interface UseUsersProps {
 export function useUsers({ data, roomId }: UseUsersProps) {
   const { user, isLoading: authLoading } = useAuth();
   const [userInput, setUserInput] = useState("");
+  // Local optimistic snapshot for the user's own membership so the UI
+  // dismisses the IdentityGate immediately after Join — without waiting
+  // on the realtime channel to deliver the INSERT (which can lag or drop
+  // during anonymous-auth handshakes). When the realtime catches up,
+  // currUser falls through to the real row.
+  const [optimisticSelf, setOptimisticSelf] = useState<User | null>(null);
 
-  const currUser: User | undefined = user
+  const realCurrUser: User | undefined = user
     ? data?.users?.find((u) => u.id === user.id)
     : undefined;
+
+  const currUser = useMemo<User | undefined>(() => {
+    if (realCurrUser) return realCurrUser;
+    if (optimisticSelf && user && optimisticSelf.id === user.id)
+      return optimisticSelf;
+    return undefined;
+  }, [realCurrUser, optimisticSelf, user]);
 
   // Resolved means: we know whether the visitor is a member yet.
   // - Signed-in member: yes, currUser is populated.
@@ -42,6 +55,14 @@ export function useUsers({ data, roomId }: UseUsersProps) {
     ) => {
       if (!user) return;
       await joinRoomAction(roomId, { displayName: name });
+      // Optimistic seed so the gate dismisses now; the real row arrives
+      // via realtime / next refetch and replaces this stub.
+      setOptimisticSelf({
+        id: user.id,
+        name,
+        ...(dietaryRestrictions?.length ? { dietaryRestrictions } : {}),
+        ...(dietaryNote ? { dietaryNote } : {}),
+      });
       if (dietaryRestrictions?.length || dietaryNote) {
         await updateMemberAction(roomId, {
           dietaryRestrictions: dietaryRestrictions ?? [],
