@@ -257,6 +257,7 @@ export function IdentityGate({
                 className="identity-back-btn"
                 onClick={() => setStep("name")}
                 type="button"
+                aria-label="Back to name step"
               >
                 &larr;
               </button>

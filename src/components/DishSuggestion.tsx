@@ -92,6 +92,7 @@ export function DishSuggestion({ foods, onAdd }: DishSuggestionProps) {
         onClick={handleDismiss}
         type="button"
         style={{ float: "right", fontSize: "16px" }}
+        aria-label="Dismiss suggestion"
       >
         {"\u2715"}
       </button>
