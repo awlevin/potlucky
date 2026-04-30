@@ -12,13 +12,14 @@ import type { DietaryRestriction, IRoomObj, User } from "@/types";
 interface UseUsersProps {
   data: IRoomObj | null;
   roomId: string;
+  refetch?: () => Promise<void>;
 }
 
 // In the Supabase world, identity is auth.user.id. The legacy hook used
 // localStorage + nanoid; we keep the same return shape so the room page
 // doesn't need a rewrite, but most operations now route through server
 // actions and RLS does the gatekeeping.
-export function useUsers({ data, roomId }: UseUsersProps) {
+export function useUsers({ data, roomId, refetch }: UseUsersProps) {
   const { user, isLoading: authLoading } = useAuth();
   const [userInput, setUserInput] = useState("");
   // Local optimistic snapshot for the user's own membership so the UI
@@ -69,8 +70,9 @@ export function useUsers({ data, roomId }: UseUsersProps) {
           dietaryNote: dietaryNote ?? null,
         });
       }
+      await refetch?.();
     },
-    [user, roomId]
+    [user, roomId, refetch]
   );
 
   // Existing-user picker — no longer applicable; identity is the signed-in user.
@@ -87,8 +89,9 @@ export function useUsers({ data, roomId }: UseUsersProps) {
         dietaryRestrictions,
         dietaryNote: dietaryNote ?? null,
       });
+      await refetch?.();
     },
-    [currUser, roomId]
+    [currUser, roomId, refetch]
   );
 
   const switchIdentity = useCallback(async () => {
@@ -105,8 +108,9 @@ export function useUsers({ data, roomId }: UseUsersProps) {
       // Self-leave only for now. Host-evict can come later via a separate action.
       if (currUser?.id !== id) return;
       await leaveRoomAction(roomId);
+      await refetch?.();
     },
-    [currUser, roomId]
+    [currUser, roomId, refetch]
   );
 
   const addUser = useCallback(async () => {
@@ -114,7 +118,8 @@ export function useUsers({ data, roomId }: UseUsersProps) {
     const name = userInput.trim();
     setUserInput("");
     await joinRoomAction(roomId, { displayName: name });
-  }, [user, userInput, roomId]);
+    await refetch?.();
+  }, [user, userInput, roomId, refetch]);
 
   return {
     userInput,

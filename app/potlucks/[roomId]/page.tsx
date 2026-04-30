@@ -57,7 +57,7 @@ export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
-  const { room, loading: loadingRoom } = useRoom(roomId);
+  const { room, loading: loadingRoom, refetch: refetchRoom } = useRoom(roomId);
   // The location-bearing fetch only succeeds for members; for non-members
   // the public-view fetch (useRoom) already drives the UI.
   const { room: memberRoom } = useRoomWithLocation(roomId);
@@ -84,7 +84,7 @@ export default function Room() {
     removeUser,
     addUser,
     updateDietary,
-  } = useUsers({ data, roomId });
+  } = useUsers({ data, roomId, refetch: refetchRoom });
 
   const {
     foodInput,
@@ -100,6 +100,7 @@ export default function Room() {
     roomId,
     hasClaimedFoodBefore,
     setHasClaimedFoodBefore,
+    refetch: refetchRoom,
   });
 
   // Show identity gate if data loaded but identity not yet resolved
@@ -203,6 +204,7 @@ export default function Room() {
                 userInput={userInput}
                 setUserInput={setUserInput}
                 addUser={addUser}
+                refetch={refetchRoom}
               />
             )}
 
@@ -234,7 +236,9 @@ export default function Room() {
                       foods: presetFoods,
                       ...(name && !data?.name ? { name } : {}),
                       ...(date && !data?.date ? { date } : {}),
-                    }).catch((err) => console.error("[applyPreset]", err));
+                    })
+                      .then(() => refetchRoom())
+                      .catch((err) => console.error("[applyPreset]", err));
                   }}
                   hostName={primaryHostName}
                   viewerIsHost={viewerIsHost}

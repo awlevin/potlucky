@@ -38,6 +38,7 @@ interface EventHeaderProps {
   userInput?: string;
   setUserInput?: (v: string) => void;
   addUser?: () => void;
+  refetch?: () => Promise<void>;
 }
 
 export function EventHeader({
@@ -50,10 +51,12 @@ export function EventHeader({
   userInput = "",
   setUserInput,
   addUser,
+  refetch,
 }: EventHeaderProps) {
   const updateMeta = async (patch: { name?: string; date?: string; location?: string }) => {
     try {
       await updateRoomMetadataAction(data.id, patch);
+      await refetch?.();
     } catch (err) {
       toaster.create({
         title: "Couldn't save",
