@@ -17,7 +17,6 @@ interface UseFoodsProps {
   roomId: string;
   hasClaimedFoodBefore: boolean;
   setHasClaimedFoodBefore: (value: boolean) => void;
-  refetch?: () => Promise<void>;
 }
 
 export function useFoods({
@@ -26,7 +25,6 @@ export function useFoods({
   roomId,
   hasClaimedFoodBefore,
   setHasClaimedFoodBefore,
-  refetch,
 }: UseFoodsProps) {
   const [foodInput, setFoodInput] = useState("");
 
@@ -45,9 +43,8 @@ export function useFoods({
         notes: notes ?? null,
         attributes: attributes ?? [],
       });
-      await refetch?.();
     },
-    [foodInput, roomId, refetch]
+    [foodInput, roomId]
   );
 
   const addFoodDirect = useCallback(
@@ -55,17 +52,15 @@ export function useFoods({
       const t = title.trim();
       if (!t) return;
       await addFoodAction(roomId, { title: t, type: type ?? null });
-      await refetch?.();
     },
-    [roomId, refetch]
+    [roomId]
   );
 
   const removeFood = useCallback(
     async (id: string) => {
       await removeFoodAction(roomId, id);
-      await refetch?.();
     },
-    [roomId, refetch]
+    [roomId]
   );
 
   const updateFood = useCallback(
@@ -87,9 +82,8 @@ export function useFoods({
         dalPatch.attributes = Array.isArray(patch.attributes) ? patch.attributes : [];
       }
       await updateFoodAction(roomId, id, dalPatch);
-      await refetch?.();
     },
-    [roomId, refetch]
+    [roomId]
   );
 
   const claimFood = useCallback(
@@ -125,9 +119,8 @@ export function useFoods({
         await claimFoodAction(roomId, id);
         if (!hasClaimedFoodBefore) setHasClaimedFoodBefore(true);
       }
-      await refetch?.();
     },
-    [currUser, data?.foods, hasClaimedFoodBefore, setHasClaimedFoodBefore, roomId, refetch]
+    [currUser, data?.foods, hasClaimedFoodBefore, setHasClaimedFoodBefore, roomId]
   );
 
   return {

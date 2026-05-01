@@ -62,12 +62,17 @@ export function useRoom(roomId: string | null): UseRoomResult {
         if (mounted) setLoading(false);
       });
 
-    // Realtime subscription — best-effort sync from other tabs / devices.
-    // The local user's own mutations don't depend on this; they explicitly
-    // refetch after each server action via the refetch callback returned
-    // by this hook.
-    const unsubscribe = repo.subscribeToRoom(roomId, (next) => {
-      if (mounted) setRoom(next);
+    // Realtime subscription. Each event's payload is applied directly
+    // to local state via setRoom(updater) — no second roundtrip. On
+    // reconnect we refetch as a catch-up for any events that fired
+    // while the websocket was down.
+    const unsubscribe = repo.subscribeToRoom(roomId, {
+      onUpdate: (updater) => {
+        if (mounted) setRoom(updater);
+      },
+      onReconnect: () => {
+        if (mounted) refetch();
+      },
     });
 
     return () => {
