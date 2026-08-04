@@ -1,183 +1,120 @@
-import { useState, useEffect, useCallback } from "react";
-import { nanoid } from "nanoid";
-import { User, IRoomObj, DietaryRestriction } from "@/types";
+"use client";
+
+import { useCallback, useMemo, useState } from "react";
+import {
+  joinRoomAction,
+  leaveRoomAction,
+  updateMemberAction,
+} from "../../app/potlucks/[roomId]/actions";
+import { useAuth } from "@/components/AuthProvider";
+import type { DietaryRestriction, IRoomObj, User } from "@/types";
 
 interface UseUsersProps {
   data: IRoomObj | null;
-  addData: (data: Partial<IRoomObj>) => Promise<void>;
   roomId: string;
 }
 
-function getStorageKey(roomId: string) {
-  return `potlucky-identity-${roomId}`;
-}
-
-function loadIdentity(roomId: string): { id: string; name: string } | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(getStorageKey(roomId));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed.id === "string" && typeof parsed.name === "string") {
-      return parsed;
-    }
-  } catch {
-    // corrupted data
-  }
-  return null;
-}
-
-function saveIdentity(roomId: string, user: { id: string; name: string }) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(getStorageKey(roomId), JSON.stringify(user));
-}
-
-function clearIdentity(roomId: string) {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(getStorageKey(roomId));
-}
-
-export function useUsers({ data, addData, roomId }: UseUsersProps) {
+// In the Supabase world, identity is auth.user.id. The legacy hook used
+// localStorage + nanoid; we keep the same return shape so the room page
+// doesn't need a rewrite, but most operations now route through server
+// actions and RLS does the gatekeeping.
+export function useUsers({ data, roomId }: UseUsersProps) {
+  const { user, isLoading: authLoading } = useAuth();
   const [userInput, setUserInput] = useState("");
-  const [currUser, setCurrUser] = useState<User | undefined>(undefined);
-  // Whether the identity gate has been resolved (user picked or switched)
-  const [identityResolved, setIdentityResolved] = useState(false);
+  // Local optimistic snapshot for the user's own membership so the UI
+  // dismisses the IdentityGate immediately after Join — without waiting
+  // on the realtime channel to deliver the INSERT (which can lag or drop
+  // during anonymous-auth handshakes). When the realtime catches up,
+  // currUser falls through to the real row.
+  const [optimisticSelf, setOptimisticSelf] = useState<User | null>(null);
 
-  // On mount (or when data arrives), try to restore identity from localStorage
-  useEffect(() => {
-    if (!data || identityResolved) return;
+  const realCurrUser: User | undefined = user
+    ? data?.users?.find((u) => u.id === user.id)
+    : undefined;
 
-    const saved = loadIdentity(roomId);
-    if (saved) {
-      // Verify the user still exists in the room
-      const found = data.users?.find((u) => u.id === saved.id);
-      if (found) {
-        setCurrUser(found);
-        setIdentityResolved(true);
-      } else {
-        // User was removed from room — clear stale identity
-        clearIdentity(roomId);
-      }
-    }
-  }, [data, roomId, identityResolved]);
+  const currUser = useMemo<User | undefined>(() => {
+    if (realCurrUser) return realCurrUser;
+    if (optimisticSelf && user && optimisticSelf.id === user.id)
+      return optimisticSelf;
+    return undefined;
+  }, [realCurrUser, optimisticSelf, user]);
 
-  // Select an existing user as identity
-  const selectIdentity = useCallback(
-    (user: User) => {
-      setCurrUser(user);
-      saveIdentity(roomId, { id: user.id, name: user.name });
-      setIdentityResolved(true);
-    },
-    [roomId]
-  );
+  // Resolved means: we know whether the visitor is a member yet.
+  // - Signed-in member: yes, currUser is populated.
+  // - Signed-in non-member: NO — we want to surface the IdentityGate so
+  //   they can pick a display name and join.
+  // - Signed-out: NO — IdentityGate prompts sign-in.
+  // - Auth still loading: NO — wait for auth to resolve before deciding.
+  const identityResolved = !authLoading && Boolean(currUser);
 
-  // Create a new user, add to room, and set as identity.
-  // First joiner becomes the host automatically.
   const createAndSelectIdentity = useCallback(
     async (
       name: string,
       dietaryRestrictions?: DietaryRestriction[],
       dietaryNote?: string
     ) => {
-      const newUser: User = {
-        id: nanoid(5),
+      if (!user) return;
+      await joinRoomAction(roomId, { displayName: name });
+      // Optimistic seed so the gate dismisses now; the real row arrives
+      // via realtime / next refetch and replaces this stub.
+      setOptimisticSelf({
+        id: user.id,
         name,
         ...(dietaryRestrictions?.length ? { dietaryRestrictions } : {}),
         ...(dietaryNote ? { dietaryNote } : {}),
-      };
-      const isFirstJoiner = !data?.users?.length;
-      const existingHostIds = data?.hostIds ?? [];
-      await addData({
-        ...data,
-        users: [...(data?.users || []), newUser],
-        ...(isFirstJoiner && !existingHostIds.length
-          ? { hostIds: [newUser.id] }
-          : {}),
       });
-      setCurrUser(newUser);
-      saveIdentity(roomId, { id: newUser.id, name: newUser.name });
-      setIdentityResolved(true);
-    },
-    [data, addData, roomId]
-  );
-
-  // Update dietary restrictions for the current user
-  const updateDietary = useCallback(
-    async (dietaryRestrictions: DietaryRestriction[], dietaryNote?: string) => {
-      if (!currUser || !data) return;
-      const updated: User = {
-        ...currUser,
-        dietaryRestrictions: dietaryRestrictions.length
-          ? dietaryRestrictions
-          : undefined,
-        dietaryNote: dietaryNote || undefined,
-      };
-      setCurrUser(updated);
-      await addData({
-        ...data,
-        users: data.users.map((u) => (u.id === currUser.id ? updated : u)),
-      });
-    },
-    [currUser, data, addData]
-  );
-
-  // Switch identity (reset and show gate again)
-  const switchIdentity = useCallback(() => {
-    setCurrUser(undefined);
-    clearIdentity(roomId);
-    setIdentityResolved(false);
-  }, [roomId]);
-
-  const removeUser = async (id: string) => {
-    if (currUser?.id === id) {
-      setCurrUser(undefined);
-      clearIdentity(roomId);
-      setIdentityResolved(false);
-    }
-    const remainingUsers = data?.users?.filter((u) => u.id !== id) ?? [];
-    const existingHostIds = data?.hostIds ?? [];
-    let nextHostIds: string[] | undefined;
-    if (existingHostIds.length) {
-      const filteredHosts = existingHostIds.filter((hid) => hid !== id);
-      if (filteredHosts.length) {
-        nextHostIds = filteredHosts;
-      } else if (remainingUsers.length) {
-        // Host left and no co-hosts — promote the earliest-joined remaining user.
-        nextHostIds = [remainingUsers[0].id];
-      } else {
-        nextHostIds = [];
+      if (dietaryRestrictions?.length || dietaryNote) {
+        await updateMemberAction(roomId, {
+          dietaryRestrictions: dietaryRestrictions ?? [],
+          dietaryNote: dietaryNote ?? null,
+        });
       }
-    }
-    await addData({
-      ...data,
-      users: remainingUsers,
-      ...(nextHostIds !== undefined ? { hostIds: nextHostIds } : {}),
-      foods: data?.foods?.map((food) => {
-        if (Array.isArray(food.claimedBy)) {
-          const filtered = food.claimedBy.filter((uid) => uid !== id);
-          return { ...food, claimedBy: filtered.length === 0 ? null : filtered };
-        }
-        if (food.claimedBy === id) {
-          return { ...food, claimedBy: null };
-        }
-        return food;
-      }),
-    });
-  };
+    },
+    [user, roomId]
+  );
 
-  const addUser = async () => {
+  // Existing-user picker — no longer applicable; identity is the signed-in user.
+  // Kept as a no-op so the page component's prop signature is unchanged.
+  const selectIdentity = useCallback((_user: User) => {}, []);
+
+  const updateDietary = useCallback(
+    async (
+      dietaryRestrictions: DietaryRestriction[],
+      dietaryNote?: string
+    ) => {
+      if (!currUser) return;
+      await updateMemberAction(roomId, {
+        dietaryRestrictions,
+        dietaryNote: dietaryNote ?? null,
+      });
+    },
+    [currUser, roomId]
+  );
+
+  const switchIdentity = useCallback(async () => {
+    // Switching identity now means signing out — Supabase identity is
+    // the auth user. The room page can prompt re-sign-in.
+    if (typeof window !== "undefined") {
+      await fetch("/auth/sign-out", { method: "POST" });
+      window.location.reload();
+    }
+  }, []);
+
+  const removeUser = useCallback(
+    async (id: string) => {
+      // Self-leave only for now. Host-evict can come later via a separate action.
+      if (currUser?.id !== id) return;
+      await leaveRoomAction(roomId);
+    },
+    [currUser, roomId]
+  );
+
+  const addUser = useCallback(async () => {
+    if (!user || !userInput.trim()) return;
+    const name = userInput.trim();
     setUserInput("");
-    const newUser = { id: nanoid(5), name: userInput } as User;
-    const isFirstJoiner = !data?.users?.length;
-    const existingHostIds = data?.hostIds ?? [];
-    await addData({
-      ...data,
-      users: [...(data?.users || []), newUser],
-      ...(isFirstJoiner && !existingHostIds.length
-        ? { hostIds: [newUser.id] }
-        : {}),
-    });
-  };
+    await joinRoomAction(roomId, { displayName: name });
+  }, [user, userInput, roomId]);
 
   return {
     userInput,

@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { fetchRoomRest } from "@/lib/firebase/rest";
+import { fetchOgRoom } from "@/lib/data/og-fetch";
 
 export const runtime = "edge";
 export const alt = "Potlucky menu";
@@ -35,7 +35,7 @@ const DM_SANS_600 =
 
 export default async function Image({ params }: { params: { roomId: string } }) {
   const [room, frauncesBold, frauncesItalic, dmSansRegular, dmSansMedium] = await Promise.all([
-    fetchRoomRest(params.roomId).catch(() => null),
+    fetchOgRoom(params.roomId).catch(() => null),
     loadFontTTF(FRAUNCES_700),
     loadFontTTF(FRAUNCES_500_ITALIC),
     loadFontTTF(DM_SANS_400),

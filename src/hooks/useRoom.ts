@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRepository } from "@/components/RepositoryProvider";
 import {
   NotAMemberError,
@@ -13,6 +13,7 @@ export type UseRoomResult = {
   room: PublicRoom | null;
   loading: boolean;
   error: Error | null;
+  refetch: () => Promise<void>;
 };
 
 export function useRoom(roomId: string | null): UseRoomResult {
@@ -20,6 +21,22 @@ export function useRoom(roomId: string | null): UseRoomResult {
   const [room, setRoom] = useState<PublicRoom | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  // Track the current roomId without re-creating refetch on every change so
+  // mutation hooks can keep a stable callback in their dependency arrays.
+  const roomIdRef = useRef(roomId);
+  roomIdRef.current = roomId;
+
+  const refetch = useCallback(async () => {
+    const id = roomIdRef.current;
+    if (!id) return;
+    try {
+      const r = await repo.getRoom(id);
+      setRoom(r);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+    }
+  }, [repo]);
 
   useEffect(() => {
     if (!roomId) {
@@ -45,8 +62,17 @@ export function useRoom(roomId: string | null): UseRoomResult {
         if (mounted) setLoading(false);
       });
 
-    const unsubscribe = repo.subscribeToRoom(roomId, (next) => {
-      if (mounted) setRoom(next);
+    // Realtime subscription. Each event's payload is applied directly
+    // to local state via setRoom(updater) — no second roundtrip. On
+    // reconnect we refetch as a catch-up for any events that fired
+    // while the websocket was down.
+    const unsubscribe = repo.subscribeToRoom(roomId, {
+      onUpdate: (updater) => {
+        if (mounted) setRoom(updater);
+      },
+      onReconnect: () => {
+        if (mounted) refetch();
+      },
     });
 
     return () => {
@@ -55,7 +81,7 @@ export function useRoom(roomId: string | null): UseRoomResult {
     };
   }, [roomId, repo]);
 
-  return { room, loading, error };
+  return { room, loading, error, refetch };
 }
 
 export type UseRoomWithLocationResult = {

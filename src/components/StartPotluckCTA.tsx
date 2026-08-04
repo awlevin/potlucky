@@ -1,24 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { nanoid } from "nanoid";
-import { useAddData } from "@/lib/firebase/firestore/addData";
+import { useTransition } from "react";
 import { presetToFoods, PotluckPreset } from "@/data/presets";
-
-const FUN_SLUGS = [
-  "pumpkin",
-  "pleasant",
-  "cheesy",
-  "baked",
-  "milky",
-  "oily",
-  "smooth",
-  "plump",
-];
-
-const getFunSlug = () =>
-  FUN_SLUGS[Math.floor(Math.random() * FUN_SLUGS.length)];
+import { createRoomAction } from "../../app/actions";
 
 interface StartPotluckCTAProps {
   preset: PotluckPreset;
@@ -31,39 +15,37 @@ export function StartPotluckCTA({
   label,
   size = "lg",
 }: StartPotluckCTAProps) {
-  const [loading, setLoading] = useState(false);
-  const { addData } = useAddData();
-  const router = useRouter();
+  const [pending, startTransition] = useTransition();
 
-  const createRoom = async () => {
-    const foods = presetToFoods(preset);
-    const data = {
-      users: [],
-      foods,
-      ...(preset.name ? { name: preset.name } : {}),
-      ...(preset.date ? { date: preset.date } : {}),
-    };
-    const roomId = `${getFunSlug()}-${getFunSlug()}-${nanoid(5)}`;
-    setLoading(true);
-    const { error } = await addData("rooms", roomId, data);
-    if (error) {
-      setLoading(false);
-      return console.error(error);
-    }
-    router.push(`/potlucks/${roomId}`);
+  const createRoom = () => {
+    const presetFoods = presetToFoods(preset).map((f) => ({
+      title: f.title,
+      type: f.type ?? null,
+      notes: f.notes ?? null,
+      attributes: f.attributes ?? [],
+    }));
+    startTransition(async () => {
+      await createRoomAction({
+        ...(preset.name ? { name: preset.name } : {}),
+        ...(preset.date ? { date: preset.date } : {}),
+        presetFoods,
+      });
+      // createRoomAction either redirects to the new room (success) or to
+      // /auth/sign-in?intent=create-room (anonymous). Either way the
+      // navigation happens server-side; no client routing needed.
+    });
   };
 
-  const text =
-    label ?? `Start a ${preset.name} potluck${loading ? "…" : ""}`;
+  const text = label ?? `Start a ${preset.name} potluck`;
 
   return (
     <button
       type="button"
       className={size === "lg" ? "btn btn-lg" : "btn"}
       onClick={createRoom}
-      disabled={loading}
+      disabled={pending}
     >
-      {loading ? "Creating…" : text}
+      {pending ? "Creating…" : text}
     </button>
   );
 }

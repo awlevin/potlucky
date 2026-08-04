@@ -5,6 +5,7 @@ import {
   NotAMemberError,
   NotAuthenticatedError,
   type RoomRepository,
+  type SubscribeRoomOptions,
 } from "./repository";
 import type {
   AddFoodInput,
@@ -143,25 +144,30 @@ export class SupabaseRoomRepository implements RoomRepository {
     return mapRoom(roomRes.data, membersRes.data ?? [], foodsRes.data ?? []);
   }
 
-  subscribeToRoom(
-    id: string,
-    onChange: (room: PublicRoom) => void
-  ): Unsubscribe {
-    const refetch = async () => {
-      try {
-        const room = await this.getRoom(id);
-        if (room) onChange(room);
-      } catch (err) {
-        console.error("[supabase] refetch on realtime change failed", err);
-      }
-    };
+  subscribeToRoom(id: string, opts: SubscribeRoomOptions): Unsubscribe {
+    // Apply each postgres event's payload to local state directly. No
+    // refetch — payload.new contains the full row (and with replica
+    // identity full, payload.old does too on UPDATE/DELETE).
+    let firstSubscribe = true;
 
     const channel = this.supabase
       .channel(`room:${id}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rooms", filter: `id=eq.${id}` },
-        refetch
+        (payload) => {
+          opts.onUpdate((prev) => {
+            if (!prev) return prev;
+            if (payload.eventType === "DELETE") return null;
+            const r = payload.new as RoomRow;
+            return {
+              ...prev,
+              name: r.name,
+              date: r.date,
+              closedAt: r.closed_at,
+            };
+          });
+        }
       )
       .on(
         "postgres_changes",
@@ -171,7 +177,31 @@ export class SupabaseRoomRepository implements RoomRepository {
           table: "room_members",
           filter: `room_id=eq.${id}`,
         },
-        refetch
+        (payload) => {
+          opts.onUpdate((prev) => {
+            if (!prev) return prev;
+            if (payload.eventType === "INSERT") {
+              const m = mapMember(payload.new as MemberRow);
+              if (prev.members.some((x) => x.userId === m.userId)) return prev;
+              return { ...prev, members: [...prev.members, m] };
+            }
+            if (payload.eventType === "UPDATE") {
+              const m = mapMember(payload.new as MemberRow);
+              return {
+                ...prev,
+                members: prev.members.map((x) => (x.userId === m.userId ? m : x)),
+              };
+            }
+            if (payload.eventType === "DELETE") {
+              const old = payload.old as MemberRow;
+              return {
+                ...prev,
+                members: prev.members.filter((x) => x.userId !== old.user_id),
+              };
+            }
+            return prev;
+          });
+        }
       )
       .on(
         "postgres_changes",
@@ -181,9 +211,43 @@ export class SupabaseRoomRepository implements RoomRepository {
           table: "foods",
           filter: `room_id=eq.${id}`,
         },
-        refetch
+        (payload) => {
+          opts.onUpdate((prev) => {
+            if (!prev) return prev;
+            if (payload.eventType === "INSERT") {
+              const f = mapFood(payload.new as FoodRow);
+              if (prev.foods.some((x) => x.id === f.id)) return prev;
+              return { ...prev, foods: [...prev.foods, f] };
+            }
+            if (payload.eventType === "UPDATE") {
+              const f = mapFood(payload.new as FoodRow);
+              return {
+                ...prev,
+                foods: prev.foods.map((x) => (x.id === f.id ? f : x)),
+              };
+            }
+            if (payload.eventType === "DELETE") {
+              const old = payload.old as FoodRow;
+              return {
+                ...prev,
+                foods: prev.foods.filter((x) => x.id !== old.id),
+              };
+            }
+            return prev;
+          });
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          if (firstSubscribe) {
+            firstSubscribe = false;
+          } else {
+            // Reconnected after a drop — there may be missed events.
+            // Catch up via refetch.
+            opts.onReconnect?.();
+          }
+        }
+      });
 
     return () => {
       this.supabase.removeChannel(channel);
@@ -216,6 +280,35 @@ export class SupabaseRoomRepository implements RoomRepository {
   async joinRoom(roomId: string, input: JoinRoomInput): Promise<RoomMember> {
     const userId = await this.currentUserId();
 
+    // Idempotency: if this user is already a member (e.g. user clicked
+    // Join twice), update display_name/color but DO NOT touch is_host.
+    // The original upsert logic re-evaluated `count(hosts) == 0` on every
+    // call, which demoted the user the second time around.
+    const { data: existing, error: existingErr } = await this.supabase
+      .from("room_members")
+      .select("*")
+      .eq("room_id", roomId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existingErr) throw existingErr;
+
+    if (existing) {
+      const { data, error } = await this.supabase
+        .from("room_members")
+        .update({
+          display_name: input.displayName,
+          color: input.color,
+          last_active: new Date().toISOString(),
+        })
+        .eq("room_id", roomId)
+        .eq("user_id", userId)
+        .select()
+        .single();
+      if (error) throw error;
+      return mapMember(data);
+    }
+
+    // First-joiner-becomes-host: only set when nobody else holds it.
     const { count, error: countErr } = await this.supabase
       .from("room_members")
       .select("*", { count: "exact", head: true })
@@ -226,16 +319,13 @@ export class SupabaseRoomRepository implements RoomRepository {
 
     const { data, error } = await this.supabase
       .from("room_members")
-      .upsert(
-        {
-          room_id: roomId,
-          user_id: userId,
-          display_name: input.displayName,
-          color: input.color,
-          is_host: isHost,
-        },
-        { onConflict: "room_id,user_id", ignoreDuplicates: false }
-      )
+      .insert({
+        room_id: roomId,
+        user_id: userId,
+        display_name: input.displayName,
+        color: input.color,
+        is_host: isHost,
+      })
       .select()
       .single();
     if (error) throw error;
