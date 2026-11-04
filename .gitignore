@@ -45,3 +45,19 @@ next-env.d.ts
 # supabase CLI artifacts
 supabase/.temp/
 supabase/.branches/
+
+# local-only tooling and scratch work (never publish)
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/frontend-design/
+.conductor/
+.mcp.json
+skills-lock.json
+/design-explorations/
+/*-pitch.html
+
+# firebase emulator logs
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*

@@ -26,7 +26,7 @@ export function useOnboarding({
       });
       setHasCompletedOnboardingBefore(true);
     }
-  }, [isOnboardingComplete, hasCompletedOnboardingBefore]);
+  }, [isOnboardingComplete, hasCompletedOnboardingBefore, setHasCompletedOnboardingBefore]);
 
   return {
     hasCompletedOnboardingBefore,

@@ -1,20 +1,11 @@
 import { ImageResponse } from "next/og";
 import { fetchRoomRest } from "@/lib/firebase/rest";
+import { loadOgFonts } from "@/lib/ogFonts";
 
 export const runtime = "edge";
 export const alt = "Potlucky menu";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-
-async function loadFontTTF(url: string): Promise<ArrayBuffer | null> {
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return null;
-    return await res.arrayBuffer();
-  } catch {
-    return null;
-  }
-}
 
 const CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: "appetizer", label: "Appetizers", emoji: "🥗" },
@@ -24,22 +15,10 @@ const CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: "drink", label: "Drinks", emoji: "🥤" },
 ];
 
-const FRAUNCES_700 =
-  "https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.16/files/fraunces-latin-700-normal.woff";
-const FRAUNCES_500_ITALIC =
-  "https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.16/files/fraunces-latin-500-italic.woff";
-const DM_SANS_400 =
-  "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5.0.9/files/dm-sans-latin-400-normal.woff";
-const DM_SANS_600 =
-  "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5.0.9/files/dm-sans-latin-600-normal.woff";
-
 export default async function Image({ params }: { params: { roomId: string } }) {
-  const [room, frauncesBold, frauncesItalic, dmSansRegular, dmSansMedium] = await Promise.all([
+  const [room, { fonts, serif: serifStack, sans: sansStack }] = await Promise.all([
     fetchRoomRest(params.roomId).catch(() => null),
-    loadFontTTF(FRAUNCES_700),
-    loadFontTTF(FRAUNCES_500_ITALIC),
-    loadFontTTF(DM_SANS_400),
-    loadFontTTF(DM_SANS_600),
+    loadOgFonts(["frauncesBold", "frauncesItalic", "dmSansRegular", "dmSansSemibold"]),
   ]);
 
   const title = (room?.name?.trim() || "Potluck Menu").slice(0, 80);
@@ -89,28 +68,19 @@ export default async function Image({ params }: { params: { roomId: string } }) 
     grouped.push({ key: "other", label: "Other", emoji: "📋", items: uncategorized });
   }
 
-  const left = grouped.filter((_, i) => i % 2 === 0);
-  const right = grouped.filter((_, i) => i % 2 === 1);
+  // Lay categories out in two columns, or three once there are more than
+  // four, so the card never needs more than two rows. The menu area holds
+  // two rows of "header + two dishes" only when there is no host byline;
+  // with one, show a single dish per category so nothing is clipped. The
+  // header count ("Sides · 4") covers dishes not shown.
+  const columnCount = grouped.length > 4 ? 3 : 2;
+  const columns = Array.from({ length: columnCount }, (_, ci) =>
+    grouped.filter((_, i) => i % columnCount === ci)
+  );
+  const rowCount = Math.max(...columns.map((c) => c.length), 0);
+  const previewCount = rowCount >= 2 && hostByline ? 1 : 2;
   const totalDishes = foods.length;
   const cookCount = users.length;
-
-  const fonts: {
-    name: string;
-    data: ArrayBuffer;
-    weight: 400 | 500 | 600 | 700;
-    style: "normal" | "italic";
-  }[] = [];
-  if (frauncesBold)
-    fonts.push({ name: "Fraunces", data: frauncesBold, weight: 700, style: "normal" });
-  if (frauncesItalic)
-    fonts.push({ name: "Fraunces", data: frauncesItalic, weight: 500, style: "italic" });
-  if (dmSansRegular)
-    fonts.push({ name: "DM Sans", data: dmSansRegular, weight: 400, style: "normal" });
-  if (dmSansMedium)
-    fonts.push({ name: "DM Sans", data: dmSansMedium, weight: 600, style: "normal" });
-
-  const sansStack = dmSansRegular ? '"DM Sans", system-ui, sans-serif' : "system-ui, sans-serif";
-  const serifStack = frauncesBold ? "Fraunces, Georgia, serif" : "Georgia, serif";
 
   return new ImageResponse(
     (
@@ -206,20 +176,20 @@ export default async function Image({ params }: { params: { roomId: string } }) 
             </div>
           ) : (
             <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-              {[left, right].map((col, ci) => (
+              {columns.map((col, ci) => (
                 <div
                   key={ci}
                   style={{
                     display: "flex",
                     flexDirection: "column",
                     flex: 1,
-                    marginRight: ci === 0 ? 48 : 0,
+                    minWidth: 0,
+                    marginRight: ci < columns.length - 1 ? (columnCount === 3 ? 32 : 48) : 0,
                     overflow: "hidden",
                   }}
                 >
                   {col.map((g) => {
-                    const preview = g.items.slice(0, 2);
-                    const extra = g.items.length - preview.length;
+                    const preview = g.items.slice(0, previewCount);
                     return (
                       <div
                         key={g.key}
@@ -250,27 +220,18 @@ export default async function Image({ params }: { params: { roomId: string } }) 
                             <div
                               key={i}
                               style={{
-                                display: "flex",
+                                display: "block",
                                 fontSize: 22,
                                 color: "#292524",
                                 marginTop: 2,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
                               }}
                             >
-                              · {f.title || "Untitled"}
+                              {`· ${f.title || "Untitled"}`}
                             </div>
                           ))}
-                          {extra > 0 && (
-                            <div
-                              style={{
-                                display: "flex",
-                                fontSize: 18,
-                                color: "#A8A29E",
-                                marginTop: 2,
-                              }}
-                            >
-                              + {extra} more
-                            </div>
-                          )}
                         </div>
                       </div>
                     );
@@ -305,6 +266,6 @@ export default async function Image({ params }: { params: { roomId: string } }) 
         </div>
       </div>
     ),
-    { ...size, fonts: fonts.length ? fonts : undefined }
+    { ...size, fonts }
   );
 }

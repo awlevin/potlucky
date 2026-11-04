@@ -22,9 +22,19 @@ const firebaseConfig = {
 const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 // const analytics = getAnalytics(app);
 
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
-const db = getFirestore(firebaseApp)
+const db = getFirestore(firebaseApp);
+
+// Local development: point the SDK at the Firestore emulator
+// (`yarn emulators`) when NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST is set.
+const emulatorHost = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST;
+const emulatorFlag = "__potluckyFirestoreEmulatorConnected";
+if (emulatorHost && !(globalThis as Record<string, unknown>)[emulatorFlag]) {
+  const [host, port] = emulatorHost.split(":");
+  connectFirestoreEmulator(db, host, Number(port || 8080));
+  (globalThis as Record<string, unknown>)[emulatorFlag] = true;
+}
 
 export default firebaseApp;
 export { db }

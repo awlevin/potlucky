@@ -48,6 +48,7 @@
 
 /* ---------- Global Body ---------- */
 body {
+  margin: 0;
   background: var(--color-canvas) !important;
   color: var(--color-text) !important;
   font-family: var(--font-dm-sans), system-ui, sans-serif;

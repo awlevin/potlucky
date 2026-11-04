@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "emulators": "npx -y firebase-tools@13.35.1 emulators:start --only firestore --project demo-potlucky",
+    "test:firestore-rules": "npx -y firebase-tools@13.35.1 emulators:exec --only firestore --project demo-potlucky \"node scripts/test-firestore-rules.mjs\"",
+    "test:db": "supabase test db",
+    "screenshots": "node scripts/screenshots.mjs",
+    "brand-images": "node scripts/render-brand.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.89.0",

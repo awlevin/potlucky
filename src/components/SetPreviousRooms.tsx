@@ -1,6 +1,6 @@
 import { IPrevRoom } from "@/utils/misc";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export interface ISetPrevRoomProps {
   roomId: string;
@@ -11,9 +11,14 @@ export interface ISetPrevRoomProps {
 
 const useSetPrevRooms = ({ roomId, roomName, ready, hostName }: ISetPrevRoomProps) => {
   const [_, setPrevRooms] = useLocalStorage<IPrevRoom[]>("prevRooms", []);
+  // useLocalStorage hands back a new setter every time the stored value
+  // changes. Read it through a ref so writing `lastVisited` does not
+  // re-trigger this effect in a loop.
+  const setPrevRoomsRef = useRef(setPrevRooms);
+  setPrevRoomsRef.current = setPrevRooms;
   useEffect(() => {
     if (ready) {
-      setPrevRooms((prevRooms) => {
+      setPrevRoomsRef.current((prevRooms) => {
         // see if the room is already in local storage...
         const room = prevRooms.find((room) => room.id === roomId);
         const updatedRoomName = roomName || roomId;

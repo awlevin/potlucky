@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getPresetBySlug, getMarketablePresets } from "@/data/presets";
+import { loadOgFonts } from "@/lib/ogFonts";
 
 export const alt = "Potlucky potluck planner";
 export const size = { width: 1200, height: 630 };
@@ -19,6 +20,7 @@ export default async function OgImage({
   const emoji = preset?.emoji ?? "🍽️";
   const dishCount = preset?.dishes.length ?? 0;
   const tagline = preset?.marketing?.headline ?? "Potluck planner, made simple";
+  const { fonts, serif, sans } = await loadOgFonts(["frauncesBold", "dmSansRegular", "dmSansSemibold"]);
 
   return new ImageResponse(
     (
@@ -33,18 +35,19 @@ export default async function OgImage({
           padding: "64px",
           background:
             "linear-gradient(160deg, #FFFCF5 0%, #FFF0C7 35%, #FEF1ED 65%, #FFFCF5 100%)",
-          fontFamily: "Georgia, serif",
+          fontFamily: sans,
         }}
       >
-        <div style={{ fontSize: 200, lineHeight: 1, marginBottom: 24 }}>
+        <div style={{ display: "flex", fontSize: 180, lineHeight: 1, marginBottom: 28 }}>
           {emoji}
         </div>
         <div
           style={{
             fontSize: 72,
-            fontWeight: 600,
+            fontWeight: 700,
+            fontFamily: serif,
             color: "#292524",
-            letterSpacing: "-0.02em",
+            letterSpacing: -1.5,
             textAlign: "center",
             lineHeight: 1.1,
             marginBottom: 16,
@@ -77,13 +80,13 @@ export default async function OgImage({
             color: "#292524",
             borderRadius: 16,
             fontSize: 28,
-            fontWeight: 700,
+            fontWeight: 600,
           }}
         >
-          🍽️ {name}
+          {`🍲 ${name}`}
         </div>
       </div>
     ),
-    { ...size }
+    { ...size, fonts }
   );
 }

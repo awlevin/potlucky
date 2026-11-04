@@ -1,4 +1,5 @@
 import { SignInForm } from "./SignInForm";
+import { safeNextPath } from "@/lib/site";
 
 export const metadata = {
   title: "Sign in · Potlucky",
@@ -17,7 +18,7 @@ export default function SignInPage({
           we&apos;ll send you a sign-in link. no password, no fuss.
         </p>
         <SignInForm
-          next={searchParams.next ?? "/"}
+          next={safeNextPath(searchParams.next)}
           calloutError={searchParams.error === "callback" ? "Your link expired or was already used. Try again." : undefined}
         />
       </div>
