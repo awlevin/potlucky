@@ -1,7 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { SITE_URL, safeNextPath } from "@/lib/site";
 
 export type SignInState = {
   status: "idle" | "sent" | "error";
@@ -14,16 +14,15 @@ export async function sendMagicLink(
   formData: FormData
 ): Promise<SignInState> {
   const email = String(formData.get("email") ?? "").trim();
-  const next = String(formData.get("next") ?? "/");
+  const next = safeNextPath(String(formData.get("next") ?? "/"));
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { status: "error", error: "That email doesn't look right." };
   }
 
-  const origin = headers().get("origin") ?? headers().get("host");
-  const emailRedirectTo = origin
-    ? `${origin.startsWith("http") ? "" : "https://"}${origin}/auth/callback?next=${encodeURIComponent(next)}`
-    : undefined;
+  // Build the link from our own configured URL, never from request headers:
+  // a forged Origin/Host would otherwise point the emailed link elsewhere.
+  const emailRedirectTo = `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`;
 
   const supabase = createServerSupabase();
   const { error } = await supabase.auth.signInWithOtp({

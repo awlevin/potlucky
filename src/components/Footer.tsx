@@ -1,10 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { pickRandomFooterTagline } from "@/lib/footerTaglines"
+import { useEffect, useState } from "react"
+import { FOOTER_TAGLINES, pickRandomFooterTagline } from "@/lib/footerTaglines"
 
 export function Footer() {
-  const [tagline] = useState(pickRandomFooterTagline)
+  // Server and first client render must match, so start from a fixed
+  // tagline and shuffle only after hydration.
+  const [tagline, setTagline] = useState(FOOTER_TAGLINES[0])
+  useEffect(() => {
+    setTagline(pickRandomFooterTagline())
+  }, [])
   return (
     <footer className="footer">
       <p className="footer-tagline">

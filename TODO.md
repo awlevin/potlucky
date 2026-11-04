@@ -24,7 +24,7 @@ AI-generated output — especially dish recommendations — takes both the event
 title and description into account.
 
 - The description gives way better signal about the *vibe* of the event than
-  the title alone: is it a professional work function, a slutty/flirty
+  the title alone: is it a professional work function, a flirty
   cocktail party, a sloppy college drunk thing, an adult/mature dinner,
   kid-friendly, etc.
 - Vibe should meaningfully shift recommendations (e.g. elevated small plates

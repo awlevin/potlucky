@@ -1,0 +1,51 @@
+rules_version = '2';
+
+// Firestore security rules for Potlucky's legacy (pre-Supabase) data store.
+//
+// Model: a room's URL is its invite. Anyone holding a room id may read and
+// edit that room, but nobody can list rooms, delete them, or touch any
+// other collection. Deploy with:
+//
+//   firebase deploy --only firestore:rules --project <your-project-id>
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /rooms/{roomId} {
+      // `get` only — never `list`. Listing would let anyone enumerate every
+      // room id, which are the only thing keeping rooms private.
+      allow get: if true;
+      allow list: if false;
+
+      allow create: if roomId.matches('^[A-Za-z0-9_-]{1,64}$')
+        && validRoom(request.resource.data);
+      allow update: if validRoom(request.resource.data);
+      allow delete: if false;
+    }
+
+    // Deny everything else.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function optString(data, key, maxLen) {
+      return !(key in data) || data[key] == null
+        || (data[key] is string && data[key].size() <= maxLen);
+    }
+
+    function optList(data, key, maxLen) {
+      return !(key in data) || data[key] == null
+        || (data[key] is list && data[key].size() <= maxLen);
+    }
+
+    function validRoom(data) {
+      return data.keys().hasOnly(['id', 'name', 'date', 'location', 'users', 'foods', 'hostIds'])
+        && optString(data, 'id', 64)
+        && optString(data, 'name', 200)
+        && optString(data, 'date', 100)
+        && optString(data, 'location', 500)
+        && optList(data, 'users', 200)
+        && optList(data, 'foods', 500)
+        && optList(data, 'hostIds', 50);
+    }
+  }
+}

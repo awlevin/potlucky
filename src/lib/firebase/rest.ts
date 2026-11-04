@@ -37,7 +37,11 @@ export async function fetchRoomRest(roomId: string): Promise<RestRoom | null> {
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   if (!projectId) return null;
   try {
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/rooms/${encodeURIComponent(roomId)}`;
+    const emulatorHost = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST;
+    const origin = emulatorHost
+      ? `http://${emulatorHost}`
+      : "https://firestore.googleapis.com";
+    const url = `${origin}/v1/projects/${projectId}/databases/(default)/documents/rooms/${encodeURIComponent(roomId)}`;
     const res = await fetch(url, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     const data = await res.json();
